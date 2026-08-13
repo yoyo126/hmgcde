@@ -189,7 +189,10 @@ export function ProductsScreen() {
                                   : `Commande par ${p.unit.toLowerCase()}`}
                               </small>
                             </span>
-                            <span className="packaging-cell">
+                            <span
+                              className="packaging-cell"
+                              data-label="Conditionnement"
+                            >
                               {p.offers[0].packaging}
                             </span>
                             {supplierNames.map((supplier) => {
@@ -199,16 +202,21 @@ export function ProductsScreen() {
                               return (
                                 <span
                                   className={
-                                    offer?.price && offer.price === bestPrice
-                                      ? "price-cell best-price"
-                                      : "price-cell"
+                                    !offer
+                                      ? "price-cell unavailable"
+                                      : offer.price && offer.price === bestPrice
+                                        ? "price-cell best-price"
+                                        : "price-cell"
                                   }
                                   key={supplier}
+                                  data-label={supplier}
                                 >
                                   <b>
                                     {offer?.price
                                       ? money(offer.price)
-                                      : "À saisir"}
+                                      : offer
+                                        ? "À saisir"
+                                        : "—"}
                                   </b>
                                   {offer && <small>{offer.reference}</small>}
                                 </span>
