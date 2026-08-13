@@ -12,7 +12,8 @@ import {
   Search,
   ShoppingCart,
 } from "lucide-react";
-import { productFamilies, productSection, products } from "@/lib/crm-data";
+import { productFamilies, productSection } from "@/lib/crm-data";
+import { getCatalogProducts } from "@/lib/tariff-storage";
 import {
   createOrdersFromRequest,
   getStoredRequests,
@@ -35,6 +36,7 @@ export function PurchaseRequests() {
     [requests, setRequests] = useState<StoredPurchaseRequest[]>(() =>
       getStoredRequests(),
     );
+  const [products] = useState(() => getCatalogProducts());
 
   const filtered = useMemo(
     () =>
@@ -52,7 +54,7 @@ export function PurchaseRequests() {
             "fr",
           ),
         ),
-    [family, query],
+    [family, products, query],
   );
   const selected = products.filter(
     (product) => (quantities[product.id] || 0) > 0,
