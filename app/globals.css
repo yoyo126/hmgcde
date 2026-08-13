@@ -2811,6 +2811,55 @@ main {
 .product-actions .composition-link {
   margin: 0;
 }
+.product-delete-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid #f0c7c1;
+  border-radius: 11px;
+  background: #fff5f3;
+  color: #8d3429;
+}
+.product-delete-banner span,
+.product-delete-banner strong {
+  display: block;
+}
+.product-delete-banner strong {
+  margin-bottom: 3px;
+}
+.product-delete-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+  color: #b33b2d;
+  font-size: 12px;
+  font-weight: 900;
+}
+.product-delete-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: #c94131;
+}
+.danger-btn {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: #c94131;
+  color: #fff;
+  font-weight: 900;
+}
+.danger-btn:disabled {
+  opacity: 0.45;
+}
 .list-composition {
   margin: 0;
   border: 0;
@@ -3092,6 +3141,10 @@ main {
   }
   .product-actions .composition-link {
     font-size: 15px;
+  }
+  .product-delete-banner {
+    align-items: stretch;
+    flex-direction: column;
   }
   .list-composition {
     padding: 12px 14px;
