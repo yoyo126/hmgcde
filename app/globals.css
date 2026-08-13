@@ -3717,6 +3717,22 @@ main {
   background: #eaf8f2;
   color: #147b5e;
 }
+.product-match-select {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  padding: 8px 30px 8px 9px;
+  border: 1px solid #cfd6e2;
+  border-radius: 8px;
+  background: #fff;
+  color: #17223b;
+  font-size: 12px;
+  font-weight: 700;
+}
+.product-match-select:focus {
+  border-color: var(--blue);
+  outline: 2px solid #2f6fed24;
+}
 .delta-up,
 .delta-down {
   display: flex;
