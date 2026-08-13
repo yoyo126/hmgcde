@@ -64,7 +64,7 @@ export function OrdersScreen({
       .includes(query.toLowerCase()),
   );
   const openMail = (order: StoredOrder) => {
-    const email = order.email || createMailPreview(order);
+    const email = createMailPreview(order);
     saveOrder({ ...order, email, status: "Envoyée" });
     setOrders(getStoredOrders());
     window.open(mailtoUrl(email), "_self");
@@ -118,7 +118,10 @@ export function OrdersScreen({
               >
                 <span>
                   <FileText size={17} />
-                  <strong>{o.id}</strong>
+                  <span className="order-reference-cell">
+                    <strong>{o.reference}</strong>
+                    <small>{o.id}</small>
+                  </span>
                 </span>
                 <span>{o.supplier}</span>
                 <span>{o.date}</span>
@@ -151,7 +154,8 @@ export function OrdersScreen({
                   <div className="order-detail-head">
                     <div>
                       <span>COMMANDE FOURNISSEUR</span>
-                      <h2>{o.id}</h2>
+                      <h2>{o.reference}</h2>
+                      <small>{o.id}</small>
                       {o.sourceRequestId && (
                         <small>Issue de la demande {o.sourceRequestId}</small>
                       )}
@@ -980,7 +984,7 @@ export function SettingsScreen() {
           <div className="mail-template-preview">
             <strong>Aperçu</strong>
             <span>Objet : {draft.mailSubject}</span>
-            <pre>{`${draft.greeting}\n\n${draft.deliveryMessage}\n\nCommande CMD-2026-…\n\n[Produits et quantités]\n\n${draft.closing}`}</pre>
+            <pre>{`${draft.greeting}\n\n${draft.deliveryMessage}\n\nCommande S35 du 27/08/2026\n\n2 × Vis à bois 5 × 70 — Boîte de 200\nDispatch : CPTE Conseil 1 | HM Pose 1 | HM Instal 0 | HM PAC 0\n\n${draft.closing}`}</pre>
           </div>
         </section>
       </div>
