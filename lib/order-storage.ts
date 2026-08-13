@@ -310,7 +310,72 @@ export const createMailPreview = (
   };
 };
 
-export const mailtoUrl = (email: SentEmail) =>
-  `mailto:${email.to}?subject=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`;
+const escapeHtml = (value: string | number) =>
+  String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+
+export const copyOrderEmail = async (order: StoredOrder) => {
+  const settings = getPurchasingSettings();
+  const rows = order.lines
+    .map((line) => {
+      const dispatch = line.dispatch || emptyDispatch();
+      return `<tr>
+        <td style="border:1px solid #b7c0cc;padding:8px"><strong>${escapeHtml(line.name)}</strong></td>
+        <td style="border:1px solid #b7c0cc;padding:8px">${escapeHtml(line.packaging)}</td>
+        <td style="border:1px solid #b7c0cc;padding:8px;text-align:center"><strong>${line.quantity}</strong></td>
+        <td style="border:1px solid #b7c0cc;padding:8px;text-align:center">${dispatch.cpte}</td>
+        <td style="border:1px solid #b7c0cc;padding:8px;text-align:center">${dispatch.pose}</td>
+        <td style="border:1px solid #b7c0cc;padding:8px;text-align:center">${dispatch.instal}</td>
+        <td style="border:1px solid #b7c0cc;padding:8px;text-align:center">${dispatch.pac}</td>
+      </tr>`;
+    })
+    .join("");
+  const html = `<div style="font-family:Arial,sans-serif;color:#172033;font-size:14px">
+    <p>${escapeHtml(settings.greeting)}</p>
+    <p><strong>${escapeHtml(settings.deliveryMessage)}</strong></p>
+    <p><strong>${escapeHtml(order.reference)}</strong></p>
+    <table style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:13px">
+      <thead><tr style="background:#263653;color:#ffffff">
+        <th style="border:1px solid #263653;padding:8px;text-align:left">Produit</th>
+        <th style="border:1px solid #263653;padding:8px;text-align:left">Conditionnement</th>
+        <th style="border:1px solid #263653;padding:8px">Qté totale</th>
+        <th style="border:1px solid #263653;padding:8px">CPTE</th>
+        <th style="border:1px solid #263653;padding:8px">HM Pose</th>
+        <th style="border:1px solid #263653;padding:8px">HM Instal</th>
+        <th style="border:1px solid #263653;padding:8px">HM PAC</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p style="white-space:pre-line">${escapeHtml(settings.closing)}</p>
+  </div>`;
+  const textRows = order.lines.map((line) => {
+    const dispatch = line.dispatch || emptyDispatch();
+    return `${line.name}\t${line.packaging}\t${line.quantity}\t${dispatch.cpte}\t${dispatch.pose}\t${dispatch.instal}\t${dispatch.pac}`;
+  });
+  const text = `${settings.greeting}\n\n${settings.deliveryMessage}\n\n${order.reference}\n\nProduit\tConditionnement\tQté totale\tCPTE\tHM Pose\tHM Instal\tHM PAC\n${textRows.join("\n")}\n\n${settings.closing}`;
+  try {
+    if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([text], { type: "text/plain" }),
+        }),
+      ]);
+    } else {
+      await navigator.clipboard.writeText(text);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const mailtoUrl = (email: SentEmail, includeBody = true) =>
+  `mailto:${email.to}?subject=${encodeURIComponent(email.subject)}${
+    includeBody ? `&body=${encodeURIComponent(email.body)}` : ""
+  }`;
 
 export { localId };

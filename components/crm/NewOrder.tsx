@@ -23,6 +23,7 @@ import {
 import { getCatalogProducts } from "@/lib/tariff-storage";
 import {
   createMailPreview,
+  copyOrderEmail,
   mailtoUrl,
   nextOrderId,
   orderReference,
@@ -138,11 +139,16 @@ export function NewOrder({
     saveOrder(buildOrder("Brouillon"));
     setSent(true);
   };
-  const markEmailSent = () => {
+  const markEmailSent = async () => {
     const order = buildOrder("Envoyée");
     saveOrder(order);
+    const copied = await copyOrderEmail(order);
     setMailOpen(true);
-    window.open(mailtoUrl(order.email!), "_self");
+    if (!copied) {
+      window.alert("Le tableau n’a pas pu être copié. Réessaie depuis Safari ou Chrome.");
+      return;
+    }
+    window.open(mailtoUrl(order.email!, false), "_self");
   };
   if (sent)
     return (
@@ -172,12 +178,13 @@ export function NewOrder({
             </button>
             <button className="primary-btn" onClick={markEmailSent}>
               <Send size={17} />
-              Ouvrir l’application Mail
+              Copier le tableau et ouvrir Mail
             </button>
           </div>
           {mailOpen && (
             <div className="sent-mail-preview compact-mail-preview">
-              <strong>E-mail enregistré dans la commande</strong>
+              <strong>Le tableau complet est copié</strong>
+              <span>Dans Mail, maintiens ton doigt dans le message puis choisis « Coller ».</span>
               <span>À : {buildOrder("Envoyée").email?.to || "À renseigner dans Paramètres"}</span>
               <span>Objet : {settings.mailSubject}</span>
               <button

@@ -42,6 +42,7 @@ import {
 } from "@/lib/tariff-storage";
 import {
   createMailPreview,
+  copyOrderEmail,
   getStoredOrders,
   mailtoUrl,
   saveOrder,
@@ -66,11 +67,16 @@ export function OrdersScreen({
       .toLowerCase()
       .includes(query.toLowerCase()),
   );
-  const openMail = (order: StoredOrder) => {
+  const openMail = async (order: StoredOrder) => {
     const email = createMailPreview(order);
     saveOrder({ ...order, email, status: "Envoyée" });
     setOrders(getStoredOrders());
-    window.open(mailtoUrl(email), "_self");
+    const copied = await copyOrderEmail({ ...order, email, status: "Envoyée" });
+    if (!copied) {
+      window.alert("Le tableau n’a pas pu être copié. Réessaie depuis Safari ou Chrome.");
+      return;
+    }
+    window.open(mailtoUrl(email, false), "_self");
   };
   return (
     <div className="screen">
@@ -184,7 +190,7 @@ export function OrdersScreen({
                       </button>
                       <button className="primary-btn" onClick={() => openMail(o)}>
                         <Mail size={16} />
-                        {o.email ? "Rouvrir dans Mail" : "Ouvrir dans Mail"}
+                        {o.email ? "Recopier et rouvrir Mail" : "Copier le tableau et ouvrir Mail"}
                       </button>
                     </div>
                   </div>
