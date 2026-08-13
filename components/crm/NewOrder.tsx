@@ -23,11 +23,13 @@ import {
 } from "@/lib/crm-data";
 import {
   createMailPreview,
+  mailtoUrl,
   nextOrderId,
   saveOrder,
   type StoredOrder,
 } from "@/lib/order-storage";
 import type { ScreenId } from "./Sidebar";
+import { getPurchasingSettings } from "@/lib/settings-storage";
 type Teams = Record<CompanyKey, number>;
 type Selected = Record<number, number>;
 export function NewOrder({
@@ -47,7 +49,8 @@ export function NewOrder({
     [query, setQuery] = useState(""),
     [sent, setSent] = useState(false),
     [mailOpen, setMailOpen] = useState(false),
-    [orderId] = useState(() => nextOrderId());
+    [orderId] = useState(() => nextOrderId()),
+    [settings] = useState(() => getPurchasingSettings());
   const totalTeams = Math.max(
     1,
     Object.values(teams).reduce((a, b) => a + b, 0),
@@ -82,46 +85,52 @@ export function NewOrder({
       return value;
     });
   };
-  const buildOrder = (status: "Brouillon" | "Envoyée"): StoredOrder => ({
-    id: orderId,
-    supplier,
-    date: new Intl.DateTimeFormat("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).format(new Date()),
-    status,
-    lines: Object.entries(selected)
-      .filter(([, quantity]) => quantity > 0)
-      .map(([id, quantity]) => {
-        const product = products.find((item) => item.id === Number(id))!;
-        const offer = product.offers.find(
-          (item) => item.supplier === supplier,
-        )!;
-        return {
-          productId: product.id,
-          name: product.name,
-          packaging: offer.packaging,
-          quantity,
-          unitPrice: offer.price,
-          dispatch: Object.fromEntries(
-            companies.map((company, index) => [
-              company.key,
-              sharesFor(quantity)[index],
-            ]),
-          ) as Record<CompanyKey, number>,
-        };
-      }),
-    total,
-    email: status === "Envoyée" ? createMailPreview(orderId, supplier) : undefined,
-  });
+  const buildOrder = (status: "Brouillon" | "Envoyée"): StoredOrder => {
+    const order: StoredOrder = {
+      id: orderId,
+      supplier,
+      date: new Intl.DateTimeFormat("fr-FR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(new Date()),
+      status,
+      lines: Object.entries(selected)
+        .filter(([, quantity]) => quantity > 0)
+        .map(([id, quantity]) => {
+          const product = products.find((item) => item.id === Number(id))!;
+          const offer = product.offers.find(
+            (item) => item.supplier === supplier,
+          )!;
+          return {
+            productId: product.id,
+            name: product.name,
+            packaging: offer.packaging,
+            quantity,
+            unitPrice: offer.price,
+            dispatch: Object.fromEntries(
+              companies.map((company, index) => [
+                company.key,
+                sharesFor(quantity)[index],
+              ]),
+            ) as Record<CompanyKey, number>,
+          };
+        }),
+      total,
+    };
+    return status === "Envoyée"
+      ? { ...order, email: createMailPreview(order) }
+      : order;
+  };
   const createOrder = () => {
     saveOrder(buildOrder("Brouillon"));
     setSent(true);
   };
   const markEmailSent = () => {
-    saveOrder(buildOrder("Envoyée"));
+    const order = buildOrder("Envoyée");
+    saveOrder(order);
     setMailOpen(true);
+    window.open(mailtoUrl(order.email!), "_self");
   };
   if (sent)
     return (
@@ -146,13 +155,13 @@ export function NewOrder({
             </button>
             <button className="primary-btn" onClick={markEmailSent}>
               <Send size={17} />
-              Enregistrer l’e-mail envoyé
+              Ouvrir l’application Mail
             </button>
           </div>
           {mailOpen && (
             <div className="sent-mail-preview compact-mail-preview">
               <strong>E-mail enregistré dans la commande</strong>
-              <span>À : {createMailPreview(orderId, supplier).to}</span>
+              <span>À : {buildOrder("Envoyée").email?.to || "À renseigner dans Paramètres"}</span>
               <span>Objet : {orderId} – Commande HM Group</span>
               <button
                 className="text-btn"
@@ -391,7 +400,7 @@ export function NewOrder({
               <div className="delivery-box">
                 <small>LIVRAISON</small>
                 <strong>HM Group</strong>
-                <span>Adresse de livraison configurée dans les paramètres</span>
+                <span>{settings.deliveryAddress}</span>
               </div>
               <div className="doc-table">
                 <div>
