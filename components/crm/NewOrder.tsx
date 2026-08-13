@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import {
   companies,
+  componentPrice,
   type CompanyKey,
   money,
   productSection,
@@ -230,7 +231,11 @@ export function NewOrder({
                           {p.contents.map((item) => (
                             <span key={item.name}>
                               {item.quantity} × {item.name} —{" "}
-                              <b>{money(item.unitPrice)} / unité</b>
+                              <b>
+                                {componentPrice(item, supplier)
+                                  ? `${money(componentPrice(item, supplier))} / unité`
+                                  : "Prix à saisir"}
+                              </b>
                             </span>
                           ))}
                         </div>
@@ -351,7 +356,11 @@ export function NewOrder({
                                   <span>
                                     {item.quantity} × {item.name}
                                   </span>
-                                  <b>{money(item.unitPrice)} / unité</b>
+                                  <b>
+                                    {componentPrice(item, supplier)
+                                      ? `${money(componentPrice(item, supplier))} / unité`
+                                      : "Prix à saisir"}
+                                  </b>
                                 </span>
                               ))}
                             </span>
