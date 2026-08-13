@@ -14,7 +14,7 @@ import {
   PackagePlus,
   UploadCloud,
 } from "lucide-react";
-import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.mjs?url";
+import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.mjs?url";
 import { money, products, supplierNames, type Product } from "@/lib/crm-data";
 import {
   effectivePrice,
@@ -58,9 +58,22 @@ const headerIndex = (headers: unknown[], terms: string[]) =>
     terms.some((term) => normalize(cell).includes(normalize(term))),
   );
 
+const readFileAsArrayBuffer = (file: File) => {
+  if (typeof file.arrayBuffer === "function") return file.arrayBuffer();
+  return new Promise<ArrayBuffer>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) resolve(reader.result);
+      else reject(new Error("Le fichier n’a pas pu être lu."));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("Lecture impossible."));
+    reader.readAsArrayBuffer(file);
+  });
+};
+
 async function readExcel(file: File): Promise<RawLine[]> {
   const XLSX = await import("xlsx");
-  const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
+  const workbook = XLSX.read(await readFileAsArrayBuffer(file), { type: "array" });
   return workbook.SheetNames.flatMap((sheetName) => {
     const rows = XLSX.utils.sheet_to_json<unknown[]>(
       workbook.Sheets[sheetName],
@@ -103,9 +116,9 @@ async function readExcel(file: File): Promise<RawLine[]> {
 }
 
 async function readPdf(file: File): Promise<RawLine[]> {
-  const pdfjs = await import("pdfjs-dist");
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
-  const document = await pdfjs.getDocument({ data: await file.arrayBuffer() })
+  const document = await pdfjs.getDocument({ data: await readFileAsArrayBuffer(file) })
     .promise;
   const lines: string[] = [];
   for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
