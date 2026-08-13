@@ -1,6 +1,7 @@
 export type CompanyKey="cpte"|"pose"|"instal"|"pac";
 export type SupplierOffer={supplier:string;supplierName:string;reference:string;brand:string;price:number;packaging:string;packagingType:"modifiable"|"fixed"};
-export type Product={id:number;name:string;family:string;subfamily:string;unit:string;kind:"simple"|"ensemble";contents?:string[];offers:SupplierOffer[]};
+export type ProductComponent={name:string;quantity:number;unitPrice:number};
+export type Product={id:number;name:string;family:string;subfamily:string;unit:string;kind:"simple"|"ensemble";contents?:ProductComponent[];offers:SupplierOffer[]};
 export type Order={id:string;supplier:string;date:string;total:number;status:"Brouillon"|"Envoyée"|"Reçue";products:number};
 
 export const companies:{key:CompanyKey;name:string;short:string;color:string}[]=[
@@ -8,7 +9,8 @@ export const companies:{key:CompanyKey;name:string;short:string;color:string}[]=
  {key:"instal",name:"HM Instal",short:"INSTAL",color:"#8b5cf6"},{key:"pac",name:"HM PAC",short:"PAC",color:"#f59e0b"},
 ];
 
-type Seed={name:string;family:"Électricité"|"Climatisation"|"Plomberie";subfamily:string;unit:string;packaging:string;price?:number;reference?:string;modifiable?:boolean;contents?:string[]};
+type Seed={name:string;family:"Électricité"|"Climatisation"|"Plomberie";subfamily:string;unit:string;packaging:string;price?:number;reference?:string;modifiable?:boolean;contents?:ProductComponent[]};
+const component=(quantity:number,name:string,unitPrice:number):ProductComponent=>({quantity,name,unitPrice});
 const electrical:Seed[]=[
  {name:"H07V-K 6 vert/jaune",family:"Électricité",subfamily:"Câbles",unit:"Couronne",packaging:"Couronne de 100 m",modifiable:true},
  {name:"H07V-R 1×16 vert/jaune",family:"Électricité",subfamily:"Câbles",unit:"Couronne",packaging:"Couronne de 50 m",modifiable:true},
@@ -45,10 +47,10 @@ const electrical:Seed[]=[
  {name:"Disjoncteur C2",family:"Électricité",subfamily:"Protections",unit:"Pièce",packaging:"Pièce",price:11.33},
  {name:"Disjoncteur C32",family:"Électricité",subfamily:"Protections",unit:"Pièce",packaging:"Pièce",price:8},
  {name:"Disjoncteur C40 triphasé",family:"Électricité",subfamily:"Protections",unit:"Pièce",packaging:"Pièce"},
- {name:"Coffret triphasé",family:"Électricité",subfamily:"Coffrets complets",unit:"Coffret",packaging:"Coffret complet",price:188.9,contents:["1 × disjoncteur différentiel 3P+N C40A 10 kA 30 mA AC","1 × disjoncteur modulaire 1P+N C16","2 × disjoncteurs 3P+N C20 6 kA","1 × coffret vide + barrette"]},
- {name:"Coffret monophasé",family:"Électricité",subfamily:"Coffrets complets",unit:"Coffret",packaging:"Coffret complet",price:81.5,contents:["1 × disjoncteur différentiel 1P+N C63A 30 mA AC","1 × disjoncteur modulaire 1P+N C16","2 × disjoncteurs modulaires 1P+N C32","1 × coffret vide + barrette"]},
- {name:"Coffret monophasé De Dietrich",family:"Électricité",subfamily:"Coffrets complets",unit:"Coffret",packaging:"Coffret complet",price:90.9,contents:["1 × disjoncteur différentiel 1P+N C63A 30 mA AC","1 × disjoncteur C16","1 × disjoncteur C10","1 × disjoncteur C32","1 × disjoncteur C40","1 × coffret vide + barrette"]},
- {name:"Coffret triphasé De Dietrich",family:"Électricité",subfamily:"Coffrets complets",unit:"Coffret",packaging:"Coffret complet",price:194.8,contents:["1 × disjoncteur différentiel 3P+N C40A 10 kA 30 mA AC","1 × disjoncteur C16","1 × disjoncteur C10","2 × disjoncteurs 3P+N C16 6 kA","1 × coffret vide + barrette"]},
+ {name:"Coffret triphasé",family:"Électricité",subfamily:"Coffrets complets",unit:"Coffret",packaging:"Coffret complet",price:188.9,contents:[component(1,"Disjoncteur différentiel 3P+N C40A 10 kA 30 mA AC",81),component(1,"Disjoncteur modulaire 1P+N C16",5.9),component(2,"Disjoncteur 3P+N C20 6 kA",39),component(1,"Coffret vide + barrette",24)]},
+ {name:"Coffret monophasé",family:"Électricité",subfamily:"Coffrets complets",unit:"Coffret",packaging:"Coffret complet",price:81.5,contents:[component(1,"Disjoncteur différentiel 1P+N C63A 30 mA AC",45),component(1,"Disjoncteur modulaire 1P+N C16",5.9),component(2,"Disjoncteur modulaire 1P+N C32",8),component(1,"Coffret vide + barrette",14.6)]},
+ {name:"Coffret monophasé De Dietrich",family:"Électricité",subfamily:"Coffrets complets",unit:"Coffret",packaging:"Coffret complet",price:90.9,contents:[component(1,"Disjoncteur différentiel 1P+N C63A 30 mA AC",45),component(1,"Disjoncteur C16",5.9),component(1,"Disjoncteur C10",5.9),component(1,"Disjoncteur C32",8),component(1,"Disjoncteur C40",11.5),component(1,"Coffret vide + barrette",14.6)]},
+ {name:"Coffret triphasé De Dietrich",family:"Électricité",subfamily:"Coffrets complets",unit:"Coffret",packaging:"Coffret complet",price:194.8,contents:[component(1,"Disjoncteur différentiel 3P+N C40A 10 kA 30 mA AC",81),component(1,"Disjoncteur C16",5.9),component(1,"Disjoncteur C10",5.9),component(2,"Disjoncteur 3P+N C16 6 kA",39),component(1,"Coffret vide + barrette",24)]},
 ];
 
 const climate:Seed[]=[
@@ -75,10 +77,10 @@ const climate:Seed[]=[
  {name:"Té 120",family:"Climatisation",subfamily:"Accessoires goulottes",unit:"Carton",packaging:"Carton de 4",price:7.72},
 ];
 
-const pacBase=["8 × robinets sphériques mâle/femelle 26×34","4 × robinets sphériques mâle/mâle 26×34","6 × robinets sphériques mâle/mâle 20×27","4 × mamelons mâle/mâle 26/34","1 × purgeur d’air 15×21","2 × réductions mâle/femelle 33/42–26/34","4 × réductions mâle/mâle 33/42–26/34","1 × réduction mâle/femelle 26/34–15/21","1 × réduction mâle/femelle 26/34–20/27","3 × coudes mâle/femelle 26/34","1 × raccord pour circulateur 1½–26/34 F","8 × douilles 3/4 F multicouche 16"];
+const pacBase=[component(8,"Robinet sphérique mâle/femelle 26×34",6.7),component(4,"Robinet sphérique mâle/mâle 26×34",6.7),component(6,"Robinet sphérique mâle/mâle 20×27",4.3),component(4,"Mamelon mâle/mâle 26/34",1.16),component(1,"Purgeur d’air 15×21",11.9),component(2,"Réduction mâle/femelle 33/42–26/34",2.03),component(4,"Réduction mâle/mâle 33/42–26/34",2.5),component(1,"Réduction mâle/femelle 26/34–15/21",1.1),component(1,"Réduction mâle/femelle 26/34–20/27",1.1),component(3,"Coude mâle/femelle 26/34",2.6),component(1,"Raccord pour circulateur 1½–26/34 F",3.9),component(8,"Douille 3/4 F multicouche 16",8.68)];
 const plumbing:Seed[]=[
- {name:"Carton plomberie multicouche Ø26 + accessoires",family:"Plomberie",subfamily:"Cartons complets PAC",unit:"Carton",packaging:"Carton complet",contents:["1 × couronne multicouche Ø26 de 50 m","1 × couronne multicouche Ø16 de 100 m",...pacBase,"8 × douilles 26/34 F multicouche 26","15 × coudes 90° multicouche 26"]},
- {name:"Carton plomberie multicouche Ø32 + accessoires",family:"Plomberie",subfamily:"Cartons complets PAC",unit:"Carton",packaging:"Carton complet",contents:["12 × couronnes multicouche Ø32 de 50 m",...pacBase,"12 × douilles 26/34 F multicouche 32","25 × coudes 90° multicouche 32"]},
+ {name:"Carton plomberie multicouche Ø26 + accessoires",family:"Plomberie",subfamily:"Cartons complets PAC",unit:"Carton",packaging:"Carton complet",price:558.14,contents:[component(1,"Couronne multicouche Ø26 de 50 m",95),component(1,"Couronne multicouche Ø16 de 100 m",113),...pacBase,component(8,"Douille 26/34 F multicouche 26",5.75),component(15,"Coude 90° multicouche 26",5.6)]},
+ {name:"Carton plomberie multicouche Ø32 + accessoires",family:"Plomberie",subfamily:"Cartons complets PAC",unit:"Carton",packaging:"Carton complet",price:1569.14,contents:[component(12,"Couronne multicouche Ø32 de 50 m",95),...pacBase,component(12,"Douille 26/34 F multicouche 32",5.75),component(25,"Coude 90° multicouche 32",5.6)]},
 ];
 
 const allSeeds=[...electrical,...climate,...plumbing];
