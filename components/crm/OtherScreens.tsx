@@ -3,13 +3,13 @@ import { useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
-  CircleUserRound,
   FileText,
   History,
   Mail,
   MoreHorizontal,
   Pencil,
   Plus,
+  Printer,
   Save,
   Search,
   ShieldCheck,
@@ -37,7 +37,18 @@ import {
   saveManualPriceChanges,
   type ManualPriceChange,
 } from "@/lib/tariff-storage";
-import { getStoredOrders, type StoredOrder } from "@/lib/order-storage";
+import {
+  createMailPreview,
+  getStoredOrders,
+  mailtoUrl,
+  saveOrder,
+  type StoredOrder,
+} from "@/lib/order-storage";
+import {
+  getPurchasingSettings,
+  savePurchasingSettings,
+  type PurchasingSettings,
+} from "@/lib/settings-storage";
 import type { ScreenId } from "./Sidebar";
 export function OrdersScreen({
   onNavigate,
@@ -46,12 +57,18 @@ export function OrdersScreen({
 }) {
   const [query, setQuery] = useState(""),
     [openOrder, setOpenOrder] = useState<string | null>(null),
-    [orders] = useState<StoredOrder[]>(() => getStoredOrders());
+    [orders, setOrders] = useState<StoredOrder[]>(() => getStoredOrders());
   const filteredOrders = orders.filter((order) =>
     `${order.id} ${order.supplier} ${order.status}`
       .toLowerCase()
       .includes(query.toLowerCase()),
   );
+  const openMail = (order: StoredOrder) => {
+    const email = order.email || createMailPreview(order);
+    saveOrder({ ...order, email, status: "Envoyée" });
+    setOrders(getStoredOrders());
+    window.open(mailtoUrl(email), "_self");
+  };
   return (
     <div className="screen">
       <div className="page-title standard">
@@ -91,7 +108,10 @@ export function OrdersScreen({
             <span />
           </div>
           {filteredOrders.map((o) => (
-            <div className="order-record" key={o.id}>
+            <div
+              className={`order-record ${openOrder === o.id ? "open" : ""}`}
+              key={o.id}
+            >
               <button
                 className="table-row order-row-button"
                 onClick={() => setOpenOrder(openOrder === o.id ? null : o.id)}
@@ -136,18 +156,30 @@ export function OrdersScreen({
                         <small>Issue de la demande {o.sourceRequestId}</small>
                       )}
                     </div>
-                    <i
-                      className={
-                        "status " +
-                        (o.status === "Reçue"
-                          ? "received"
-                          : o.status === "Envoyée"
-                            ? "sent"
-                            : "draft")
-                      }
-                    >
-                      {o.status}
-                    </i>
+                    <div className="order-detail-actions">
+                      <i
+                        className={
+                          "status " +
+                          (o.status === "Reçue"
+                            ? "received"
+                            : o.status === "Envoyée"
+                              ? "sent"
+                              : "draft")
+                        }
+                      >
+                        {o.status}
+                      </i>
+                      <button
+                        className="secondary-btn"
+                        onClick={() => window.print()}
+                      >
+                        <Printer size={16} /> Imprimer / PDF
+                      </button>
+                      <button className="primary-btn" onClick={() => openMail(o)}>
+                        <Mail size={16} />
+                        {o.email ? "Rouvrir dans Mail" : "Ouvrir dans Mail"}
+                      </button>
+                    </div>
                   </div>
                   <div className="order-lines-view">
                     <div className="order-lines-head">
@@ -805,49 +837,153 @@ export function UsersScreen() {
   );
 }
 export function SettingsScreen() {
+  const [editing, setEditing] = useState(false),
+    [saved, setSaved] = useState<PurchasingSettings>(() =>
+      getPurchasingSettings(),
+    ),
+    [draft, setDraft] = useState<PurchasingSettings>(() =>
+      getPurchasingSettings(),
+    );
+  const updateField = (
+    field: keyof Omit<PurchasingSettings, "suppliers">,
+    value: string,
+  ) => setDraft((current) => ({ ...current, [field]: value }));
+  const save = () => {
+    savePurchasingSettings(draft);
+    setSaved(draft);
+    setEditing(false);
+  };
   return (
     <div className="screen">
-      <ScreenHeader
-        eyebrow="CONFIGURATION"
-        title="Paramètres"
-        description="Uniquement les réglages nécessaires."
-      />
-      <div className="settings-grid">
-        <SettingsCard
-          icon={<Truck />}
-          title="Fournisseurs"
-          text="Coordonnées, e-mails et conditions"
-          value="3 fournisseurs"
-        />
-        <SettingsCard
-          icon={<CircleUserRound />}
-          title="Sociétés"
-          text="Noms affichés dans les dispatchs"
-          value="4 sociétés"
-        />
-        <SettingsCard
-          icon={<Mail />}
-          title="E-mail de commande"
-          text="Objet et signature par défaut"
-          value="Configuré"
-        />
-        <SettingsCard
-          icon={<FileText />}
-          title="Bon fournisseur"
-          text="Adresse de livraison et numérotation"
-          value="CMD-2026-…"
-        />
-      </div>
-      <section className="panel minimal-note">
-        <ShieldCheck size={22} />
+      <div className="page-title standard settings-page-title">
         <div>
-          <strong>Paramètres volontairement limités</strong>
-          <p>
-            Pas d’options inutiles : le CRM reste facile à comprendre et à
-            maintenir.
-          </p>
+          <span className="eyebrow">CONFIGURATION</span>
+          <h1>Paramètres</h1>
+          <p>Adresses fournisseurs, modèle d’e-mail et livraison.</p>
         </div>
-      </section>
+        <div className="settings-actions">
+          {editing ? (
+            <>
+              <button
+                className="secondary-btn"
+                onClick={() => {
+                  setDraft(saved);
+                  setEditing(false);
+                }}
+              >
+                <X size={17} /> Annuler
+              </button>
+              <button className="primary-btn" onClick={save}>
+                <Save size={17} /> Enregistrer
+              </button>
+            </>
+          ) : (
+            <button className="primary-btn" onClick={() => setEditing(true)}>
+              <Pencil size={17} /> Modifier les paramètres
+            </button>
+          )}
+        </div>
+      </div>
+      {!editing && (
+        <div className="settings-lock-note">
+          <ShieldCheck size={18} /> Les paramètres sont verrouillés. Cliquez sur
+          « Modifier les paramètres » pour les changer.
+        </div>
+      )}
+      <div className="purchasing-settings-grid">
+        <section className="panel settings-form-card supplier-settings-card">
+          <div className="settings-form-head">
+            <Truck size={21} />
+            <div>
+              <h2>E-mails des fournisseurs</h2>
+              <p>Plusieurs adresses possibles, séparées par une virgule.</p>
+            </div>
+          </div>
+          <div className="supplier-email-list">
+            {draft.suppliers.map((supplier, index) => (
+              <label key={supplier.name}>
+                <span>{supplier.name}</span>
+                <input
+                  disabled={!editing}
+                  placeholder="commande@fournisseur.fr"
+                  type="text"
+                  value={supplier.emails}
+                  onChange={(event) =>
+                    setDraft((current) => ({
+                      ...current,
+                      suppliers: current.suppliers.map((item, itemIndex) =>
+                        itemIndex === index
+                          ? { ...item, emails: event.target.value }
+                          : item,
+                      ),
+                    }))
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        </section>
+        <section className="panel settings-form-card mail-settings-card">
+          <div className="settings-form-head">
+            <Mail size={21} />
+            <div>
+              <h2>Modèle de l’e-mail</h2>
+              <p>Le détail de la commande sera ajouté automatiquement.</p>
+            </div>
+          </div>
+          <label>
+            <span>Objet</span>
+            <input
+              disabled={!editing}
+              value={draft.mailSubject}
+              onChange={(event) => updateField("mailSubject", event.target.value)}
+            />
+          </label>
+          <label>
+            <span>Introduction</span>
+            <input
+              disabled={!editing}
+              value={draft.greeting}
+              onChange={(event) => updateField("greeting", event.target.value)}
+            />
+          </label>
+          <label>
+            <span>Consigne de livraison</span>
+            <input
+              disabled={!editing}
+              value={draft.deliveryMessage}
+              onChange={(event) =>
+                updateField("deliveryMessage", event.target.value)
+              }
+            />
+          </label>
+          <label>
+            <span>Signature</span>
+            <textarea
+              disabled={!editing}
+              rows={3}
+              value={draft.closing}
+              onChange={(event) => updateField("closing", event.target.value)}
+            />
+          </label>
+          <label>
+            <span>Adresse de livraison affichée sur le bon</span>
+            <textarea
+              disabled={!editing}
+              rows={3}
+              value={draft.deliveryAddress}
+              onChange={(event) =>
+                updateField("deliveryAddress", event.target.value)
+              }
+            />
+          </label>
+          <div className="mail-template-preview">
+            <strong>Aperçu</strong>
+            <span>Objet : {draft.mailSubject}</span>
+            <pre>{`${draft.greeting}\n\n${draft.deliveryMessage}\n\nCommande CMD-2026-…\n\n[Produits et quantités]\n\n${draft.closing}`}</pre>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
@@ -876,28 +1012,5 @@ function ScreenHeader({
         </button>
       )}
     </div>
-  );
-}
-function SettingsCard({
-  icon,
-  title,
-  text,
-  value,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  text: string;
-  value: string;
-}) {
-  return (
-    <article className="panel settings-card">
-      <span className="settings-icon">{icon}</span>
-      <div>
-        <h3>{title}</h3>
-        <p>{text}</p>
-        <strong>{value}</strong>
-      </div>
-      <ChevronRight size={19} />
-    </article>
   );
 }
