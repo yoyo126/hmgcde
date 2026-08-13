@@ -25,6 +25,7 @@ import {
   createMailPreview,
   mailtoUrl,
   nextOrderId,
+  orderReference,
   saveOrder,
   type StoredOrder,
 } from "@/lib/order-storage";
@@ -50,6 +51,7 @@ export function NewOrder({
     [sent, setSent] = useState(false),
     [mailOpen, setMailOpen] = useState(false),
     [orderId] = useState(() => nextOrderId()),
+    [reference] = useState(() => orderReference()),
     [settings] = useState(() => getPurchasingSettings());
   const totalTeams = Math.max(
     1,
@@ -88,6 +90,7 @@ export function NewOrder({
   const buildOrder = (status: "Brouillon" | "Envoyée"): StoredOrder => {
     const order: StoredOrder = {
       id: orderId,
+      reference,
       supplier,
       date: new Intl.DateTimeFormat("fr-FR", {
         day: "numeric",
@@ -142,7 +145,7 @@ export function NewOrder({
           <span className="eyebrow">COMMANDE ENREGISTRÉE</span>
           <h1>Prête à être envoyée</h1>
           <p>
-            La commande <strong>{orderId}</strong> a été créée pour{" "}
+            La commande <strong>{reference}</strong> a été créée pour{" "}
             {supplier}. Le bon fournisseur ne contient aucune information sur
             les équipes.
           </p>
@@ -162,7 +165,7 @@ export function NewOrder({
             <div className="sent-mail-preview compact-mail-preview">
               <strong>E-mail enregistré dans la commande</strong>
               <span>À : {buildOrder("Envoyée").email?.to || "À renseigner dans Paramètres"}</span>
-              <span>Objet : {orderId} – Commande HM Group</span>
+              <span>Objet : {settings.mailSubject}</span>
               <button
                 className="text-btn"
                 onClick={() => onNavigate("orders")}
@@ -393,7 +396,7 @@ export function NewOrder({
                   <small>BON DE COMMANDE FOURNISSEUR</small>
                 </div>
                 <div className="doc-meta">
-                  <strong>{orderId}</strong>
+                  <strong>{reference}</strong>
                   <span>13/08/2026</span>
                 </div>
               </div>
