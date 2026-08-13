@@ -21,6 +21,12 @@ import {
   products,
   suppliers,
 } from "@/lib/crm-data";
+import {
+  createMailPreview,
+  nextOrderId,
+  saveOrder,
+  type StoredOrder,
+} from "@/lib/order-storage";
 import type { ScreenId } from "./Sidebar";
 type Teams = Record<CompanyKey, number>;
 type Selected = Record<number, number>;
@@ -39,7 +45,9 @@ export function NewOrder({
     [supplier, setSupplier] = useState(suppliers[0]),
     [selected, setSelected] = useState<Selected>({}),
     [query, setQuery] = useState(""),
-    [sent, setSent] = useState(false);
+    [sent, setSent] = useState(false),
+    [mailOpen, setMailOpen] = useState(false),
+    [orderId] = useState(() => nextOrderId());
   const totalTeams = Math.max(
     1,
     Object.values(teams).reduce((a, b) => a + b, 0),
@@ -74,6 +82,47 @@ export function NewOrder({
       return value;
     });
   };
+  const buildOrder = (status: "Brouillon" | "Envoyée"): StoredOrder => ({
+    id: orderId,
+    supplier,
+    date: new Intl.DateTimeFormat("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date()),
+    status,
+    lines: Object.entries(selected)
+      .filter(([, quantity]) => quantity > 0)
+      .map(([id, quantity]) => {
+        const product = products.find((item) => item.id === Number(id))!;
+        const offer = product.offers.find(
+          (item) => item.supplier === supplier,
+        )!;
+        return {
+          productId: product.id,
+          name: product.name,
+          packaging: offer.packaging,
+          quantity,
+          unitPrice: offer.price,
+          dispatch: Object.fromEntries(
+            companies.map((company, index) => [
+              company.key,
+              sharesFor(quantity)[index],
+            ]),
+          ) as Record<CompanyKey, number>,
+        };
+      }),
+    total,
+    email: status === "Envoyée" ? createMailPreview(orderId, supplier) : undefined,
+  });
+  const createOrder = () => {
+    saveOrder(buildOrder("Brouillon"));
+    setSent(true);
+  };
+  const markEmailSent = () => {
+    saveOrder(buildOrder("Envoyée"));
+    setMailOpen(true);
+  };
   if (sent)
     return (
       <div className="screen success-screen">
@@ -84,7 +133,7 @@ export function NewOrder({
           <span className="eyebrow">COMMANDE ENREGISTRÉE</span>
           <h1>Prête à être envoyée</h1>
           <p>
-            La commande <strong>CMD-2026-049</strong> a été créée pour{" "}
+            La commande <strong>{orderId}</strong> a été créée pour{" "}
             {supplier}. Le bon fournisseur ne contient aucune information sur
             les équipes.
           </p>
@@ -95,11 +144,24 @@ export function NewOrder({
             >
               Voir les commandes
             </button>
-            <button className="primary-btn">
+            <button className="primary-btn" onClick={markEmailSent}>
               <Send size={17} />
-              Ouvrir l’e-mail
+              Enregistrer l’e-mail envoyé
             </button>
           </div>
+          {mailOpen && (
+            <div className="sent-mail-preview compact-mail-preview">
+              <strong>E-mail enregistré dans la commande</strong>
+              <span>À : {createMailPreview(orderId, supplier).to}</span>
+              <span>Objet : {orderId} – Commande HM Group</span>
+              <button
+                className="text-btn"
+                onClick={() => onNavigate("orders")}
+              >
+                Consulter la commande et l’e-mail
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -283,7 +345,14 @@ export function NewOrder({
                         <strong>{p.name}</strong>
                         <small>{p.unit}</small>
                       </span>
-                      <span className="global-qty">{n}</span>
+                      <span className="global-qty editable-order-qty">
+                        <NumberControl
+                          compact
+                          value={n}
+                          onMinus={() => qty(Number(id), n - 1)}
+                          onPlus={() => qty(Number(id), n + 1)}
+                        />
+                      </span>
                       {shares.map((v, i) => (
                         <span className="dispatch-input" key={companies[i].key}>
                           {v}
@@ -315,7 +384,7 @@ export function NewOrder({
                   <small>BON DE COMMANDE FOURNISSEUR</small>
                 </div>
                 <div className="doc-meta">
-                  <strong>CMD-2026-049</strong>
+                  <strong>{orderId}</strong>
                   <span>13/08/2026</span>
                 </div>
               </div>
@@ -367,8 +436,13 @@ export function NewOrder({
                           )}
                         </span>
                         <span>{o.packaging}</span>
-                        <span>
-                          <strong>{n}</strong>
+                        <span className="validation-qty">
+                          <NumberControl
+                            compact
+                            value={n}
+                            onMinus={() => qty(Number(id), n - 1)}
+                            onPlus={() => qty(Number(id), n + 1)}
+                          />
                         </span>
                         <span>{o.price ? money(o.price) : "À saisir"}</span>
                         <span>
@@ -411,7 +485,7 @@ export function NewOrder({
                 Continuer <ArrowRight size={17} />
               </button>
             ) : (
-              <button className="primary-btn" onClick={() => setSent(true)}>
+              <button className="primary-btn" onClick={createOrder}>
                 <Check size={17} />
                 Créer la commande
               </button>
