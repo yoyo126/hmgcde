@@ -14,6 +14,7 @@ import {
   Search,
   ShieldCheck,
   SlidersHorizontal,
+  Trash2,
   Truck,
   X,
 } from "lucide-react";
@@ -22,7 +23,6 @@ import {
   money,
   productFamilies,
   productSection,
-  products,
   supplierNames,
   type Product,
 } from "@/lib/crm-data";
@@ -30,8 +30,9 @@ import {
   componentPriceKey,
   effectiveComponentPrice,
   effectivePrice,
+  deleteCatalogProducts,
+  getCatalogProducts,
   getManualPriceHistory,
-  getImportedProducts,
   getPriceOverrides,
   priceKey,
   saveManualPriceChanges,
@@ -247,11 +248,10 @@ export function ProductsScreen() {
     [family, setFamily] = useState("Tous"),
     [open, setOpen] = useState<number | null>(null),
     [editingPrices, setEditingPrices] = useState(false),
+    [deletingProducts, setDeletingProducts] = useState(false),
+    [selectedProducts, setSelectedProducts] = useState<number[]>([]),
     [showPriceHistory, setShowPriceHistory] = useState(false),
-    [catalog] = useState<Product[]>(() => [
-      ...products,
-      ...getImportedProducts(),
-    ]),
+    [catalog, setCatalog] = useState<Product[]>(() => getCatalogProducts()),
     [priceRevision, setPriceRevision] = useState(
       () => Object.keys(getPriceOverrides()).length,
     ),
@@ -260,6 +260,26 @@ export function ProductsScreen() {
       {},
     ),
     [priceHistory, setPriceHistory] = useState(() => getManualPriceHistory());
+
+  const cancelProductDeletion = () => {
+    setDeletingProducts(false);
+    setSelectedProducts([]);
+  };
+
+  const deleteSelectedProducts = () => {
+    if (!selectedProducts.length) return;
+    if (
+      !window.confirm(
+        `Supprimer définitivement ${selectedProducts.length} produit(s) du catalogue ?`,
+      )
+    )
+      return;
+    deleteCatalogProducts(selectedProducts);
+    setCatalog((current) =>
+      current.filter((product) => !selectedProducts.includes(product.id)),
+    );
+    cancelProductDeletion();
+  };
 
   const cancelPriceEditing = () => {
     setEditingPrices(false);
@@ -359,7 +379,20 @@ export function ProductsScreen() {
           </p>
         </div>
         <div className="price-edit-actions">
-          {editingPrices ? (
+          {deletingProducts ? (
+            <>
+              <button className="secondary-btn" onClick={cancelProductDeletion}>
+                <X size={18} /> Annuler
+              </button>
+              <button
+                className="danger-btn"
+                disabled={!selectedProducts.length}
+                onClick={deleteSelectedProducts}
+              >
+                <Trash2 size={18} /> Supprimer ({selectedProducts.length})
+              </button>
+            </>
+          ) : editingPrices ? (
             <>
               <button className="secondary-btn" onClick={cancelPriceEditing}>
                 <X size={18} /> Annuler
@@ -375,6 +408,12 @@ export function ProductsScreen() {
                 onClick={() => setShowPriceHistory((visible) => !visible)}
               >
                 <History size={18} /> Historique
+              </button>
+              <button
+                className="secondary-btn"
+                onClick={() => setDeletingProducts(true)}
+              >
+                <Trash2 size={18} /> Supprimer des produits
               </button>
               <button
                 className="primary-btn"
@@ -393,6 +432,33 @@ export function ProductsScreen() {
             <strong>Mode modification actif</strong>
             Modifiez les prix utiles, puis enregistrez tout en une seule fois.
           </span>
+        </div>
+      )}
+      {deletingProducts && (
+        <div className="product-delete-banner">
+          <span>
+            <strong>Sélection multiple</strong>
+            Coche les produits à supprimer, catégorie par catégorie.
+          </span>
+          <button
+            className="secondary-btn"
+            onClick={() => {
+              const visibleIds = filtered.map((product) => product.id);
+              const allSelected = visibleIds.every((id) =>
+                selectedProducts.includes(id),
+              );
+              setSelectedProducts((current) =>
+                allSelected
+                  ? current.filter((id) => !visibleIds.includes(id))
+                  : [...new Set([...current, ...visibleIds])],
+              );
+            }}
+          >
+            {filtered.length > 0 &&
+            filtered.every((product) => selectedProducts.includes(product.id))
+              ? "Tout désélectionner"
+              : "Tout sélectionner"}
+          </button>
         </div>
       )}
       {showPriceHistory && !editingPrices && (
@@ -517,6 +583,22 @@ export function ProductsScreen() {
                         >
                           <div className="product-list-row">
                             <span className="product-list-name">
+                              {deletingProducts && (
+                                <label className="product-delete-check">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedProducts.includes(p.id)}
+                                    onChange={() =>
+                                      setSelectedProducts((current) =>
+                                        current.includes(p.id)
+                                          ? current.filter((id) => id !== p.id)
+                                          : [...current, p.id],
+                                      )
+                                    }
+                                  />
+                                  Sélectionner
+                                </label>
+                              )}
                               <strong>{p.name}</strong>
                               <small>
                                 {p.kind === "ensemble"
