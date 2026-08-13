@@ -61,6 +61,7 @@ export function OrdersScreen({
 }) {
   const [query, setQuery] = useState(""),
     [openOrder, setOpenOrder] = useState<string | null>(null),
+    [orderCatalog] = useState<Product[]>(() => getCatalogProducts()),
     [orders, setOrders] = useState<StoredOrder[]>(() => getStoredOrders());
   const filteredOrders = orders.filter((order) =>
     `${order.id} ${order.supplier} ${order.status}`
@@ -202,19 +203,41 @@ export function OrdersScreen({
                       <span>Prix HT</span>
                       <span>Total HT</span>
                     </div>
-                    {o.lines.map((line) => (
-                      <div className="order-line-view" key={line.productId}>
-                        <strong>{line.name}</strong>
-                        <span>{line.packaging}</span>
-                        <b>{line.quantity}</b>
-                        <span>{line.unitPrice ? money(line.unitPrice) : "À renseigner"}</span>
-                        <strong>
-                          {line.unitPrice
-                            ? money(line.unitPrice * line.quantity)
-                            : "À renseigner"}
-                        </strong>
-                      </div>
-                    ))}
+                    {o.lines.map((line) => {
+                      const components =
+                        line.components ||
+                        orderCatalog.find(
+                          (product) => product.id === line.productId,
+                        )?.contents;
+                      return (
+                        <div className="order-line-view" key={line.productId}>
+                          <strong>
+                            {line.name}
+                            {components?.length ? (
+                              <span className="saved-order-components">
+                                {components.map((item) => (
+                                  <small key={item.name}>
+                                    {item.quantity} × {item.name}
+                                  </small>
+                                ))}
+                              </span>
+                            ) : null}
+                          </strong>
+                          <span>{line.packaging}</span>
+                          <b>{line.quantity}</b>
+                          <span>
+                            {line.unitPrice
+                              ? money(line.unitPrice)
+                              : "À renseigner"}
+                          </span>
+                          <strong>
+                            {line.unitPrice
+                              ? money(line.unitPrice * line.quantity)
+                              : "À renseigner"}
+                          </strong>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="order-detail-bottom">
                     <div className="order-total-card">

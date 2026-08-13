@@ -120,6 +120,10 @@ export function NewOrder({
             packaging: offer.packaging,
             quantity,
             unitPrice: offer.price,
+            components: product.contents?.map(({ name, quantity }) => ({
+              name,
+              quantity,
+            })),
             dispatch: Object.fromEntries(
               companies.map((company, index) => [
                 company.key,

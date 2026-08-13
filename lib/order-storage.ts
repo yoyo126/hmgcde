@@ -12,6 +12,7 @@ export type StoredOrderLine = {
   quantity: number;
   unitPrice: number;
   dispatch?: Record<CompanyKey, number>;
+  components?: { name: string; quantity: number }[];
 };
 export type SentEmail = {
   sentAt: string;
@@ -116,6 +117,7 @@ const productLine = (productId: number, quantity: number): StoredOrderLine => {
     packaging: offer.packaging,
     quantity,
     unitPrice: offer.price,
+    components: product.contents?.map(({ name, quantity }) => ({ name, quantity })),
     dispatch: { cpte: quantity, pose: 0, instal: 0, pac: 0 },
   };
 };
@@ -235,6 +237,10 @@ export const createOrdersFromRequest = (
           packaging: offer?.packaging || product.offers[0].packaging,
           quantity: line.quantity,
           unitPrice: offer?.price || 0,
+          components: product.contents?.map(({ name, quantity }) => ({
+            name,
+            quantity,
+          })),
         };
       });
     const id = nextOrderId();
@@ -322,8 +328,19 @@ export const copyOrderEmail = async (order: StoredOrder) => {
   const rows = order.lines
     .map((line) => {
       const dispatch = line.dispatch || emptyDispatch();
+      const storedComponents =
+        line.components ||
+        products.find((product) => product.id === line.productId)?.contents;
+      const components = storedComponents?.length
+        ? `<div style="margin-top:6px;color:#526071;font-size:12px">${storedComponents
+            .map(
+              (item) =>
+                `${item.quantity} × ${escapeHtml(item.name)}`,
+            )
+            .join("<br>")}</div>`
+        : "";
       return `<tr>
-        <td style="border:1px solid #b7c0cc;padding:8px"><strong>${escapeHtml(line.name)}</strong></td>
+        <td style="border:1px solid #b7c0cc;padding:8px"><strong>${escapeHtml(line.name)}</strong>${components}</td>
         <td style="border:1px solid #b7c0cc;padding:8px">${escapeHtml(line.packaging)}</td>
         <td style="border:1px solid #b7c0cc;padding:8px;text-align:center"><strong>${line.quantity}</strong></td>
         <td style="border:1px solid #b7c0cc;padding:8px;text-align:center">${dispatch.cpte}</td>
@@ -353,7 +370,13 @@ export const copyOrderEmail = async (order: StoredOrder) => {
   </div>`;
   const textRows = order.lines.map((line) => {
     const dispatch = line.dispatch || emptyDispatch();
-    return `${line.name}\t${line.packaging}\t${line.quantity}\t${dispatch.cpte}\t${dispatch.pose}\t${dispatch.instal}\t${dispatch.pac}`;
+    const storedComponents =
+      line.components ||
+      products.find((product) => product.id === line.productId)?.contents;
+    const components = storedComponents?.length
+      ? `\n${storedComponents.map((item) => `  ${item.quantity} × ${item.name}`).join("\n")}`
+      : "";
+    return `${line.name}${components}\t${line.packaging}\t${line.quantity}\t${dispatch.cpte}\t${dispatch.pose}\t${dispatch.instal}\t${dispatch.pac}`;
   });
   const text = `${settings.greeting}\n\n${settings.deliveryMessage}\n\n${order.reference}\n\nProduit\tConditionnement\tQté totale\tCPTE\tHM Pose\tHM Instal\tHM PAC\n${textRows.join("\n")}\n\n${settings.closing}`;
   try {
