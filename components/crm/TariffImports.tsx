@@ -14,7 +14,7 @@ import {
   PackagePlus,
   UploadCloud,
 } from "lucide-react";
-import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.mjs?url";
+import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.js?url";
 import { money, supplierNames, type Product } from "@/lib/crm-data";
 import {
   effectivePrice,
@@ -117,7 +117,7 @@ async function readExcel(file: File): Promise<RawLine[]> {
 }
 
 async function readPdf(file: File): Promise<RawLine[]> {
-  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.js");
   pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
   const document = await pdfjs.getDocument({ data: await readFileAsArrayBuffer(file) })
     .promise;
@@ -125,16 +125,17 @@ async function readPdf(file: File): Promise<RawLine[]> {
   for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
     const page = await document.getPage(pageNumber);
     const content = await page.getTextContent();
-    const byLine = new Map<number, { x: number; text: string }[]>();
-    for (const item of content.items) {
+    const byLine: Record<string, { x: number; text: string }[]> = {};
+    for (let itemIndex = 0; itemIndex < content.items.length; itemIndex += 1) {
+      const item = content.items[itemIndex];
       if (!("str" in item) || !item.str.trim()) continue;
       const y = Math.round(item.transform[5] / 3) * 3;
-      const entries = byLine.get(y) ?? [];
+      const entries = byLine[String(y)] ?? [];
       entries.push({ x: item.transform[4], text: item.str.trim() });
-      byLine.set(y, entries);
+      byLine[String(y)] = entries;
     }
-    [...byLine.entries()]
-      .sort((a, b) => b[0] - a[0])
+    Object.entries(byLine)
+      .sort((a, b) => Number(b[0]) - Number(a[0]))
       .forEach(([, entries]) =>
         lines.push(
           entries
@@ -165,16 +166,16 @@ const similarity = (source: RawLine, product: Product) => {
     `${product.name} ${product.offers.map((offer) => offer.reference).join(" ")}`,
   );
   if (sourceText === targetText || targetText.includes(sourceText)) return 1;
-  const sourceTokens = new Set(
-    sourceText.split(" ").filter((item) => item.length > 1),
-  );
-  const targetTokens = new Set(
-    targetText.split(" ").filter((item) => item.length > 1),
-  );
-  const common = [...sourceTokens].filter((token) =>
-    targetTokens.has(token),
+  const sourceTokens = sourceText
+    .split(" ")
+    .filter((item, index, all) => item.length > 1 && all.indexOf(item) === index);
+  const targetTokens = targetText
+    .split(" ")
+    .filter((item, index, all) => item.length > 1 && all.indexOf(item) === index);
+  const common = sourceTokens.filter((token) =>
+    targetTokens.includes(token),
   ).length;
-  return common / Math.max(sourceTokens.size, targetTokens.size, 1);
+  return common / Math.max(sourceTokens.length, targetTokens.length, 1);
 };
 
 const findProduct = (line: RawLine, catalog: Product[]) => {
@@ -238,14 +239,14 @@ export function TariffImports() {
       if (!raw.length) {
         throw new Error("Aucune ligne produit avec un prix n’a été détectée.");
       }
-      const uniqueRows = [
-        ...new Map(
-          raw.map((line) => [
-            normalize(`${line.reference} ${line.name}`),
-            line,
-          ]),
-        ).values(),
-      ];
+      const uniqueRows = raw.filter(
+        (line, index, all) =>
+          all.findIndex(
+            (candidate) =>
+              normalize(`${candidate.reference} ${candidate.name}`) ===
+              normalize(`${line.reference} ${line.name}`),
+          ) === index,
+      );
       setLines(
         uniqueRows.map((line, index) => {
           const product = findProduct(line, catalogProducts);
