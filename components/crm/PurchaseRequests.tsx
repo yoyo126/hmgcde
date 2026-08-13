@@ -212,14 +212,26 @@ export function PurchaseRequests() {
                     {isOpen && (
                       <div className="composition-box">
                         {product.contents?.length ? (
-                          product.contents.map((item) => (
-                            <span className="component-line" key={item.name}>
-                              <span>
-                                {item.quantity} × {item.name}
+                          product.contents.map((item) => {
+                            const prices = Object.values(
+                              item.supplierPrices || {},
+                            ).filter((price) => price > 0);
+                            const best = prices.length
+                              ? Math.min(...prices)
+                              : 0;
+                            return (
+                              <span className="component-line" key={item.name}>
+                                <span>
+                                  {item.quantity} × {item.name}
+                                </span>
+                                <b>
+                                  {best
+                                    ? `Dès ${money(best)} / unité`
+                                    : "Prix à saisir"}
+                                </b>
                               </span>
-                              <b>{money(item.unitPrice)} / unité</b>
-                            </span>
-                          ))
+                            );
+                          })
                         ) : (
                           <span>
                             Composition détaillée à compléter dans la fiche
