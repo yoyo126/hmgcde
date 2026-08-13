@@ -20,7 +20,13 @@ import {
   productSection,
   products,
   supplierNames,
+  type Product,
 } from "@/lib/crm-data";
+import {
+  effectivePrice,
+  getImportedProducts,
+  getPriceOverrides,
+} from "@/lib/tariff-storage";
 export function OrdersScreen() {
   return (
     <div className="screen">
@@ -91,6 +97,11 @@ export function ProductsScreen() {
   const [query, setQuery] = useState(""),
     [family, setFamily] = useState("Tous"),
     [open, setOpen] = useState<number | null>(null),
+    [catalog] = useState<Product[]>(() => [
+      ...products,
+      ...getImportedProducts(),
+    ]),
+    [priceRevision] = useState(() => Object.keys(getPriceOverrides()).length),
     [componentPrices, setComponentPrices] = useState<Record<string, string>>(
       {},
     );
@@ -99,7 +110,7 @@ export function ProductsScreen() {
     itemName: string,
     supplier: string,
   ) => `${productId}|||${itemName}|||${supplier}`;
-  const filtered = products
+  const filtered = catalog
     .filter(
       (p) =>
         (family === "Tous" || p.family === family) &&
@@ -114,7 +125,7 @@ export function ProductsScreen() {
       ),
     );
   const groups = Object.entries(
-    filtered.reduce<Record<string, typeof products>>((result, product) => {
+    filtered.reduce<Record<string, Product[]>>((result, product) => {
       const key = `${product.family}|||${productSection(product)}`;
       (result[key] ??= []).push(product);
       return result;
@@ -125,7 +136,7 @@ export function ProductsScreen() {
       <ScreenHeader
         eyebrow="CATALOGUE UNIQUE"
         title="Produits"
-        description={`${products.length} produits en liste avec comparatif des 7 fournisseurs.`}
+        description={`${catalog.length} produits en liste avec comparatif des 7 fournisseurs.`}
         action="Ajouter un produit"
       />
       <section className="panel table-panel">
@@ -181,14 +192,31 @@ export function ProductsScreen() {
                       <span />
                     </div>
                     {items.map((p) => {
-                      const knownPrices = p.offers
-                        .map((offer) => offer.price)
+                      const supplierPrices = supplierNames.map((supplier) => {
+                        const offer = p.offers.find(
+                          (item) => item.supplier === supplier,
+                        );
+                        return {
+                          supplier,
+                          offer,
+                          price: effectivePrice(
+                            p.id,
+                            supplier,
+                            offer?.price || 0,
+                          ),
+                        };
+                      });
+                      const knownPrices = supplierPrices
+                        .map((item) => item.price)
                         .filter((price) => price > 0);
                       const bestPrice = knownPrices.length
                         ? Math.min(...knownPrices)
                         : 0;
                       return (
-                        <article className="product-list-item" key={p.id}>
+                        <article
+                          className="product-list-item"
+                          key={`${p.id}-${priceRevision}`}
+                        >
                           <div className="product-list-row">
                             <span className="product-list-name">
                               <strong>{p.name}</strong>
@@ -205,15 +233,17 @@ export function ProductsScreen() {
                               {p.offers[0].packaging}
                             </span>
                             {supplierNames.map((supplier) => {
-                              const offer = p.offers.find(
+                              const supplierPrice = supplierPrices.find(
                                 (item) => item.supplier === supplier,
                               );
+                              const offer = supplierPrice?.offer;
+                              const price = supplierPrice?.price || 0;
                               return (
                                 <span
                                   className={
-                                    !offer
+                                    !offer && !price
                                       ? "price-cell unavailable"
-                                      : offer.price && offer.price === bestPrice
+                                      : price && price === bestPrice
                                         ? "price-cell best-price"
                                         : "price-cell"
                                   }
@@ -221,13 +251,17 @@ export function ProductsScreen() {
                                   data-label={supplier}
                                 >
                                   <b>
-                                    {offer?.price
-                                      ? money(offer.price)
+                                    {price
+                                      ? money(price)
                                       : offer
                                         ? "À saisir"
                                         : "—"}
                                   </b>
-                                  {offer && <small>{offer.reference}</small>}
+                                  {(offer || price > 0) && (
+                                    <small>
+                                      {offer?.reference || "Tarif importé"}
+                                    </small>
+                                  )}
                                 </span>
                               );
                             })}
