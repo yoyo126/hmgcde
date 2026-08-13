@@ -10,24 +10,32 @@ import {
   PackageOpen,
   Plus,
   Search,
-  Send,
+  ShoppingCart,
 } from "lucide-react";
+import { productFamilies, productSection, products } from "@/lib/crm-data";
 import {
-  money,
-  productFamilies,
-  productSection,
-  products,
-} from "@/lib/crm-data";
+  createOrdersFromRequest,
+  getStoredRequests,
+  nextRequestId,
+  savePurchaseRequest,
+  type StoredPurchaseRequest,
+} from "@/lib/order-storage";
 
 type Quantities = Record<number, number>;
 
 export function PurchaseRequests() {
   const [creating, setCreating] = useState(false),
-    [sent, setSent] = useState(false),
+    [sentId, setSentId] = useState<string | null>(null),
     [query, setQuery] = useState(""),
     [family, setFamily] = useState("Tous"),
     [quantities, setQuantities] = useState<Quantities>({}),
-    [open, setOpen] = useState<number | null>(null);
+    [openProduct, setOpenProduct] = useState<number | null>(null),
+    [openRequest, setOpenRequest] = useState<string | null>(null),
+    [assignments, setAssignments] = useState<Record<number, string>>({}),
+    [requests, setRequests] = useState<StoredPurchaseRequest[]>(() =>
+      getStoredRequests(),
+    );
+
   const filtered = useMemo(
     () =>
       products
@@ -51,45 +59,64 @@ export function PurchaseRequests() {
   );
   const change = (id: number, value: number) =>
     setQuantities((current) => ({ ...current, [id]: Math.max(0, value) }));
-  if (sent)
+
+  const submitRequest = () => {
+    const id = nextRequestId();
+    savePurchaseRequest({
+      id,
+      requester: "Entrepôt HM Group",
+      date: new Intl.DateTimeFormat("fr-FR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(new Date()),
+      status: "À commander",
+      lines: selected.map((product) => ({
+        productId: product.id,
+        name: product.name,
+        unit: product.unit,
+        quantity: quantities[product.id],
+      })),
+    });
+    setRequests(getStoredRequests());
+    setSentId(id);
+  };
+
+  const placeAssignedOrders = (request: StoredPurchaseRequest) => {
+    createOrdersFromRequest(request, assignments);
+    setRequests(getStoredRequests());
+    setAssignments({});
+  };
+
+  if (sentId)
     return (
       <div className="screen success-screen">
         <div className="success-card">
           <div className="success-icon">
             <Check size={34} />
           </div>
-          <span className="eyebrow">DEMANDE ENVOYÉE</span>
-          <h1>La demande est enregistrée</h1>
+          <span className="eyebrow">DEMANDE ENREGISTRÉE</span>
+          <h1>{sentId}</h1>
           <p>
-            <strong>DA-2026-012</strong> contient {selected.length}{" "}
-            référence(s). Les quantités sont globales, sans répartition par
-            société.
+            La demande contient {selected.length} référence(s) en quantités
+            globales. L’acheteur pourra choisir un fournisseur différent pour
+            chaque ligne.
           </p>
-          <div className="success-actions">
-            <button
-              className="secondary-btn"
-              onClick={() => {
-                setSent(false);
-                setCreating(false);
-                setQuantities({});
-              }}
-            >
-              Voir les demandes
-            </button>
-            <button
-              className="primary-btn"
-              onClick={() => {
-                setSent(false);
-                setQuantities({});
-              }}
-            >
-              <ClipboardPlus size={17} />
-              Nouvelle demande
-            </button>
-          </div>
+          <button
+            className="primary-btn"
+            onClick={() => {
+              setSentId(null);
+              setCreating(false);
+              setQuantities({});
+              setOpenRequest(sentId);
+            }}
+          >
+            Voir la demande
+          </button>
         </div>
       </div>
     );
+
   if (!creating)
     return (
       <div className="screen">
@@ -97,11 +124,12 @@ export function PurchaseRequests() {
           <div>
             <span className="eyebrow">ENTREPÔT</span>
             <h1>Demandes d’achat</h1>
-            <p>Les besoins transmis à l’acheteur, en quantité globale.</p>
+            <p>
+              Un besoin global peut être réparti entre plusieurs fournisseurs.
+            </p>
           </div>
           <button className="primary-btn" onClick={() => setCreating(true)}>
-            <Plus size={18} />
-            Nouvelle demande
+            <Plus size={18} /> Nouvelle demande
           </button>
         </div>
         <section className="panel request-overview">
@@ -110,10 +138,10 @@ export function PurchaseRequests() {
               <ClipboardPlus />
             </span>
             <div>
-              <h2>Demande simple pour l’entrepôt</h2>
+              <h2>Traitement des demandes entrepôt</h2>
               <p>
-                Choisissez les références et indiquez seulement le nombre total
-                de pièces, cartons, coffrets ou ensembles.
+                Affectez chaque produit au fournisseur retenu. Une commande
+                séparée sera créée automatiquement par fournisseur.
               </p>
             </div>
           </div>
@@ -125,17 +153,123 @@ export function PurchaseRequests() {
             <span>Statut</span>
             <span />
           </div>
-          <div className="request-list-row">
-            <strong>DA-2026-011</strong>
-            <span>Entrepôt HM Group</span>
-            <span>12 août 2026</span>
-            <span>6</span>
-            <i className="status sent">À commander</i>
-            <ChevronRight size={18} />
-          </div>
+          {requests.map((request) => (
+            <div className="request-record" key={request.id}>
+              <button
+                className="request-list-row request-row-button"
+                onClick={() => {
+                  setOpenRequest(
+                    openRequest === request.id ? null : request.id,
+                  );
+                  setAssignments(
+                    Object.fromEntries(
+                      request.lines
+                        .filter((line) => line.supplier && !line.ordered)
+                        .map((line) => [line.productId, line.supplier]),
+                    ),
+                  );
+                }}
+              >
+                <strong>{request.id}</strong>
+                <span>{request.requester}</span>
+                <span>{request.date}</span>
+                <span>{request.lines.length}</span>
+                <i
+                  className={`status request-status-${request.status
+                    .toLowerCase()
+                    .replaceAll(" ", "-")}`}
+                >
+                  {request.status}
+                </i>
+                {openRequest === request.id ? (
+                  <ChevronDown size={18} />
+                ) : (
+                  <ChevronRight size={18} />
+                )}
+              </button>
+              {openRequest === request.id && (
+                <div className="request-processing">
+                  <div className="request-processing-head">
+                    <div>
+                      <h3>Répartir les achats par fournisseur</h3>
+                      <p>Le choix se fait produit par produit.</p>
+                    </div>
+                    <i className="status sent">{request.status}</i>
+                  </div>
+                  <div className="request-assignment-head">
+                    <span>Produit</span>
+                    <span>Quantité globale</span>
+                    <span>Fournisseur retenu</span>
+                    <span>État</span>
+                  </div>
+                  {request.lines.map((line) => {
+                    const product = products.find(
+                      (item) => item.id === line.productId,
+                    );
+                    return (
+                      <div
+                        className="request-assignment-line"
+                        key={line.productId}
+                      >
+                        <strong>{line.name}</strong>
+                        <span>
+                          {line.quantity} {line.unit.toLowerCase()}
+                        </span>
+                        {line.ordered ? (
+                          <b>{line.supplier}</b>
+                        ) : (
+                          <select
+                            aria-label={`Fournisseur pour ${line.name}`}
+                            value={assignments[line.productId] || ""}
+                            onChange={(event) =>
+                              setAssignments((current) => ({
+                                ...current,
+                                [line.productId]: event.target.value,
+                              }))
+                            }
+                          >
+                            <option value="">À choisir</option>
+                            {product?.offers.map((offer) => (
+                              <option key={offer.supplier}>
+                                {offer.supplier}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        <span
+                          className={
+                            line.ordered ? "line-ordered" : "line-pending"
+                          }
+                        >
+                          {line.ordered ? "Commandée" : "À commander"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {request.status !== "Commandée" && (
+                    <div className="request-processing-footer">
+                      <small>
+                        Vous pouvez commander seulement une partie maintenant
+                        et terminer plus tard.
+                      </small>
+                      <button
+                        className="primary-btn"
+                        disabled={!Object.values(assignments).some(Boolean)}
+                        onClick={() => placeAssignedOrders(request)}
+                      >
+                        <ShoppingCart size={17} /> Créer les commandes
+                        fournisseurs
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
         </section>
       </div>
     );
+
   return (
     <div className="screen">
       <div className="page-title standard">
@@ -145,7 +279,8 @@ export function PurchaseRequests() {
           </button>
           <h1>Nouvelle demande d’achat</h1>
           <p>
-            Saisie globale uniquement — aucune société ni équipe à renseigner.
+            Saisie globale uniquement — le choix des fournisseurs se fera
+            ensuite.
           </p>
         </div>
         <span className="draft-tag">Brouillon</span>
@@ -172,9 +307,7 @@ export function PurchaseRequests() {
           </div>
           <div className="request-products">
             {filtered.map((product) => {
-              const quantity = quantities[product.id] || 0,
-                isOpen = open === product.id,
-                offer = product.offers[0];
+              const quantity = quantities[product.id] || 0;
               return (
                 <article
                   className={
@@ -197,47 +330,28 @@ export function PurchaseRequests() {
                     </span>
                     <h3>{product.name}</h3>
                     <small>
-                      Réf. {offer.reference} · {product.unit} ·{" "}
-                      {offer.price ? money(offer.price) : "Prix à saisir"}
+                      {product.unit} · {product.offers.length} fournisseur(s)
+                      possible(s)
                     </small>
                     {product.kind === "ensemble" && (
                       <button
                         className="composition-toggle"
-                        onClick={() => setOpen(isOpen ? null : product.id)}
+                        onClick={() =>
+                          setOpenProduct(
+                            openProduct === product.id ? null : product.id,
+                          )
+                        }
                       >
-                        <ChevronDown size={14} />
-                        Détail des sous-produits
+                        <ChevronDown size={14} /> Détail des sous-produits
                       </button>
                     )}
-                    {isOpen && (
+                    {openProduct === product.id && (
                       <div className="composition-box">
-                        {product.contents?.length ? (
-                          product.contents.map((item) => {
-                            const prices = Object.values(
-                              item.supplierPrices || {},
-                            ).filter((price) => price > 0);
-                            const best = prices.length
-                              ? Math.min(...prices)
-                              : 0;
-                            return (
-                              <span className="component-line" key={item.name}>
-                                <span>
-                                  {item.quantity} × {item.name}
-                                </span>
-                                <b>
-                                  {best
-                                    ? `Dès ${money(best)} / unité`
-                                    : "Prix à saisir"}
-                                </b>
-                              </span>
-                            );
-                          })
-                        ) : (
-                          <span>
-                            Composition détaillée à compléter dans la fiche
-                            produit.
+                        {product.contents?.map((item) => (
+                          <span key={item.name}>
+                            {item.quantity} × {item.name}
                           </span>
-                        )}
+                        ))}
                       </div>
                     )}
                   </div>
@@ -264,7 +378,7 @@ export function PurchaseRequests() {
         <aside className="panel request-summary">
           <div className="summary-head">
             <span>
-              <Send size={18} />
+              <ClipboardPlus size={18} />
             </span>
             <div>
               <h2>Demande globale</h2>
@@ -272,43 +386,36 @@ export function PurchaseRequests() {
             </div>
           </div>
           <div className="summary-lines">
-            {selected.length === 0 ? (
+            {selected.length ? (
+              selected.map((product) => (
+                <div key={product.id}>
+                  <span>
+                    <strong>{product.name}</strong>
+                    <small>{product.unit}</small>
+                  </span>
+                  <b>{quantities[product.id]}</b>
+                </div>
+              ))
+            ) : (
               <div className="empty-summary">
                 <PackageOpen size={25} />
                 <p>Ajoutez les produits demandés.</p>
               </div>
-            ) : (
-              selected.map((product) => {
-                const offer = product.offers[0];
-                return (
-                  <div key={product.id}>
-                    <span>
-                      <strong>{product.name}</strong>
-                      <small>
-                        {product.unit} ·{" "}
-                        {offer.price ? money(offer.price) : "Prix à saisir"}
-                      </small>
-                    </span>
-                    <b>{quantities[product.id]}</b>
-                  </div>
-                );
-              })
             )}
           </div>
           <div className="global-note">
             <Check size={16} />
             <span>
               <strong>Quantités globales</strong>
-              <small>Aucune répartition par société.</small>
+              <small>Les fournisseurs seront choisis par l’acheteur.</small>
             </span>
           </div>
           <button
             className="primary-btn request-submit"
             disabled={!selected.length}
-            onClick={() => setSent(true)}
+            onClick={submitRequest}
           >
-            <Send size={17} />
-            Envoyer la demande
+            <ClipboardPlus size={17} /> Envoyer la demande
           </button>
         </aside>
       </div>
