@@ -23,7 +23,7 @@ export function CRMApp() {
     ) : screen === "purchase-requests" ? (
       <PurchaseRequests />
     ) : screen === "orders" ? (
-      <OrdersScreen />
+      <OrdersScreen onNavigate={setScreen} />
     ) : screen === "products" ? (
       <ProductsScreen />
     ) : screen === "tariff-imports" ? (
