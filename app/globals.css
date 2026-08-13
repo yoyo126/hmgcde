@@ -181,6 +181,202 @@
     gap: 6px;
   }
 }
+
+.settings-actions,
+.order-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.settings-lock-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: -10px 0 16px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: #eef4ff;
+  color: #3c62ac;
+  font-size: 12px;
+}
+.purchasing-settings-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.8fr) minmax(420px, 1.2fr);
+  gap: 16px;
+}
+.settings-form-card {
+  padding: 20px;
+}
+.settings-form-head {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  padding-bottom: 16px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #edf0f4;
+}
+.settings-form-head > svg {
+  color: var(--blue);
+}
+.settings-form-head h2 {
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+.settings-form-head p {
+  color: #778197;
+  font-size: 11px;
+  margin: 0;
+}
+.supplier-email-list,
+.mail-settings-card {
+  display: grid;
+  gap: 11px;
+}
+.settings-form-card label {
+  display: grid;
+  gap: 6px;
+}
+.settings-form-card label > span {
+  color: #626d82;
+  font-size: 11px;
+  font-weight: 800;
+}
+.settings-form-card input,
+.settings-form-card textarea {
+  width: 100%;
+  border: 1px solid #dce2eb;
+  border-radius: 9px;
+  background: #fff;
+  padding: 10px 11px;
+  color: #192338;
+  font: inherit;
+  font-size: 13px;
+}
+.settings-form-card input:disabled,
+.settings-form-card textarea:disabled {
+  color: #667085;
+  background: #f5f7fa;
+  opacity: 1;
+}
+.mail-template-preview {
+  margin-top: 5px;
+  border-radius: 10px;
+  background: #f5f7fb;
+  padding: 14px;
+}
+.mail-template-preview > strong,
+.mail-template-preview > span {
+  display: block;
+}
+.mail-template-preview > strong {
+  font-size: 12px;
+  margin-bottom: 7px;
+}
+.mail-template-preview > span {
+  color: #596579;
+  font-size: 11px;
+}
+.mail-template-preview pre {
+  white-space: pre-wrap;
+  margin: 12px 0 0;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .purchasing-settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .settings-page-title {
+    gap: 14px;
+  }
+  .settings-actions,
+  .settings-actions .primary-btn,
+  .settings-actions .secondary-btn {
+    width: 100%;
+  }
+  .settings-form-card {
+    padding: 15px;
+  }
+  .order-detail-actions {
+    width: 100%;
+    align-items: stretch;
+  }
+  .order-detail-actions .primary-btn,
+  .order-detail-actions .secondary-btn {
+    flex: 1 1 170px;
+  }
+  .order-lines-head {
+    display: none;
+  }
+  .order-line-view {
+    min-width: 0;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px 12px;
+    padding: 13px;
+  }
+  .order-line-view > strong:first-child {
+    grid-column: 1 / -1;
+    font-size: 14px;
+  }
+  .order-line-view > span,
+  .order-line-view > b,
+  .order-line-view > strong:last-child {
+    font-size: 12px;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  body {
+    background: #fff !important;
+  }
+  .sidebar,
+  .topbar,
+  .mobile-nav,
+  .page-title,
+  .table-toolbar,
+  .table-head,
+  .order-record:not(.open),
+  .order-record.open > .order-row-button,
+  .order-detail-actions,
+  .sent-mail-preview {
+    display: none !important;
+  }
+  .main-shell,
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  .panel,
+  .table-panel,
+  .order-detail-panel {
+    border: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .order-detail-bottom {
+    display: block;
+  }
+  .order-total-card {
+    width: 240px;
+    margin: 14px 0 0 auto;
+  }
+  .order-lines-head,
+  .order-line-view {
+    min-width: 0;
+  }
+}
 * {
   box-sizing: border-box;
 }
