@@ -4,13 +4,17 @@ import {
   ChevronRight,
   CircleUserRound,
   FileText,
+  History,
   Mail,
   MoreHorizontal,
+  Pencil,
   Plus,
+  Save,
   Search,
   ShieldCheck,
   SlidersHorizontal,
   Truck,
+  X,
 } from "lucide-react";
 import {
   componentPrice,
@@ -23,9 +27,15 @@ import {
   type Product,
 } from "@/lib/crm-data";
 import {
+  componentPriceKey,
+  effectiveComponentPrice,
   effectivePrice,
+  getManualPriceHistory,
   getImportedProducts,
   getPriceOverrides,
+  priceKey,
+  saveManualPriceChanges,
+  type ManualPriceChange,
 } from "@/lib/tariff-storage";
 export function OrdersScreen() {
   return (
@@ -97,19 +107,86 @@ export function ProductsScreen() {
   const [query, setQuery] = useState(""),
     [family, setFamily] = useState("Tous"),
     [open, setOpen] = useState<number | null>(null),
+    [editingPrices, setEditingPrices] = useState(false),
+    [showPriceHistory, setShowPriceHistory] = useState(false),
     [catalog] = useState<Product[]>(() => [
       ...products,
       ...getImportedProducts(),
     ]),
-    [priceRevision] = useState(() => Object.keys(getPriceOverrides()).length),
+    [priceRevision, setPriceRevision] = useState(
+      () => Object.keys(getPriceOverrides()).length,
+    ),
+    [priceDrafts, setPriceDrafts] = useState<Record<string, string>>({}),
     [componentPrices, setComponentPrices] = useState<Record<string, string>>(
       {},
-    );
-  const componentKey = (
-    productId: number,
-    itemName: string,
-    supplier: string,
-  ) => `${productId}|||${itemName}|||${supplier}`;
+    ),
+    [priceHistory, setPriceHistory] = useState(() => getManualPriceHistory());
+
+  const cancelPriceEditing = () => {
+    setEditingPrices(false);
+    setPriceDrafts({});
+    setComponentPrices({});
+  };
+
+  const savePrices = () => {
+    const prices: Record<string, number> = {};
+    const components: Record<string, number> = {};
+    const changes: ManualPriceChange[] = [];
+    catalog.forEach((product) => {
+      supplierNames.forEach((supplier) => {
+        const key = priceKey(product.id, supplier);
+        if (priceDrafts[key] === undefined) return;
+        const offer = product.offers.find((item) => item.supplier === supplier);
+        const oldPrice = effectivePrice(
+          product.id,
+          supplier,
+          offer?.price || 0,
+        );
+        const newPrice = Number(priceDrafts[key]);
+        if (!Number.isFinite(newPrice) || newPrice < 0 || newPrice === oldPrice)
+          return;
+        prices[key] = newPrice;
+        changes.push({
+          product: product.name,
+          supplier,
+          oldPrice,
+          newPrice,
+          scope: "Produit",
+        });
+      });
+      product.contents?.forEach((item) => {
+        product.offers.forEach((offer) => {
+          const key = componentPriceKey(product.id, item.name, offer.supplier);
+          if (componentPrices[key] === undefined) return;
+          const oldPrice = effectiveComponentPrice(
+            product.id,
+            item.name,
+            offer.supplier,
+            componentPrice(item, offer.supplier),
+          );
+          const newPrice = Number(componentPrices[key]);
+          if (
+            !Number.isFinite(newPrice) ||
+            newPrice < 0 ||
+            newPrice === oldPrice
+          )
+            return;
+          components[key] = newPrice;
+          changes.push({
+            product: `${product.name} · ${item.name}`,
+            supplier: offer.supplier,
+            oldPrice,
+            newPrice,
+            scope: "Sous-produit",
+          });
+        });
+      });
+    });
+    saveManualPriceChanges({ prices, componentPrices: components, changes });
+    setPriceRevision((revision) => revision + 1);
+    setPriceHistory(getManualPriceHistory());
+    cancelPriceEditing();
+  };
   const filtered = catalog
     .filter(
       (p) =>
@@ -133,12 +210,94 @@ export function ProductsScreen() {
   );
   return (
     <div className="screen">
-      <ScreenHeader
-        eyebrow="CATALOGUE UNIQUE"
-        title="Produits"
-        description={`${catalog.length} produits en liste avec comparatif des 7 fournisseurs.`}
-        action="Ajouter un produit"
-      />
+      <div className="page-title standard product-page-title">
+        <div>
+          <span className="eyebrow">CATALOGUE UNIQUE</span>
+          <h1>Produits</h1>
+          <p>
+            {catalog.length} produits en liste avec comparatif des 7
+            fournisseurs.
+          </p>
+        </div>
+        <div className="price-edit-actions">
+          {editingPrices ? (
+            <>
+              <button className="secondary-btn" onClick={cancelPriceEditing}>
+                <X size={18} /> Annuler
+              </button>
+              <button className="primary-btn" onClick={savePrices}>
+                <Save size={18} /> Enregistrer les prix
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="secondary-btn"
+                onClick={() => setShowPriceHistory((visible) => !visible)}
+              >
+                <History size={18} /> Historique
+              </button>
+              <button
+                className="primary-btn"
+                onClick={() => setEditingPrices(true)}
+              >
+                <Pencil size={18} /> Modifier les prix
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+      {editingPrices && (
+        <div className="price-edit-banner">
+          <Pencil size={18} />
+          <span>
+            <strong>Mode modification actif</strong>
+            Modifiez les prix utiles, puis enregistrez tout en une seule fois.
+          </span>
+        </div>
+      )}
+      {showPriceHistory && !editingPrices && (
+        <section className="panel manual-price-history">
+          <div className="panel-head">
+            <div>
+              <h2>Historique des modifications de prix</h2>
+              <p>Chaque enregistrement manuel est conservé avec sa date.</p>
+            </div>
+          </div>
+          {priceHistory.length ? (
+            priceHistory.slice(0, 8).map((item) => (
+              <details key={item.id}>
+                <summary>
+                  <span>
+                    <strong>{item.date}</strong>
+                    <small>Administrateur HM</small>
+                  </span>
+                  <b>{item.changes.length} modification(s)</b>
+                </summary>
+                <div>
+                  {item.changes.map((change, index) => (
+                    <span key={`${change.product}-${change.supplier}-${index}`}>
+                      <span>
+                        <strong>{change.product}</strong>
+                        <small>
+                          {change.scope} · {change.supplier}
+                        </small>
+                      </span>
+                      <b>
+                        {money(change.oldPrice)} → {money(change.newPrice)}
+                      </b>
+                    </span>
+                  ))}
+                </div>
+              </details>
+            ))
+          ) : (
+            <div className="empty-price-history">
+              Aucune modification manuelle enregistrée.
+            </div>
+          )}
+        </section>
+      )}
       <section className="panel table-panel">
         <div className="table-toolbar">
           <div className="search-box">
@@ -238,25 +397,54 @@ export function ProductsScreen() {
                               );
                               const offer = supplierPrice?.offer;
                               const price = supplierPrice?.price || 0;
+                              const key = priceKey(p.id, supplier);
+                              const draft = priceDrafts[key];
                               return (
                                 <span
                                   className={
                                     !offer && !price
                                       ? "price-cell unavailable"
-                                      : price && price === bestPrice
+                                      : !editingPrices &&
+                                          price &&
+                                          price === bestPrice
                                         ? "price-cell best-price"
-                                        : "price-cell"
+                                        : editingPrices
+                                          ? "price-cell editing"
+                                          : "price-cell"
                                   }
                                   key={supplier}
                                   data-label={supplier}
                                 >
-                                  <b>
-                                    {price
-                                      ? money(price)
-                                      : offer
-                                        ? "À saisir"
-                                        : "—"}
-                                  </b>
+                                  {editingPrices && (offer || price > 0) ? (
+                                    <label className="catalog-price-input">
+                                      <input
+                                        aria-label={`Prix de ${p.name} chez ${supplier}`}
+                                        inputMode="decimal"
+                                        min="0"
+                                        onChange={(event) =>
+                                          setPriceDrafts((current) => ({
+                                            ...current,
+                                            [key]: event.target.value,
+                                          }))
+                                        }
+                                        placeholder="À saisir"
+                                        step="0.01"
+                                        type="number"
+                                        value={
+                                          draft ?? (price ? String(price) : "")
+                                        }
+                                      />
+                                      <small>€ HT</small>
+                                    </label>
+                                  ) : (
+                                    <b>
+                                      {price
+                                        ? money(price)
+                                        : offer
+                                          ? "À saisir"
+                                          : "—"}
+                                    </b>
+                                  )}
                                   {(offer || price > 0) && (
                                     <small>
                                       {offer?.reference || "Tarif importé"}
@@ -310,16 +498,21 @@ export function ProductsScreen() {
                                   {p.contents?.flatMap((item) => {
                                     const prices = p.offers
                                       .map((offer) => {
-                                        const key = componentKey(
+                                        const key = componentPriceKey(
                                           p.id,
                                           item.name,
                                           offer.supplier,
                                         );
                                         return Number(
                                           componentPrices[key] ??
-                                            componentPrice(
-                                              item,
+                                            effectiveComponentPrice(
+                                              p.id,
+                                              item.name,
                                               offer.supplier,
+                                              componentPrice(
+                                                item,
+                                                offer.supplier,
+                                              ),
                                             ),
                                         );
                                       })
@@ -341,52 +534,76 @@ export function ProductsScreen() {
                                         {item.quantity}
                                       </span>,
                                       ...p.offers.map((offer) => {
-                                        const key = componentKey(
+                                        const key = componentPriceKey(
                                           p.id,
                                           item.name,
                                           offer.supplier,
                                         );
                                         const savedValue = componentPrices[key];
-                                        const initialPrice = componentPrice(
-                                          item,
-                                          offer.supplier,
-                                        );
+                                        const currentPrice =
+                                          effectiveComponentPrice(
+                                            p.id,
+                                            item.name,
+                                            offer.supplier,
+                                            componentPrice(
+                                              item,
+                                              offer.supplier,
+                                            ),
+                                          );
                                         const price = Number(
-                                          savedValue ?? initialPrice,
+                                          savedValue ?? currentPrice,
                                         );
                                         return (
                                           <span
                                             className={
-                                              price && price === best
+                                              !editingPrices &&
+                                              price &&
+                                              price === best
                                                 ? "component-supplier-price best-price"
-                                                : "component-supplier-price"
+                                                : editingPrices
+                                                  ? "component-supplier-price editing"
+                                                  : "component-supplier-price"
                                             }
                                             data-label={offer.supplier}
                                             key={`${item.name}-${offer.supplier}`}
                                           >
-                                            <input
-                                              aria-label={`Prix unitaire ${item.name} chez ${offer.supplier}`}
-                                              inputMode="decimal"
-                                              min="0"
-                                              onChange={(event) =>
-                                                setComponentPrices(
-                                                  (current) => ({
-                                                    ...current,
-                                                    [key]: event.target.value,
-                                                  }),
-                                                )
-                                              }
-                                              placeholder="À saisir"
-                                              step="0.01"
-                                              type="number"
-                                              value={
-                                                savedValue ??
-                                                (initialPrice
-                                                  ? String(initialPrice)
-                                                  : "")
-                                              }
-                                            />
-                                            <small>€ HT</small>
+                                            {editingPrices ? (
+                                              <>
+                                                <input
+                                                  aria-label={`Prix unitaire ${item.name} chez ${offer.supplier}`}
+                                                  inputMode="decimal"
+                                                  min="0"
+                                                  onChange={(event) =>
+                                                    setComponentPrices(
+                                                      (current) => ({
+                                                        ...current,
+                                                        [key]:
+                                                          event.target.value,
+                                                      }),
+                                                    )
+                                                  }
+                                                  placeholder="À saisir"
+                                                  step="0.01"
+                                                  type="number"
+                                                  value={
+                                                    savedValue ??
+                                                    (currentPrice
+                                                      ? String(currentPrice)
+                                                      : "")
+                                                  }
+                                                />
+                                                <small>€ HT</small>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <b>
+                                                  {price
+                                                    ? money(price)
+                                                    : "À saisir"}
+                                                </b>
+                                                <small>unité HT</small>
+                                              </>
+                                            )}
                                           </span>
                                         );
                                       }),
