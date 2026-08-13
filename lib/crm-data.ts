@@ -12,6 +12,7 @@ export type ProductComponent = {
   name: string;
   quantity: number;
   unitPrice: number;
+  supplierPrices?: Record<string, number>;
 };
 export type Product = {
   id: number;
@@ -633,6 +634,8 @@ const suppliersFor = (family: Seed["family"]) =>
     : family === "Plomberie"
       ? ["CEDEO", "AUBADE", "DAST SOLUTION"]
       : ["CLIM+", "CEDEO", "AUBADE", "DAST SOLUTION"];
+export const componentPrice = (item: ProductComponent, supplier: string) =>
+  item.supplierPrices?.[supplier] || 0;
 export const products: Product[] = allSeeds.map((seed, index) => ({
   id: index + 1,
   name: seed.name,
@@ -640,7 +643,15 @@ export const products: Product[] = allSeeds.map((seed, index) => ({
   subfamily: seed.subfamily,
   unit: seed.unit,
   kind: seed.contents ? "ensemble" : "simple",
-  contents: seed.contents,
+  contents: seed.contents?.map((item) => ({
+    ...item,
+    supplierPrices: Object.fromEntries(
+      suppliersFor(seed.family).map((supplier, supplierIndex) => [
+        supplier,
+        supplierIndex === 0 ? item.unitPrice : 0,
+      ]),
+    ),
+  })),
   offers: suppliersFor(seed.family).map((supplier, supplierIndex) => ({
     supplier,
     supplierName: seed.name.toUpperCase(),
