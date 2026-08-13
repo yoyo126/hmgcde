@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import {
+  ChevronDown,
   ChevronRight,
   CircleUserRound,
   FileText,
@@ -18,7 +19,6 @@ import {
 } from "lucide-react";
 import {
   componentPrice,
-  initialOrders,
   money,
   productFamilies,
   productSection,
@@ -37,20 +37,43 @@ import {
   saveManualPriceChanges,
   type ManualPriceChange,
 } from "@/lib/tariff-storage";
-export function OrdersScreen() {
+import { getStoredOrders, type StoredOrder } from "@/lib/order-storage";
+import type { ScreenId } from "./Sidebar";
+export function OrdersScreen({
+  onNavigate,
+}: {
+  onNavigate: (id: ScreenId) => void;
+}) {
+  const [query, setQuery] = useState(""),
+    [openOrder, setOpenOrder] = useState<string | null>(null),
+    [orders] = useState<StoredOrder[]>(() => getStoredOrders());
+  const filteredOrders = orders.filter((order) =>
+    `${order.id} ${order.supplier} ${order.status}`
+      .toLowerCase()
+      .includes(query.toLowerCase()),
+  );
   return (
     <div className="screen">
-      <ScreenHeader
-        eyebrow="SUIVI"
-        title="Commandes"
-        description="Retrouvez toutes les commandes fournisseurs."
-        action="Nouvelle commande"
-      />
+      <div className="page-title standard">
+        <div>
+          <span className="eyebrow">SUIVI</span>
+          <h1>Commandes</h1>
+          <p>Consultez les commandes, leur contenu et les e-mails envoyés.</p>
+        </div>
+        <button className="primary-btn" onClick={() => onNavigate("new-order")}>
+          <Plus size={18} />
+          Nouvelle commande
+        </button>
+      </div>
       <section className="panel table-panel">
         <div className="table-toolbar">
           <div className="search-box">
             <Search size={18} />
-            <input placeholder="Rechercher une commande…" />
+            <input
+              placeholder="Rechercher une commande…"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
           </div>
           <button className="filter-btn">
             <SlidersHorizontal size={17} />
@@ -67,35 +90,115 @@ export function OrdersScreen() {
             <span>Statut</span>
             <span />
           </div>
-          {initialOrders.map((o) => (
-            <div className="table-row" key={o.id}>
-              <span>
-                <FileText size={17} />
-                <strong>{o.id}</strong>
-              </span>
-              <span>{o.supplier}</span>
-              <span>{o.date}</span>
-              <span>{o.products}</span>
-              <span>
-                <strong>{money(o.total)}</strong>
-              </span>
-              <span>
-                <i
-                  className={
-                    "status " +
-                    (o.status === "Reçue"
-                      ? "received"
-                      : o.status === "Envoyée"
-                        ? "sent"
-                        : "draft")
-                  }
-                >
-                  {o.status}
-                </i>
-              </span>
-              <button>
-                <ChevronRight size={18} />
+          {filteredOrders.map((o) => (
+            <div className="order-record" key={o.id}>
+              <button
+                className="table-row order-row-button"
+                onClick={() => setOpenOrder(openOrder === o.id ? null : o.id)}
+              >
+                <span>
+                  <FileText size={17} />
+                  <strong>{o.id}</strong>
+                </span>
+                <span>{o.supplier}</span>
+                <span>{o.date}</span>
+                <span>{o.lines.length}</span>
+                <span>
+                  <strong>{money(o.total)}</strong>
+                </span>
+                <span>
+                  <i
+                    className={
+                      "status " +
+                      (o.status === "Reçue"
+                        ? "received"
+                        : o.status === "Envoyée"
+                          ? "sent"
+                          : "draft")
+                    }
+                  >
+                    {o.status}
+                  </i>
+                </span>
+                {openOrder === o.id ? (
+                  <ChevronDown size={18} />
+                ) : (
+                  <ChevronRight size={18} />
+                )}
               </button>
+              {openOrder === o.id && (
+                <div className="order-detail-panel">
+                  <div className="order-detail-head">
+                    <div>
+                      <span>COMMANDE FOURNISSEUR</span>
+                      <h2>{o.id}</h2>
+                      {o.sourceRequestId && (
+                        <small>Issue de la demande {o.sourceRequestId}</small>
+                      )}
+                    </div>
+                    <i
+                      className={
+                        "status " +
+                        (o.status === "Reçue"
+                          ? "received"
+                          : o.status === "Envoyée"
+                            ? "sent"
+                            : "draft")
+                      }
+                    >
+                      {o.status}
+                    </i>
+                  </div>
+                  <div className="order-lines-view">
+                    <div className="order-lines-head">
+                      <span>Produit</span>
+                      <span>Conditionnement</span>
+                      <span>Quantité</span>
+                      <span>Prix HT</span>
+                      <span>Total HT</span>
+                    </div>
+                    {o.lines.map((line) => (
+                      <div className="order-line-view" key={line.productId}>
+                        <strong>{line.name}</strong>
+                        <span>{line.packaging}</span>
+                        <b>{line.quantity}</b>
+                        <span>{line.unitPrice ? money(line.unitPrice) : "À renseigner"}</span>
+                        <strong>
+                          {line.unitPrice
+                            ? money(line.unitPrice * line.quantity)
+                            : "À renseigner"}
+                        </strong>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="order-detail-bottom">
+                    <div className="order-total-card">
+                      <span>Total commande HT</span>
+                      <strong>{money(o.total)}</strong>
+                    </div>
+                    <div className="sent-mail-preview">
+                      <div className="mail-preview-head">
+                        <Mail size={19} />
+                        <div>
+                          <strong>Aperçu de l’e-mail</strong>
+                          <span>
+                            {o.email ? `Envoyé le ${o.email.sentAt}` : "Aucun e-mail envoyé"}
+                          </span>
+                        </div>
+                      </div>
+                      {o.email ? (
+                        <>
+                          <p><b>À :</b> {o.email.to}</p>
+                          <p><b>Objet :</b> {o.email.subject}</p>
+                          <pre>{o.email.body}</pre>
+                        </>
+                      ) : (
+                        <p>Le brouillon reste consultable avant son envoi.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
