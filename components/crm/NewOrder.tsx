@@ -35,23 +35,30 @@ type Teams = Record<CompanyKey, number>;
 type Selected = Record<number, number>;
 export function NewOrder({
   onNavigate,
+  initialOrder,
+  remainingDrafts = 0,
+  onNextDraft,
 }: {
   onNavigate: (id: ScreenId) => void;
+  initialOrder?: StoredOrder;
+  remainingDrafts?: number;
+  onNextDraft?: () => void;
 }) {
-  const [step, setStep] = useState(1),
-    [teams, setTeams] = useState<Teams>({
-      cpte: 3,
-      pose: 4,
-      instal: 2,
-      pac: 2,
-    }),
-    [supplier, setSupplier] = useState(suppliers[0]),
-    [selected, setSelected] = useState<Selected>({}),
+  const [step, setStep] = useState(initialOrder ? 4 : 1),
+    [teams, setTeams] = useState<Teams>(
+      () => getPurchasingSettings().defaultTeams,
+    ),
+    [supplier, setSupplier] = useState(initialOrder?.supplier || suppliers[0]),
+    [selected, setSelected] = useState<Selected>(() =>
+      Object.fromEntries(
+        initialOrder?.lines.map((line) => [line.productId, line.quantity]) || [],
+      ),
+    ),
     [query, setQuery] = useState(""),
     [sent, setSent] = useState(false),
     [mailOpen, setMailOpen] = useState(false),
-    [orderId] = useState(() => nextOrderId()),
-    [reference] = useState(() => orderReference()),
+    [orderId] = useState(() => initialOrder?.id || nextOrderId()),
+    [reference] = useState(() => initialOrder?.reference || orderReference()),
     [settings] = useState(() => getPurchasingSettings());
   const [products] = useState(() => getCatalogProducts());
   const totalTeams = Math.max(
@@ -121,6 +128,7 @@ export function NewOrder({
           };
         }),
       total,
+      sourceRequestId: initialOrder?.sourceRequestId,
     };
     return status === "Envoyée"
       ? { ...order, email: createMailPreview(order) }
@@ -151,6 +159,11 @@ export function NewOrder({
             les équipes.
           </p>
           <div className="success-actions">
+            {remainingDrafts > 0 && onNextDraft && (
+              <button className="primary-btn" onClick={onNextDraft}>
+                Finaliser la commande suivante ({remainingDrafts})
+              </button>
+            )}
             <button
               className="secondary-btn"
               onClick={() => onNavigate("orders")}

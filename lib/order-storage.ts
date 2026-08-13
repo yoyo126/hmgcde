@@ -222,6 +222,7 @@ export const createOrdersFromRequest = (
     month: "long",
     year: "numeric",
   }).format(new Date());
+  const createdOrders: StoredOrder[] = [];
   suppliers.forEach((supplier) => {
     const lines = assignedLines
       .filter((line) => assignments[line.productId] === supplier)
@@ -237,7 +238,7 @@ export const createOrdersFromRequest = (
         };
       });
     const id = nextOrderId();
-    saveOrder({
+    const order: StoredOrder = {
       id,
       reference: orderReference(),
       supplier,
@@ -249,7 +250,9 @@ export const createOrdersFromRequest = (
       ),
       lines,
       sourceRequestId: request.id,
-    });
+    };
+    saveOrder(order);
+    createdOrders.push(order);
   });
   const updatedLines = request.lines.map((line) => ({
     ...line,
@@ -264,7 +267,7 @@ export const createOrdersFromRequest = (
         ? "Partiellement commandée"
         : "À commander";
   savePurchaseRequest({ ...request, lines: updatedLines, status });
-  return suppliers.length;
+  return createdOrders;
 };
 
 export const emptyDispatch = (): Record<CompanyKey, number> =>

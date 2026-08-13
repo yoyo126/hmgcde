@@ -20,11 +20,16 @@ import {
   nextRequestId,
   savePurchaseRequest,
   type StoredPurchaseRequest,
+  type StoredOrder,
 } from "@/lib/order-storage";
 
 type Quantities = Record<number, number>;
 
-export function PurchaseRequests() {
+export function PurchaseRequests({
+  onFinalize,
+}: {
+  onFinalize: (orders: StoredOrder[]) => void;
+}) {
   const [creating, setCreating] = useState(false),
     [sentId, setSentId] = useState<string | null>(null),
     [query, setQuery] = useState(""),
@@ -85,9 +90,10 @@ export function PurchaseRequests() {
   };
 
   const placeAssignedOrders = (request: StoredPurchaseRequest) => {
-    createOrdersFromRequest(request, assignments);
+    const orders = createOrdersFromRequest(request, assignments);
     setRequests(getStoredRequests());
     setAssignments({});
+    if (orders.length) onFinalize(orders);
   };
 
   if (sentId)
@@ -259,8 +265,7 @@ export function PurchaseRequests() {
                         disabled={!Object.values(assignments).some(Boolean)}
                         onClick={() => placeAssignedOrders(request)}
                       >
-                        <ShoppingCart size={17} /> Créer les commandes
-                        fournisseurs
+                        <ShoppingCart size={17} /> Valider et finaliser
                       </button>
                     </div>
                   )}

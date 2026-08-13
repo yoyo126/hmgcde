@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import {
+  companies,
   componentPrice,
   money,
   productFamilies,
@@ -248,9 +249,7 @@ export function ProductsScreen() {
   const [query, setQuery] = useState(""),
     [family, setFamily] = useState("Tous"),
     [open, setOpen] = useState<number | null>(null),
-    [editingCatalog, setEditingCatalog] = useState(false),
-    [editingPrices, setEditingPrices] = useState(false),
-    [deletingProducts, setDeletingProducts] = useState(false),
+    [editing, setEditing] = useState(false),
     [selectedProducts, setSelectedProducts] = useState<number[]>([]),
     [showPriceHistory, setShowPriceHistory] = useState(false),
     [catalog, setCatalog] = useState<Product[]>(() => getCatalogProducts()),
@@ -262,25 +261,21 @@ export function ProductsScreen() {
       {},
     ),
     [priceHistory, setPriceHistory] = useState(() => getManualPriceHistory());
+  const editingCatalog = editing;
+  const editingPrices = editing;
+  const deletingProducts = editing;
 
   const updateProduct = (productId: number, update: (product: Product) => Product) =>
     setCatalog((current) =>
       current.map((product) => (product.id === productId ? update(product) : product)),
     );
 
-  const cancelCatalogEditing = () => {
+  const cancelEditing = () => {
     setCatalog(getCatalogProducts());
-    setEditingCatalog(false);
-  };
-
-  const saveCatalog = () => {
-    saveCatalogProducts(catalog);
-    setEditingCatalog(false);
-  };
-
-  const cancelProductDeletion = () => {
-    setDeletingProducts(false);
+    setEditing(false);
     setSelectedProducts([]);
+    setPriceDrafts({});
+    setComponentPrices({});
   };
 
   const deleteSelectedProducts = () => {
@@ -295,14 +290,7 @@ export function ProductsScreen() {
     setCatalog((current) =>
       current.filter((product) => !selectedProducts.includes(product.id)),
     );
-    cancelProductDeletion();
-  };
-
-  const cancelPriceEditing = () => {
-    setEditingPrices(false);
-    setCatalog(getCatalogProducts());
-    setPriceDrafts({});
-    setComponentPrices({});
+    setSelectedProducts([]);
   };
 
   const savePrices = () => {
@@ -363,7 +351,10 @@ export function ProductsScreen() {
     saveCatalogProducts(catalog);
     setPriceRevision((revision) => revision + 1);
     setPriceHistory(getManualPriceHistory());
-    cancelPriceEditing();
+    setEditing(false);
+    setSelectedProducts([]);
+    setPriceDrafts({});
+    setComponentPrices({});
   };
   const filtered = catalog
     .filter(
@@ -398,9 +389,9 @@ export function ProductsScreen() {
           </p>
         </div>
         <div className="price-edit-actions">
-          {deletingProducts ? (
+          {editing ? (
             <>
-              <button className="secondary-btn" onClick={cancelProductDeletion}>
+              <button className="secondary-btn" onClick={cancelEditing}>
                 <X size={18} /> Annuler
               </button>
               <button
@@ -410,23 +401,8 @@ export function ProductsScreen() {
               >
                 <Trash2 size={18} /> Supprimer ({selectedProducts.length})
               </button>
-            </>
-          ) : editingCatalog ? (
-            <>
-              <button className="secondary-btn" onClick={cancelCatalogEditing}>
-                <X size={18} /> Annuler
-              </button>
-              <button className="primary-btn" onClick={saveCatalog}>
-                <Save size={18} /> Enregistrer les produits
-              </button>
-            </>
-          ) : editingPrices ? (
-            <>
-              <button className="secondary-btn" onClick={cancelPriceEditing}>
-                <X size={18} /> Annuler
-              </button>
               <button className="primary-btn" onClick={savePrices}>
-                <Save size={18} /> Enregistrer les prix
+                <Save size={18} /> Tout enregistrer
               </button>
             </>
           ) : (
@@ -438,42 +414,21 @@ export function ProductsScreen() {
                 <History size={18} /> Historique
               </button>
               <button
-                className="secondary-btn"
-                onClick={() => setDeletingProducts(true)}
-              >
-                <Trash2 size={18} /> Supprimer des produits
-              </button>
-              <button
-                className="secondary-btn"
-                onClick={() => setEditingCatalog(true)}
-              >
-                <Pencil size={18} /> Modifier les produits
-              </button>
-              <button
                 className="primary-btn"
-                onClick={() => setEditingPrices(true)}
+                onClick={() => setEditing(true)}
               >
-                <Pencil size={18} /> Modifier les prix
+                <Pencil size={18} /> Modifier
               </button>
             </>
           )}
         </div>
       </div>
-      {editingPrices && (
+      {editing && (
         <div className="price-edit-banner">
           <Pencil size={18} />
           <span>
             <strong>Mode modification actif</strong>
-            Modifiez les prix utiles, puis enregistrez tout en une seule fois.
-          </span>
-        </div>
-      )}
-      {editingCatalog && (
-        <div className="price-edit-banner">
-          <Pencil size={18} />
-          <span>
-            <strong>Modification du catalogue</strong>
-            Noms, catégories, conditionnements, sous-produits et quantités sont modifiables.
+            Modifiez produits, prix, conditionnements et sous-produits, ou sélectionnez ceux à supprimer.
           </span>
         </div>
       )}
@@ -688,10 +643,10 @@ export function ProductsScreen() {
                               className="packaging-cell"
                               data-label="Conditionnement"
                             >
-                              {editingCatalog && p.subfamily === "Câbles" ? (
+                              {editingCatalog ? (
                                 <input
                                   className="catalog-text-input"
-                                  aria-label={`Conditionnement HM de ${p.name}`}
+                                  aria-label={`Conditionnement de base de ${p.name}`}
                                   value={p.offers[0]?.packaging || ""}
                                   onChange={(event) =>
                                     updateProduct(p.id, (product) => ({
@@ -703,10 +658,8 @@ export function ProductsScreen() {
                                     }))
                                   }
                                 />
-                              ) : p.subfamily === "Câbles" ? (
-                                p.offers[0]?.packaging
                               ) : (
-                                "Selon fournisseur"
+                                p.offers[0]?.packaging || "À renseigner"
                               )}
                             </span>
                             {supplierNames.map((supplier) => {
@@ -1118,7 +1071,7 @@ export function SettingsScreen() {
       getPurchasingSettings(),
     );
   const updateField = (
-    field: keyof Omit<PurchasingSettings, "suppliers">,
+    field: keyof Omit<PurchasingSettings, "suppliers" | "defaultTeams">,
     value: string,
   ) => setDraft((current) => ({ ...current, [field]: value }));
   const save = () => {
@@ -1194,6 +1147,37 @@ export function SettingsScreen() {
                 />
               </label>
             ))}
+          </div>
+          <div className="default-teams-settings">
+            <div className="settings-form-head">
+              <ShieldCheck size={21} />
+              <div>
+                <h2>Équipes par défaut</h2>
+                <p>Ces nombres seront repris dans chaque nouvelle commande.</p>
+              </div>
+            </div>
+            <div className="default-teams-grid">
+              {companies.map((company) => (
+                <label key={company.key}>
+                  <span>{company.name}</span>
+                  <input
+                    disabled={!editing}
+                    min="0"
+                    type="number"
+                    value={draft.defaultTeams[company.key]}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        defaultTeams: {
+                          ...current.defaultTeams,
+                          [company.key]: Math.max(0, Number(event.target.value)),
+                        },
+                      }))
+                    }
+                  />
+                </label>
+              ))}
+            </div>
           </div>
         </section>
         <section className="panel settings-form-card mail-settings-card">

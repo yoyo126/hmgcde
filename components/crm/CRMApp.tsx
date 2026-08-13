@@ -12,18 +12,34 @@ import {
 } from "./OtherScreens";
 import { PurchaseRequests } from "./PurchaseRequests";
 import { TariffImports } from "./TariffImports";
+import type { StoredOrder } from "@/lib/order-storage";
 export function CRMApp() {
   const [screen, setScreen] = useState<ScreenId>("dashboard"),
-    [menu, setMenu] = useState(false);
+    [menu, setMenu] = useState(false),
+    [draftOrders, setDraftOrders] = useState<StoredOrder[]>([]);
+  const navigate = (next: ScreenId) => {
+    setDraftOrders([]);
+    setScreen(next);
+  };
+  const finalizeRequest = (orders: StoredOrder[]) => {
+    setDraftOrders(orders);
+    setScreen("new-order");
+  };
   const content =
     screen === "dashboard" ? (
-      <Dashboard onNavigate={setScreen} />
+      <Dashboard onNavigate={navigate} />
     ) : screen === "new-order" ? (
-      <NewOrder onNavigate={setScreen} />
+      <NewOrder
+        key={draftOrders[0]?.id || "new-order"}
+        initialOrder={draftOrders[0]}
+        remainingDrafts={Math.max(0, draftOrders.length - 1)}
+        onNextDraft={() => setDraftOrders((current) => current.slice(1))}
+        onNavigate={navigate}
+      />
     ) : screen === "purchase-requests" ? (
-      <PurchaseRequests />
+      <PurchaseRequests onFinalize={finalizeRequest} />
     ) : screen === "orders" ? (
-      <OrdersScreen onNavigate={setScreen} />
+      <OrdersScreen onNavigate={navigate} />
     ) : screen === "products" ? (
       <ProductsScreen />
     ) : screen === "tariff-imports" ? (
@@ -37,7 +53,7 @@ export function CRMApp() {
     <div className="app-shell">
       <Sidebar
         active={screen}
-        onChange={setScreen}
+        onChange={navigate}
         open={menu}
         onClose={() => setMenu(false)}
       />
@@ -67,7 +83,7 @@ export function CRMApp() {
         </header>
         <main>{content}</main>
       </div>
-      <MobileNav active={screen} onChange={setScreen} />
+      <MobileNav active={screen} onChange={navigate} />
     </div>
   );
 }

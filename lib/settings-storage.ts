@@ -1,4 +1,4 @@
-import { supplierNames } from "./crm-data";
+import { supplierNames, type CompanyKey } from "./crm-data";
 
 export type SupplierContact = {
   name: string;
@@ -12,6 +12,7 @@ export type PurchasingSettings = {
   deliveryMessage: string;
   closing: string;
   deliveryAddress: string;
+  defaultTeams: Record<CompanyKey, number>;
 };
 
 const SETTINGS_KEY = "hm-purchasing-settings";
@@ -23,6 +24,7 @@ export const defaultPurchasingSettings: PurchasingSettings = {
   deliveryMessage: "A LIVRER CHEZ HM GROUP",
   closing: "Cordialement,\nHM Group",
   deliveryAddress: "Adresse de livraison HM Group à renseigner",
+  defaultTeams: { cpte: 3, pose: 4, instal: 2, pac: 2 },
 };
 
 export const getPurchasingSettings = (): PurchasingSettings => {
@@ -40,6 +42,10 @@ export const getPurchasingSettings = (): PurchasingSettings => {
           saved.suppliers?.find((supplier) => supplier.name === name)?.emails ||
           "",
       })),
+      defaultTeams: {
+        ...defaultPurchasingSettings.defaultTeams,
+        ...saved.defaultTeams,
+      },
     };
   } catch {
     return defaultPurchasingSettings;
