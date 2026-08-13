@@ -3954,6 +3954,17 @@ main {
 .request-row-button:hover {
   background: #f8faff;
 }
+.order-reference-cell {
+  display: grid;
+  gap: 3px;
+}
+.order-reference-cell strong {
+  line-height: 1.25;
+}
+.order-reference-cell small {
+  color: #8791a3;
+  font-size: 10px;
+}
 .order-record .table-row,
 .request-record .request-list-row {
   border-top: 0;
