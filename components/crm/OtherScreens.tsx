@@ -13,6 +13,7 @@ import {
   Truck,
 } from "lucide-react";
 import {
+  componentPrice,
   initialOrders,
   money,
   productFamilies,
@@ -89,7 +90,15 @@ export function OrdersScreen() {
 export function ProductsScreen() {
   const [query, setQuery] = useState(""),
     [family, setFamily] = useState("Tous"),
-    [open, setOpen] = useState<number | null>(null);
+    [open, setOpen] = useState<number | null>(null),
+    [componentPrices, setComponentPrices] = useState<Record<string, string>>(
+      {},
+    );
+  const componentKey = (
+    productId: number,
+    itemName: string,
+    supplier: string,
+  ) => `${productId}|||${itemName}|||${supplier}`;
   const filtered = products
     .filter(
       (p) =>
@@ -240,17 +249,117 @@ export function ProductsScreen() {
                           </div>
                           {open === p.id && (
                             <div className="composition-box list-composition">
-                              {p.contents?.map((item) => (
-                                <span
-                                  className="component-line"
-                                  key={item.name}
+                              <strong className="component-comparison-title">
+                                Comparatif pièce par pièce
+                              </strong>
+                              <div className="component-price-scroll">
+                                <div
+                                  className="component-price-grid"
+                                  style={{
+                                    gridTemplateColumns: `minmax(280px,2fr) 70px repeat(${p.offers.length},minmax(125px,1fr))`,
+                                  }}
                                 >
-                                  <span>
-                                    {item.quantity} × {item.name}
+                                  <span className="component-price-head">
+                                    Sous-produit
                                   </span>
-                                  <b>{money(item.unitPrice)} / unité</b>
-                                </span>
-                              ))}
+                                  <span className="component-price-head">
+                                    Qté
+                                  </span>
+                                  {p.offers.map((offer) => (
+                                    <span
+                                      className="component-price-head"
+                                      key={offer.supplier}
+                                    >
+                                      {offer.supplier}
+                                    </span>
+                                  ))}
+                                  {p.contents?.flatMap((item) => {
+                                    const prices = p.offers
+                                      .map((offer) => {
+                                        const key = componentKey(
+                                          p.id,
+                                          item.name,
+                                          offer.supplier,
+                                        );
+                                        return Number(
+                                          componentPrices[key] ??
+                                            componentPrice(
+                                              item,
+                                              offer.supplier,
+                                            ),
+                                        );
+                                      })
+                                      .filter((price) => price > 0);
+                                    const best = prices.length
+                                      ? Math.min(...prices)
+                                      : 0;
+                                    return [
+                                      <span
+                                        className="component-product-name"
+                                        key={`${item.name}-name`}
+                                      >
+                                        {item.name}
+                                      </span>,
+                                      <span
+                                        className="component-quantity"
+                                        key={`${item.name}-qty`}
+                                      >
+                                        {item.quantity}
+                                      </span>,
+                                      ...p.offers.map((offer) => {
+                                        const key = componentKey(
+                                          p.id,
+                                          item.name,
+                                          offer.supplier,
+                                        );
+                                        const savedValue = componentPrices[key];
+                                        const initialPrice = componentPrice(
+                                          item,
+                                          offer.supplier,
+                                        );
+                                        const price = Number(
+                                          savedValue ?? initialPrice,
+                                        );
+                                        return (
+                                          <span
+                                            className={
+                                              price && price === best
+                                                ? "component-supplier-price best-price"
+                                                : "component-supplier-price"
+                                            }
+                                            data-label={offer.supplier}
+                                            key={`${item.name}-${offer.supplier}`}
+                                          >
+                                            <input
+                                              aria-label={`Prix unitaire ${item.name} chez ${offer.supplier}`}
+                                              inputMode="decimal"
+                                              min="0"
+                                              onChange={(event) =>
+                                                setComponentPrices(
+                                                  (current) => ({
+                                                    ...current,
+                                                    [key]: event.target.value,
+                                                  }),
+                                                )
+                                              }
+                                              placeholder="À saisir"
+                                              step="0.01"
+                                              type="number"
+                                              value={
+                                                savedValue ??
+                                                (initialPrice
+                                                  ? String(initialPrice)
+                                                  : "")
+                                              }
+                                            />
+                                            <small>€ HT</small>
+                                          </span>
+                                        );
+                                      }),
+                                    ];
+                                  })}
+                                </div>
+                              </div>
                             </div>
                           )}
                         </article>
