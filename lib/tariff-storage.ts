@@ -1,4 +1,4 @@
-import type { Product } from "./crm-data";
+import { products as baseProducts, type Product } from "./crm-data";
 
 export type PriceOverride = Record<string, number>;
 export type ManualPriceChange = {
@@ -28,6 +28,7 @@ const PRODUCT_KEY = "hm-tariff-imported-products";
 const HISTORY_KEY = "hm-tariff-import-history";
 const COMPONENT_PRICE_KEY = "hm-component-price-overrides";
 const MANUAL_HISTORY_KEY = "hm-manual-price-history";
+const DELETED_PRODUCT_KEY = "hm-deleted-product-ids";
 
 const read = <T>(key: string, fallback: T): T => {
   if (typeof window === "undefined") return fallback;
@@ -54,6 +55,18 @@ export const getPriceOverrides = () => read<PriceOverride>(PRICE_KEY, {});
 export const getComponentPriceOverrides = () =>
   read<PriceOverride>(COMPONENT_PRICE_KEY, {});
 export const getImportedProducts = () => read<Product[]>(PRODUCT_KEY, []);
+export const getDeletedProductIds = () =>
+  read<number[]>(DELETED_PRODUCT_KEY, []);
+export const getCatalogProducts = () => {
+  const deleted = new Set(getDeletedProductIds());
+  return [...baseProducts, ...getImportedProducts()].filter(
+    (product) => !deleted.has(product.id),
+  );
+};
+export const deleteCatalogProducts = (productIds: number[]) => {
+  const deleted = new Set([...getDeletedProductIds(), ...productIds]);
+  localStorage.setItem(DELETED_PRODUCT_KEY, JSON.stringify([...deleted]));
+};
 export const getImportHistory = () =>
   read<ImportHistoryItem[]>(HISTORY_KEY, []);
 export const getManualPriceHistory = () =>
