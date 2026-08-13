@@ -1,4 +1,8 @@
 import { companies, initialOrders, products, type CompanyKey } from "./crm-data";
+import {
+  getPurchasingSettings,
+  supplierRecipients,
+} from "./settings-storage";
 
 export type OrderStatus = "Brouillon" | "Envoyée" | "Reçue";
 export type StoredOrderLine = {
@@ -75,10 +79,12 @@ const productLine = (productId: number, quantity: number): StoredOrderLine => {
   };
 };
 
+const seededSuppliers = ["YESS ELECTRIQUE", "CLIM+", "CEDEO"];
 const seededOrders: StoredOrder[] = initialOrders.map((order, index) => {
   const lines = [productLine(products[index].id, index + 2)];
   return {
     ...order,
+    supplier: seededSuppliers[index],
     lines,
     email:
       order.status === "Envoyée" || order.status === "Reçue"
@@ -114,8 +120,17 @@ const seededRequests: StoredPurchaseRequest[] = [
   },
 ];
 
+const supplierAliases: Record<string, string> = {
+  "Fournisseur électrique": "YESS ELECTRIQUE",
+  "Fournisseur climatisation": "CLIM+",
+  "Fournisseur plomberie": "CEDEO",
+};
+
 export const getStoredOrders = () =>
-  read<StoredOrder[]>(ORDERS_KEY, seededOrders);
+  read<StoredOrder[]>(ORDERS_KEY, seededOrders).map((order) => ({
+    ...order,
+    supplier: supplierAliases[order.supplier] || order.supplier,
+  }));
 export const getStoredRequests = () =>
   read<StoredPurchaseRequest[]>(REQUESTS_KEY, seededRequests);
 
@@ -215,16 +230,27 @@ export const emptyDispatch = (): Record<CompanyKey, number> =>
   >;
 
 export const createMailPreview = (
-  orderId: string,
-  supplier: string,
-): SentEmail => ({
+  order: Pick<StoredOrder, "id" | "supplier" | "lines">,
+): SentEmail => {
+  const settings = getPurchasingSettings();
+  const orderLines = order.lines
+    .map(
+      (line) =>
+        `${line.quantity} × ${line.name} — ${line.packaging}`,
+    )
+    .join("\n");
+  return {
   sentAt: new Intl.DateTimeFormat("fr-FR", {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date()),
-  to: `commandes@${supplier.toLowerCase().replace(/[^a-z0-9]+/g, "")}.fr`,
-  subject: `${orderId} – Commande HM Group`,
-  body: `Bonjour,\n\nVeuillez trouver notre bon de commande ${orderId}.\nLa livraison est à effectuer chez HM Group.\n\nMerci de confirmer la disponibilité et le délai.\n\nCordialement,\nHM Group`,
-});
+    to: supplierRecipients(order.supplier),
+    subject: settings.mailSubject,
+    body: `${settings.greeting}\n\n${settings.deliveryMessage}\n\nCommande ${order.id}\n\n${orderLines}\n\n${settings.closing}`,
+  };
+};
+
+export const mailtoUrl = (email: SentEmail) =>
+  `mailto:${email.to}?subject=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`;
 
 export { localId };
