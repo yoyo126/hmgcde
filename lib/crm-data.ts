@@ -679,7 +679,7 @@ export const suppliers = [...supplierNames];
 export const initialOrders: Order[] = [
   {
     id: "CMD-2026-048",
-    supplier: "Fournisseur électrique",
+    supplier: "YESS ELECTRIQUE",
     date: "12 août 2026",
     total: 1842.6,
     status: "Envoyée",
@@ -687,7 +687,7 @@ export const initialOrders: Order[] = [
   },
   {
     id: "CMD-2026-047",
-    supplier: "Fournisseur climatisation",
+    supplier: "CLIM+",
     date: "8 août 2026",
     total: 967.2,
     status: "Reçue",
@@ -695,7 +695,7 @@ export const initialOrders: Order[] = [
   },
   {
     id: "CMD-2026-046",
-    supplier: "Fournisseur plomberie",
+    supplier: "CEDEO",
     date: "4 août 2026",
     total: 431.8,
     status: "Brouillon",
