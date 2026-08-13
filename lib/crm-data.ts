@@ -618,6 +618,21 @@ const plumbing: Seed[] = [
 ];
 
 const allSeeds = [...electrical, ...climate, ...plumbing];
+export const supplierNames = [
+  "YESS ELECTRIQUE",
+  "EURELEC",
+  "REXEL",
+  "CEDEO",
+  "AUBADE",
+  "DAST SOLUTION",
+  "CLIM+",
+] as const;
+const suppliersFor = (family: Seed["family"]) =>
+  family === "Électricité"
+    ? ["YESS ELECTRIQUE", "EURELEC", "REXEL"]
+    : family === "Plomberie"
+      ? ["CEDEO", "AUBADE", "DAST SOLUTION"]
+      : ["CLIM+", "CEDEO", "AUBADE", "DAST SOLUTION"];
 export const products: Product[] = allSeeds.map((seed, index) => ({
   id: index + 1,
   name: seed.name,
@@ -626,22 +641,15 @@ export const products: Product[] = allSeeds.map((seed, index) => ({
   unit: seed.unit,
   kind: seed.contents ? "ensemble" : "simple",
   contents: seed.contents,
-  offers: [
-    {
-      supplier:
-        seed.family === "Électricité"
-          ? "Fournisseur électrique"
-          : seed.family === "Climatisation"
-            ? "Fournisseur climatisation"
-            : "Fournisseur plomberie",
-      supplierName: seed.name.toUpperCase(),
-      reference: seed.reference || "À renseigner",
-      brand: "À renseigner",
-      price: seed.price || 0,
-      packaging: seed.packaging,
-      packagingType: seed.modifiable ? "modifiable" : "fixed",
-    },
-  ],
+  offers: suppliersFor(seed.family).map((supplier, supplierIndex) => ({
+    supplier,
+    supplierName: seed.name.toUpperCase(),
+    reference: seed.reference || "À renseigner",
+    brand: "À renseigner",
+    price: supplierIndex === 0 ? seed.price || 0 : 0,
+    packaging: seed.packaging,
+    packagingType: seed.modifiable ? "modifiable" : "fixed",
+  })),
 }));
 export const productFamilies = [
   "Tous",
@@ -655,13 +663,7 @@ export const productSection = (
       ? "Câbles"
       : "Consommables"
     : product.family;
-export const suppliers = Array.from(
-  new Set(
-    products.flatMap((product) =>
-      product.offers.map((offer) => offer.supplier),
-    ),
-  ),
-);
+export const suppliers = [...supplierNames];
 
 export const initialOrders: Order[] = [
   {
