@@ -15,11 +15,11 @@ import {
   UploadCloud,
 } from "lucide-react";
 import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.mjs?url";
-import { money, products, supplierNames, type Product } from "@/lib/crm-data";
+import { money, supplierNames, type Product } from "@/lib/crm-data";
 import {
   effectivePrice,
+  getCatalogProducts,
   getImportHistory,
-  getImportedProducts,
   priceKey,
   saveTariffImport,
   type ImportHistoryItem,
@@ -204,7 +204,7 @@ export function TariffImports() {
   );
   const [saved, setSaved] = useState(false);
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(() =>
-    [...products, ...getImportedProducts()].sort((a, b) =>
+    getCatalogProducts().sort((a, b) =>
       a.name.localeCompare(b.name, "fr"),
     ),
   );
