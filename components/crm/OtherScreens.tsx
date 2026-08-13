@@ -1,13 +1,11 @@
 "use client";
 import { useState } from "react";
 import {
-  Box,
   ChevronRight,
   CircleUserRound,
   FileText,
   Mail,
   MoreHorizontal,
-  PackageOpen,
   Plus,
   Search,
   ShieldCheck,
@@ -20,6 +18,7 @@ import {
   productFamilies,
   productSection,
   products,
+  supplierNames,
 } from "@/lib/crm-data";
 export function OrdersScreen() {
   return (
@@ -117,7 +116,7 @@ export function ProductsScreen() {
       <ScreenHeader
         eyebrow="CATALOGUE UNIQUE"
         title="Produits"
-        description={`${products.length} produits répartis en 4 groupes simples.`}
+        description={`${products.length} produits en liste avec comparatif des 7 fournisseurs.`}
         action="Ajouter un produit"
       />
       <section className="panel table-panel">
@@ -140,67 +139,100 @@ export function ProductsScreen() {
             ))}
           </select>
         </div>
-        <div className="catalog-groups">
+        <div className="supplier-legend">
+          <strong>Comparatif des prix HT</strong>
+          <span>Le prix le plus bas sera automatiquement mis en évidence.</span>
+        </div>
+        <div className="catalog-groups compact-catalog">
           {groups.map(([key, items]) => {
             const [itemFamily, section] = key.split("|||");
             return (
               <section className="catalog-section" key={key}>
                 <div className="catalog-section-head">
                   <div>
-                    <span>{itemFamily === "Électricité" ? "Électricité" : "Catégorie"}</span>
+                    <span>
+                      {itemFamily === "Électricité"
+                        ? "Électricité"
+                        : "Catégorie"}
+                    </span>
                     <h2>{section}</h2>
                   </div>
                   <b>
                     {items.length} produit{items.length > 1 ? "s" : ""}
                   </b>
                 </div>
-                <div className="product-cards">
-                  {items.map((p) => (
-                    <article className="catalog-card" key={p.id}>
-                      <div className="catalog-icon">
-                        {p.kind === "ensemble" ? (
-                          <PackageOpen size={20} />
-                        ) : (
-                          <Box size={20} />
-                        )}
-                      </div>
-                      <div className="catalog-copy">
-                        <span>
-                          {p.family === "Électricité"
-                            ? `Électricité · ${productSection(p)}`
-                            : p.family}
-                        </span>
-                        <h3>{p.name}</h3>
-                        <small>
-                          Commande par {p.unit.toLowerCase()}{" "}
-                          {p.kind === "ensemble" ? "· Ensemble complet" : ""}
-                        </small>
-                        <div className="offers">
-                          {p.offers.map((o) => (
-                            <div key={o.reference}>
-                              <strong>{o.supplier}</strong>
-                              <span>
-                                {o.brand} · {o.reference}
-                              </span>
-                              <b>
-                                {o.price ? money(o.price) : "Prix à saisir"}
-                              </b>
-                            </div>
-                          ))}
-                        </div>
-                        {p.kind === "ensemble" && (
-                          <button
-                            className="composition-link"
-                            onClick={() => setOpen(open === p.id ? null : p.id)}
-                          >
-                            {open === p.id ? "Masquer" : "Voir"} les
-                            sous-produits
-                          </button>
-                        )}
-                        {open === p.id && (
-                          <div className="composition-box catalog-composition">
-                            {p.contents?.length ? (
-                              p.contents.map((item) => (
+                <div className="product-list-scroll">
+                  <div className="product-list">
+                    <div className="product-list-head">
+                      <span>Produit</span>
+                      <span>Conditionnement</span>
+                      {supplierNames.map((supplier) => (
+                        <span key={supplier}>{supplier}</span>
+                      ))}
+                      <span />
+                    </div>
+                    {items.map((p) => {
+                      const knownPrices = p.offers
+                        .map((offer) => offer.price)
+                        .filter((price) => price > 0);
+                      const bestPrice = knownPrices.length
+                        ? Math.min(...knownPrices)
+                        : 0;
+                      return (
+                        <article className="product-list-item" key={p.id}>
+                          <div className="product-list-row">
+                            <span className="product-list-name">
+                              <strong>{p.name}</strong>
+                              <small>
+                                {p.kind === "ensemble"
+                                  ? "Ensemble avec sous-produits"
+                                  : `Commande par ${p.unit.toLowerCase()}`}
+                              </small>
+                            </span>
+                            <span className="packaging-cell">
+                              {p.offers[0].packaging}
+                            </span>
+                            {supplierNames.map((supplier) => {
+                              const offer = p.offers.find(
+                                (item) => item.supplier === supplier,
+                              );
+                              return (
+                                <span
+                                  className={
+                                    offer?.price && offer.price === bestPrice
+                                      ? "price-cell best-price"
+                                      : "price-cell"
+                                  }
+                                  key={supplier}
+                                >
+                                  <b>
+                                    {offer?.price
+                                      ? money(offer.price)
+                                      : "À saisir"}
+                                  </b>
+                                  {offer && <small>{offer.reference}</small>}
+                                </span>
+                              );
+                            })}
+                            <span className="product-actions">
+                              {p.kind === "ensemble" && (
+                                <button
+                                  className="composition-link"
+                                  onClick={() =>
+                                    setOpen(open === p.id ? null : p.id)
+                                  }
+                                >
+                                  {open === p.id ? "Fermer" : "Détail"}
+                                </button>
+                              )}
+                              <button className="more-btn" aria-label="Options">
+                                <MoreHorizontal size={20} />
+                              </button>
+                            </span>
+                          </div>
+                          {open === p.id && (
+                            <div className="composition-box list-composition">
+                              {p.contents?.map((item) => (
                                 <span
                                   className="component-line"
                                   key={item.name}
@@ -210,18 +242,13 @@ export function ProductsScreen() {
                                   </span>
                                   <b>{money(item.unitPrice)} / unité</b>
                                 </span>
-                              ))
-                            ) : (
-                              <span>Composition détaillée à compléter.</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <button className="more-btn">
-                        <MoreHorizontal size={19} />
-                      </button>
-                    </article>
-                  ))}
+                              ))}
+                            </div>
+                          )}
+                        </article>
+                      );
+                    })}
+                  </div>
                 </div>
               </section>
             );
