@@ -18,9 +18,9 @@ import {
   type CompanyKey,
   money,
   productSection,
-  products,
   suppliers,
 } from "@/lib/crm-data";
+import { getCatalogProducts } from "@/lib/tariff-storage";
 import {
   createMailPreview,
   mailtoUrl,
@@ -53,6 +53,7 @@ export function NewOrder({
     [orderId] = useState(() => nextOrderId()),
     [reference] = useState(() => orderReference()),
     [settings] = useState(() => getPurchasingSettings());
+  const [products] = useState(() => getCatalogProducts());
   const totalTeams = Math.max(
     1,
     Object.values(teams).reduce((a, b) => a + b, 0),
@@ -70,7 +71,7 @@ export function NewOrder({
           ?.offers.find((x) => x.supplier === supplier);
         return sum + (o?.price || 0) * qty;
       }, 0),
-    [selected, supplier],
+    [products, selected, supplier],
   );
   const team = (key: CompanyKey, value: number) =>
       setTeams((t) => ({ ...t, [key]: Math.max(0, value) })),
