@@ -35,6 +35,7 @@ import {
   getManualPriceHistory,
   getPriceOverrides,
   priceKey,
+  saveCatalogProducts,
   saveManualPriceChanges,
   type ManualPriceChange,
 } from "@/lib/tariff-storage";
@@ -247,6 +248,7 @@ export function ProductsScreen() {
   const [query, setQuery] = useState(""),
     [family, setFamily] = useState("Tous"),
     [open, setOpen] = useState<number | null>(null),
+    [editingCatalog, setEditingCatalog] = useState(false),
     [editingPrices, setEditingPrices] = useState(false),
     [deletingProducts, setDeletingProducts] = useState(false),
     [selectedProducts, setSelectedProducts] = useState<number[]>([]),
@@ -260,6 +262,21 @@ export function ProductsScreen() {
       {},
     ),
     [priceHistory, setPriceHistory] = useState(() => getManualPriceHistory());
+
+  const updateProduct = (productId: number, update: (product: Product) => Product) =>
+    setCatalog((current) =>
+      current.map((product) => (product.id === productId ? update(product) : product)),
+    );
+
+  const cancelCatalogEditing = () => {
+    setCatalog(getCatalogProducts());
+    setEditingCatalog(false);
+  };
+
+  const saveCatalog = () => {
+    saveCatalogProducts(catalog);
+    setEditingCatalog(false);
+  };
 
   const cancelProductDeletion = () => {
     setDeletingProducts(false);
@@ -283,6 +300,7 @@ export function ProductsScreen() {
 
   const cancelPriceEditing = () => {
     setEditingPrices(false);
+    setCatalog(getCatalogProducts());
     setPriceDrafts({});
     setComponentPrices({});
   };
@@ -342,6 +360,7 @@ export function ProductsScreen() {
       });
     });
     saveManualPriceChanges({ prices, componentPrices: components, changes });
+    saveCatalogProducts(catalog);
     setPriceRevision((revision) => revision + 1);
     setPriceHistory(getManualPriceHistory());
     cancelPriceEditing();
@@ -392,6 +411,15 @@ export function ProductsScreen() {
                 <Trash2 size={18} /> Supprimer ({selectedProducts.length})
               </button>
             </>
+          ) : editingCatalog ? (
+            <>
+              <button className="secondary-btn" onClick={cancelCatalogEditing}>
+                <X size={18} /> Annuler
+              </button>
+              <button className="primary-btn" onClick={saveCatalog}>
+                <Save size={18} /> Enregistrer les produits
+              </button>
+            </>
           ) : editingPrices ? (
             <>
               <button className="secondary-btn" onClick={cancelPriceEditing}>
@@ -416,6 +444,12 @@ export function ProductsScreen() {
                 <Trash2 size={18} /> Supprimer des produits
               </button>
               <button
+                className="secondary-btn"
+                onClick={() => setEditingCatalog(true)}
+              >
+                <Pencil size={18} /> Modifier les produits
+              </button>
+              <button
                 className="primary-btn"
                 onClick={() => setEditingPrices(true)}
               >
@@ -431,6 +465,15 @@ export function ProductsScreen() {
           <span>
             <strong>Mode modification actif</strong>
             Modifiez les prix utiles, puis enregistrez tout en une seule fois.
+          </span>
+        </div>
+      )}
+      {editingCatalog && (
+        <div className="price-edit-banner">
+          <Pencil size={18} />
+          <span>
+            <strong>Modification du catalogue</strong>
+            Noms, catégories, conditionnements, sous-produits et quantités sont modifiables.
           </span>
         </div>
       )}
@@ -599,7 +642,42 @@ export function ProductsScreen() {
                                   Sélectionner
                                 </label>
                               )}
-                              <strong>{p.name}</strong>
+                              {editingCatalog ? (
+                                <>
+                                  <input
+                                    className="catalog-text-input"
+                                    aria-label={`Nom du produit ${p.code || p.id}`}
+                                    value={p.name}
+                                    onChange={(event) =>
+                                      updateProduct(p.id, (product) => ({
+                                        ...product,
+                                        name: event.target.value,
+                                      }))
+                                    }
+                                  />
+                                  <select
+                                    className="catalog-text-input"
+                                    aria-label={`Catégorie de ${p.name}`}
+                                    value={p.family}
+                                    onChange={(event) =>
+                                      updateProduct(p.id, (product) => ({
+                                        ...product,
+                                        family: event.target.value,
+                                        subfamily:
+                                          event.target.value === "Électricité"
+                                            ? product.subfamily
+                                            : event.target.value,
+                                      }))
+                                    }
+                                  >
+                                    {["Électricité", "Plomberie", "Climatisation", "SSc"].map((item) => (
+                                      <option key={item}>{item}</option>
+                                    ))}
+                                  </select>
+                                </>
+                              ) : (
+                                <strong>{p.name}</strong>
+                              )}
                               <small>
                                 {p.kind === "ensemble"
                                   ? "Ensemble avec sous-produits"
@@ -610,7 +688,26 @@ export function ProductsScreen() {
                               className="packaging-cell"
                               data-label="Conditionnement"
                             >
-                              {p.offers[0].packaging}
+                              {editingCatalog && p.subfamily === "Câbles" ? (
+                                <input
+                                  className="catalog-text-input"
+                                  aria-label={`Conditionnement HM de ${p.name}`}
+                                  value={p.offers[0]?.packaging || ""}
+                                  onChange={(event) =>
+                                    updateProduct(p.id, (product) => ({
+                                      ...product,
+                                      offers: product.offers.map((offer) => ({
+                                        ...offer,
+                                        packaging: event.target.value,
+                                      })),
+                                    }))
+                                  }
+                                />
+                              ) : p.subfamily === "Câbles" ? (
+                                p.offers[0]?.packaging
+                              ) : (
+                                "Selon fournisseur"
+                              )}
                             </span>
                             {supplierNames.map((supplier) => {
                               const supplierPrice = supplierPrices.find(
@@ -671,6 +768,61 @@ export function ProductsScreen() {
                                       {offer?.reference || "Tarif importé"}
                                     </small>
                                   )}
+                                  {offer && p.subfamily === "Câbles" &&
+                                    (editingPrices ? (
+                                      <label className="meter-price-input">
+                                        <input
+                                          aria-label={`Prix au mètre de ${p.name} chez ${supplier}`}
+                                          inputMode="decimal"
+                                          min="0"
+                                          step="0.01"
+                                          type="number"
+                                          value={offer.meterPrice || ""}
+                                          onChange={(event) =>
+                                            updateProduct(p.id, (product) => ({
+                                              ...product,
+                                              offers: product.offers.map((item) =>
+                                                item.supplier === supplier
+                                                  ? {
+                                                      ...item,
+                                                      meterPrice: Number(event.target.value),
+                                                    }
+                                                  : item,
+                                              ),
+                                            }))
+                                          }
+                                          placeholder="Prix/m"
+                                        />
+                                        <small>€/m</small>
+                                      </label>
+                                    ) : (
+                                      <small>
+                                        {offer.meterPrice
+                                          ? `${offer.meterPrice.toFixed(2).replace(".", ",")} €/m`
+                                          : "Prix/m à renseigner"}
+                                      </small>
+                                    ))}
+                                  {offer && p.subfamily !== "Câbles" &&
+                                    (editingCatalog ? (
+                                      <input
+                                        className="catalog-packaging-input"
+                                        aria-label={`Conditionnement de ${p.name} chez ${supplier}`}
+                                        value={offer.packaging}
+                                        onChange={(event) =>
+                                          updateProduct(p.id, (product) => ({
+                                            ...product,
+                                            offers: product.offers.map((item) =>
+                                              item.supplier === supplier
+                                                ? { ...item, packaging: event.target.value }
+                                                : item,
+                                            ),
+                                          }))
+                                        }
+                                        placeholder="Conditionnement"
+                                      />
+                                    ) : (
+                                      <small>{offer.packaging}</small>
+                                    ))}
                                 </span>
                               );
                             })}
@@ -682,7 +834,7 @@ export function ProductsScreen() {
                                     setOpen(open === p.id ? null : p.id)
                                   }
                                 >
-                                  {open === p.id ? "Fermer" : "Détail"}
+                                  {open === p.id ? "Fermer" : editingCatalog ? "Modifier" : "Détail"}
                                 </button>
                               )}
                               <button className="more-btn" aria-label="Options">
@@ -746,13 +898,48 @@ export function ProductsScreen() {
                                         className="component-product-name"
                                         key={`${item.name}-name`}
                                       >
-                                        {item.name}
+                                        {editingCatalog ? (
+                                          <input
+                                            className="catalog-text-input"
+                                            aria-label={`Nom du sous-produit ${item.name}`}
+                                            value={item.name}
+                                            onChange={(event) =>
+                                              updateProduct(p.id, (product) => ({
+                                                ...product,
+                                                contents: product.contents?.map((content) =>
+                                                  content === item
+                                                    ? { ...content, name: event.target.value }
+                                                    : content,
+                                                ),
+                                              }))
+                                            }
+                                          />
+                                        ) : item.name}
                                       </span>,
                                       <span
                                         className="component-quantity"
                                         key={`${item.name}-qty`}
                                       >
-                                        {item.quantity}
+                                        {editingCatalog ? (
+                                          <input
+                                            className="catalog-quantity-input"
+                                            aria-label={`Quantité de ${item.name}`}
+                                            min="0"
+                                            step="1"
+                                            type="number"
+                                            value={item.quantity}
+                                            onChange={(event) =>
+                                              updateProduct(p.id, (product) => ({
+                                                ...product,
+                                                contents: product.contents?.map((content) =>
+                                                  content === item
+                                                    ? { ...content, quantity: Number(event.target.value) }
+                                                    : content,
+                                                ),
+                                              }))
+                                            }
+                                          />
+                                        ) : item.quantity}
                                       </span>,
                                       ...p.offers.map((offer) => {
                                         const key = componentPriceKey(

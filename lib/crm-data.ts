@@ -1,3 +1,5 @@
+import { catalogSeeds } from "./catalog-seeds";
+
 export type CompanyKey = "cpte" | "pose" | "instal" | "pac";
 export type SupplierOffer = {
   supplier: string;
@@ -5,6 +7,7 @@ export type SupplierOffer = {
   reference: string;
   brand: string;
   price: number;
+  meterPrice?: number;
   packaging: string;
   packagingType: "modifiable" | "fixed";
 };
@@ -16,6 +19,7 @@ export type ProductComponent = {
 };
 export type Product = {
   id: number;
+  code?: string;
   name: string;
   family: string;
   subfamily: string;
@@ -636,7 +640,7 @@ const suppliersFor = (family: Seed["family"]) =>
       : ["CLIM+", "CEDEO", "AUBADE", "DAST SOLUTION"];
 export const componentPrice = (item: ProductComponent, supplier: string) =>
   item.supplierPrices?.[supplier] || 0;
-export const products: Product[] = allSeeds.map((seed, index) => ({
+const legacyProducts: Product[] = allSeeds.map((seed, index) => ({
   id: index + 1,
   name: seed.name,
   family: seed.family,
@@ -662,6 +666,45 @@ export const products: Product[] = allSeeds.map((seed, index) => ({
     packagingType: seed.modifiable ? "modifiable" : "fixed",
   })),
 }));
+
+const catalogSuppliersFor = (family: string) =>
+  family === "Électricité"
+    ? ["YESS ELECTRIQUE", "EURELEC", "REXEL"]
+    : family === "Plomberie" || family === "SSc"
+      ? ["CEDEO", "AUBADE", "DAST SOLUTION"]
+      : ["CLIM+", "CEDEO", "AUBADE", "DAST SOLUTION"];
+
+export const products: Product[] = catalogSeeds.map((seed, index) => {
+  const supplierList = catalogSuppliersFor(seed.family);
+  const cable = seed.family === "Électricité" && Boolean(seed.packaging);
+  const plumbingCarton = seed.name.toLowerCase().startsWith("carton plomberie");
+  const packaging = seed.packaging || (plumbingCarton ? "Carton complet" : "À renseigner");
+  return {
+    id: index + 1,
+    code: seed.code,
+    name: seed.name,
+    family: seed.family,
+    subfamily:
+      seed.family === "Électricité" ? (cable ? "Câbles" : "Consommables") : seed.family,
+    unit: cable ? "Couronne" : plumbingCarton ? "Carton" : "Pièce",
+    kind: seed.contents ? "ensemble" : "simple",
+    contents: seed.contents?.map((item) => ({
+      ...item,
+      unitPrice: 0,
+      supplierPrices: Object.fromEntries(supplierList.map((supplier) => [supplier, 0])),
+    })),
+    offers: supplierList.map((supplier) => ({
+      supplier,
+      supplierName: seed.name.toUpperCase(),
+      reference: "À renseigner",
+      brand: "À renseigner",
+      price: 0,
+      meterPrice: cable ? 0 : undefined,
+      packaging,
+      packagingType: cable ? "modifiable" : "fixed",
+    })),
+  };
+});
 export const productFamilies = [
   "Tous",
   ...Array.from(new Set(products.map((product) => product.family))),

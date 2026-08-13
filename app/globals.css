@@ -2844,6 +2844,49 @@ main {
   height: 18px;
   accent-color: #c94131;
 }
+.catalog-text-input,
+.catalog-packaging-input,
+.catalog-quantity-input,
+.meter-price-input input {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #b8c3d3;
+  border-radius: 7px;
+  padding: 7px 9px;
+  background: #fff;
+  color: #18243a;
+  font: inherit;
+  font-size: 14px;
+}
+.product-list-name .catalog-text-input + .catalog-text-input {
+  margin-top: 6px;
+}
+.catalog-packaging-input {
+  min-width: 105px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+.catalog-quantity-input {
+  width: 62px;
+  text-align: center;
+  font-weight: 800;
+}
+.meter-price-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+}
+.meter-price-input input {
+  width: 72px;
+  min-height: 32px;
+  padding: 4px 6px;
+  text-align: right;
+}
+.meter-price-input small {
+  margin: 0;
+  white-space: nowrap;
+}
 .danger-btn {
   min-height: 42px;
   display: inline-flex;
