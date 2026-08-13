@@ -19,6 +19,7 @@ import { money, products, supplierNames, type Product } from "@/lib/crm-data";
 import {
   effectivePrice,
   getImportHistory,
+  getImportedProducts,
   priceKey,
   saveTariffImport,
   type ImportHistoryItem,
@@ -176,8 +177,8 @@ const similarity = (source: RawLine, product: Product) => {
   return common / Math.max(sourceTokens.size, targetTokens.size, 1);
 };
 
-const findProduct = (line: RawLine) => {
-  const candidates = products
+const findProduct = (line: RawLine, catalog: Product[]) => {
+  const candidates = catalog
     .map((product) => ({ product, score: similarity(line, product) }))
     .sort((a, b) => b.score - a.score);
   return candidates[0]?.score >= 0.42 ? candidates[0].product : undefined;
@@ -202,6 +203,11 @@ export function TariffImports() {
     getImportHistory(),
   );
   const [saved, setSaved] = useState(false);
+  const [catalogProducts, setCatalogProducts] = useState<Product[]>(() =>
+    [...products, ...getImportedProducts()].sort((a, b) =>
+      a.name.localeCompare(b.name, "fr"),
+    ),
+  );
 
   const counts = useMemo(
     () => ({
@@ -242,7 +248,7 @@ export function TariffImports() {
       ];
       setLines(
         uniqueRows.map((line, index) => {
-          const product = findProduct(line);
+          const product = findProduct(line, catalogProducts);
           const offer = product?.offers.find(
             (item) => item.supplier === supplier,
           );
@@ -274,6 +280,30 @@ export function TariffImports() {
     } finally {
       setBusy(false);
     }
+  };
+
+  const assignProduct = (lineId: string, productId: string) => {
+    setLines((current) =>
+      current.map((line) => {
+        if (line.id !== lineId) return line;
+        const product = catalogProducts.find(
+          (item) => item.id === Number(productId),
+        );
+        if (!product) {
+          return { ...line, product: undefined, oldPrice: 0, status: "new" };
+        }
+        const offer = product.offers.find((item) => item.supplier === supplier);
+        const oldPrice = effectivePrice(product.id, supplier, offer?.price || 0);
+        return {
+          ...line,
+          product,
+          oldPrice,
+          status:
+            Math.abs(oldPrice - line.price) < 0.01 ? "unchanged" : "changed",
+          selected: true,
+        };
+      }),
+    );
   };
 
   const validateImport = () => {
@@ -318,6 +348,13 @@ export function TariffImports() {
       ignored: lines.length - selected.length,
     };
     saveTariffImport({ overrides, newProducts, history: item });
+    if (newProducts.length) {
+      setCatalogProducts((current) =>
+        [...current, ...newProducts].sort((a, b) =>
+          a.name.localeCompare(b.name, "fr"),
+        ),
+      );
+    }
     setHistory(getImportHistory());
     setSaved(true);
   };
@@ -474,9 +511,10 @@ export function TariffImports() {
                 ? ((line.price - line.oldPrice) / line.oldPrice) * 100
                 : 0;
               return (
-                <label className="import-line" key={line.id}>
+                <div className="import-line" key={line.id}>
                   <input
                     type="checkbox"
+                    aria-label={`Sélectionner ${line.name}`}
                     checked={line.selected}
                     onChange={() =>
                       setLines((current) =>
@@ -500,7 +538,21 @@ export function TariffImports() {
                           ? "Produit reconnu"
                           : "Prix identique"}
                     </i>
-                    {line.product && <small>{line.product.name}</small>}
+                    <select
+                      className="product-match-select"
+                      aria-label={`Associer ${line.name} à un produit`}
+                      value={line.product?.id ?? ""}
+                      onChange={(event) =>
+                        assignProduct(line.id, event.target.value)
+                      }
+                    >
+                      <option value="">Créer un nouveau produit</option>
+                      {catalogProducts.map((product) => (
+                        <option key={product.id} value={product.id}>
+                          {product.family} · {product.name}
+                        </option>
+                      ))}
+                    </select>
                   </span>
                   <span data-label="Ancien prix">
                     {line.oldPrice ? money(line.oldPrice) : "—"}
@@ -521,7 +573,7 @@ export function TariffImports() {
                       "—"
                     )}
                   </span>
-                </label>
+                </div>
               );
             })}
           </div>
