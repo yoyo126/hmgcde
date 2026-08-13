@@ -8,6 +8,179 @@
   --bg: #f5f7fb;
   --shadow: 0 8px 30px rgba(26, 37, 64, 0.06);
 }
+
+/* Modification volontaire et historique des prix */
+.price-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.price-edit-banner {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: -10px 0 16px;
+  padding: 13px 16px;
+  border: 1px solid #b9cbee;
+  border-radius: 11px;
+  background: #eef4ff;
+  color: #315aa9;
+}
+.price-edit-banner > span {
+  display: flex;
+  gap: 8px;
+  font-size: 14px;
+}
+.price-edit-banner strong {
+  color: #244b99;
+}
+.catalog-price-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.catalog-price-input input {
+  width: 75px;
+  height: 35px;
+  padding: 0 7px;
+  border: 1px solid #9eb5e4;
+  border-radius: 7px;
+  background: #fff;
+  color: #20355f;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 800;
+}
+.catalog-price-input small {
+  margin: 0 !important;
+  white-space: nowrap;
+  font-size: 10px !important;
+}
+.price-cell.editing,
+.component-supplier-price.editing {
+  background: #f2f6ff;
+}
+.component-supplier-price:not(.editing) {
+  flex-direction: column;
+}
+.component-supplier-price:not(.editing) b {
+  font-size: 14px;
+}
+.manual-price-history {
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.manual-price-history details {
+  border-top: 1px solid #e9ecf1;
+}
+.manual-price-history summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 20px;
+  cursor: pointer;
+  list-style: none;
+}
+.manual-price-history summary::-webkit-details-marker {
+  display: none;
+}
+.manual-price-history summary strong,
+.manual-price-history summary small {
+  display: block;
+}
+.manual-price-history summary strong {
+  font-size: 15px;
+}
+.manual-price-history summary small {
+  margin-top: 3px;
+  color: #7d8798;
+  font-size: 12px;
+}
+.manual-price-history summary > b {
+  padding: 6px 10px;
+  border-radius: 99px;
+  background: #edf3ff;
+  color: #315fc4;
+  font-size: 13px;
+}
+.manual-price-history details > div {
+  padding: 0 20px 12px 34px;
+  background: #fafbfc;
+}
+.manual-price-history details > div > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 9px 0;
+  border-top: 1px solid #eceff3;
+}
+.manual-price-history details > div strong,
+.manual-price-history details > div small {
+  display: block;
+}
+.manual-price-history details > div strong {
+  font-size: 14px;
+}
+.manual-price-history details > div small {
+  margin-top: 3px;
+  color: #7b8495;
+  font-size: 12px;
+}
+.manual-price-history details > div b {
+  white-space: nowrap;
+  color: #294d95;
+  font-size: 13px;
+}
+.empty-price-history {
+  padding: 22px 20px;
+  border-top: 1px solid #e9ecf1;
+  color: #7b8495;
+  font-size: 14px;
+}
+@media (max-width: 760px) {
+  .product-page-title .price-edit-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 14px;
+  }
+  .product-page-title .price-edit-actions button {
+    width: 100%;
+    height: 48px;
+    margin: 0;
+    padding: 0 8px;
+    font-size: 14px;
+  }
+  .price-edit-banner {
+    align-items: flex-start;
+    margin-top: 0;
+  }
+  .price-edit-banner > span {
+    display: block;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .price-edit-banner strong {
+    display: block;
+    margin-bottom: 2px;
+  }
+  .catalog-price-input input {
+    width: 105px;
+    height: 40px;
+    font-size: 16px;
+  }
+  .manual-price-history summary {
+    padding: 13px 14px;
+  }
+  .manual-price-history details > div {
+    padding: 0 14px 10px;
+  }
+  .manual-price-history details > div > span {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+}
 * {
   box-sizing: border-box;
 }
@@ -2367,10 +2540,9 @@ main {
 .product-list-head,
 .product-list-row {
   display: grid;
-  grid-template-columns: minmax(230px, 1.8fr) 135px repeat(
-      7,
-      minmax(105px, 1fr)
-    ) 90px;
+  grid-template-columns:
+    minmax(230px, 1.8fr) 135px repeat(7, minmax(105px, 1fr))
+    90px;
   align-items: stretch;
 }
 .product-list-head {
@@ -3292,10 +3464,9 @@ main {
 .import-table-head,
 .import-line {
   display: grid;
-  grid-template-columns: 34px minmax(230px, 1.4fr) minmax(
-      210px,
-      1.2fr
-    ) 105px 105px 85px;
+  grid-template-columns:
+    34px minmax(230px, 1.4fr) minmax(210px, 1.2fr)
+    105px 105px 85px;
   align-items: center;
   gap: 8px;
   padding: 11px 16px;
