@@ -21,6 +21,7 @@ export type SentEmail = {
 };
 export type StoredOrder = {
   id: string;
+  reference: string;
   supplier: string;
   date: string;
   total: number;
@@ -57,6 +58,46 @@ const localId = () =>
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
+const isoWeek = (date: Date) => {
+  const target = new Date(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+  );
+  const day = target.getUTCDay() || 7;
+  target.setUTCDate(target.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+  return Math.ceil(
+    ((target.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
+  );
+};
+
+export const orderReference = (date = new Date()) =>
+  `Commande S${String(isoWeek(date)).padStart(2, "0")} du ${new Intl.DateTimeFormat(
+    "fr-FR",
+    { day: "2-digit", month: "2-digit", year: "numeric" },
+  ).format(date)}`;
+
+const referenceFromDisplayDate = (value: string) => {
+  const months: Record<string, number> = {
+    janvier: 0,
+    février: 1,
+    mars: 2,
+    avril: 3,
+    mai: 4,
+    juin: 5,
+    juillet: 6,
+    août: 7,
+    septembre: 8,
+    octobre: 9,
+    novembre: 10,
+    décembre: 11,
+  };
+  const match = value.toLowerCase().match(/(\d{1,2})\s+([^\s]+)\s+(\d{4})/);
+  if (!match || months[match[2]] === undefined) return orderReference();
+  return orderReference(
+    new Date(Number(match[3]), months[match[2]], Number(match[1])),
+  );
+};
+
 const read = <T>(key: string, fallback: T): T => {
   if (typeof window === "undefined") return fallback;
   try {
@@ -84,6 +125,7 @@ const seededOrders: StoredOrder[] = initialOrders.map((order, index) => {
   const lines = [productLine(products[index].id, index + 2)];
   return {
     ...order,
+    reference: referenceFromDisplayDate(order.date),
     supplier: seededSuppliers[index],
     lines,
     email:
@@ -129,6 +171,7 @@ const supplierAliases: Record<string, string> = {
 export const getStoredOrders = () =>
   read<StoredOrder[]>(ORDERS_KEY, seededOrders).map((order) => ({
     ...order,
+    reference: order.reference || referenceFromDisplayDate(order.date),
     supplier: supplierAliases[order.supplier] || order.supplier,
   }));
 export const getStoredRequests = () =>
@@ -196,6 +239,7 @@ export const createOrdersFromRequest = (
     const id = nextOrderId();
     saveOrder({
       id,
+      reference: orderReference(),
       supplier,
       date: today,
       status: "Brouillon",
@@ -230,14 +274,27 @@ export const emptyDispatch = (): Record<CompanyKey, number> =>
   >;
 
 export const createMailPreview = (
-  order: Pick<StoredOrder, "id" | "supplier" | "lines">,
+  order: Pick<StoredOrder, "id" | "reference" | "supplier" | "lines">,
 ): SentEmail => {
   const settings = getPurchasingSettings();
+  const companyLabels: Record<CompanyKey, string> = {
+    cpte: "CPTE Conseil",
+    pose: "HM Pose",
+    instal: "HM Instal",
+    pac: "HM PAC",
+  };
   const orderLines = order.lines
-    .map(
-      (line) =>
-        `${line.quantity} × ${line.name} — ${line.packaging}`,
-    )
+    .map((line) => {
+      const dispatch = line.dispatch
+        ? `\nDispatch : ${Object.entries(line.dispatch)
+            .map(
+              ([company, quantity]) =>
+                `${companyLabels[company as CompanyKey]} ${quantity}`,
+            )
+            .join(" | ")}`
+        : "\nDispatch : livraison globale HM Group";
+      return `${line.quantity} × ${line.name} — ${line.packaging}${dispatch}`;
+    })
     .join("\n");
   return {
   sentAt: new Intl.DateTimeFormat("fr-FR", {
@@ -246,7 +303,7 @@ export const createMailPreview = (
   }).format(new Date()),
     to: supplierRecipients(order.supplier),
     subject: settings.mailSubject,
-    body: `${settings.greeting}\n\n${settings.deliveryMessage}\n\nCommande ${order.id}\n\n${orderLines}\n\n${settings.closing}`,
+    body: `${settings.greeting}\n\n${settings.deliveryMessage}\n\n${order.reference}\n\n${orderLines}\n\n${settings.closing}`,
   };
 };
 
