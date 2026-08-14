@@ -325,6 +325,15 @@ const escapeHtml = (value: string | number) =>
 
 export const copyOrderEmail = async (order: StoredOrder) => {
   const settings = getPurchasingSettings();
+  const companyColumns: { key: CompanyKey; label: string }[] = [
+    { key: "cpte", label: "CPTE" },
+    { key: "pose", label: "HM Pose" },
+    { key: "instal", label: "HM Instal" },
+    { key: "pac", label: "HM PAC" },
+  ];
+  const activeCompanies = companyColumns.filter(({ key }) =>
+    order.lines.some((line) => (line.dispatch?.[key] || 0) > 0),
+  );
   const rows = order.lines
     .map((line) => {
       const dispatch = line.dispatch || emptyDispatch();
@@ -343,10 +352,12 @@ export const copyOrderEmail = async (order: StoredOrder) => {
         <td style="border:1px solid #b7c0cc;padding:8px"><strong>${escapeHtml(line.name)}</strong>${components}</td>
         <td style="border:1px solid #b7c0cc;padding:8px">${escapeHtml(line.packaging)}</td>
         <td style="border:1px solid #b7c0cc;padding:8px;text-align:center"><strong>${line.quantity}</strong></td>
-        <td style="border:1px solid #b7c0cc;padding:8px;text-align:center">${dispatch.cpte}</td>
-        <td style="border:1px solid #b7c0cc;padding:8px;text-align:center">${dispatch.pose}</td>
-        <td style="border:1px solid #b7c0cc;padding:8px;text-align:center">${dispatch.instal}</td>
-        <td style="border:1px solid #b7c0cc;padding:8px;text-align:center">${dispatch.pac}</td>
+        ${activeCompanies
+          .map(
+            ({ key }) =>
+              `<td style="border:1px solid #b7c0cc;padding:8px;text-align:center">${dispatch[key]}</td>`,
+          )
+          .join("")}
       </tr>`;
     })
     .join("");
@@ -359,10 +370,12 @@ export const copyOrderEmail = async (order: StoredOrder) => {
         <th style="border:1px solid #263653;padding:8px;text-align:left">Produit</th>
         <th style="border:1px solid #263653;padding:8px;text-align:left">Conditionnement</th>
         <th style="border:1px solid #263653;padding:8px">Qté totale</th>
-        <th style="border:1px solid #263653;padding:8px">CPTE</th>
-        <th style="border:1px solid #263653;padding:8px">HM Pose</th>
-        <th style="border:1px solid #263653;padding:8px">HM Instal</th>
-        <th style="border:1px solid #263653;padding:8px">HM PAC</th>
+        ${activeCompanies
+          .map(
+            ({ label }) =>
+              `<th style="border:1px solid #263653;padding:8px">${label}</th>`,
+          )
+          .join("")}
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
@@ -376,9 +389,16 @@ export const copyOrderEmail = async (order: StoredOrder) => {
     const components = storedComponents?.length
       ? `\n${storedComponents.map((item) => `  ${item.quantity} × ${item.name}`).join("\n")}`
       : "";
-    return `${line.name}${components}\t${line.packaging}\t${line.quantity}\t${dispatch.cpte}\t${dispatch.pose}\t${dispatch.instal}\t${dispatch.pac}`;
+    const companyValues = activeCompanies.map(({ key }) => dispatch[key]);
+    return [line.name + components, line.packaging, line.quantity, ...companyValues].join("\t");
   });
-  const text = `${settings.greeting}\n\n${settings.deliveryMessage}\n\n${order.reference}\n\nProduit\tConditionnement\tQté totale\tCPTE\tHM Pose\tHM Instal\tHM PAC\n${textRows.join("\n")}\n\n${settings.closing}`;
+  const textHeaders = [
+    "Produit",
+    "Conditionnement",
+    "Qté totale",
+    ...activeCompanies.map(({ label }) => label),
+  ];
+  const text = `${settings.greeting}\n\n${settings.deliveryMessage}\n\n${order.reference}\n\n${textHeaders.join("\t")}\n${textRows.join("\n")}\n\n${settings.closing}`;
   try {
     if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
       await navigator.clipboard.write([

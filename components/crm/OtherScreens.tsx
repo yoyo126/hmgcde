@@ -79,6 +79,16 @@ export function OrdersScreen({
     }
     window.open(mailtoUrl(email, false), "_self");
   };
+  const printOrder = (withoutPrices: boolean) => {
+    if (withoutPrices) document.body.classList.add("print-without-prices");
+    const cleanup = () => {
+      document.body.classList.remove("print-without-prices");
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
+    window.print();
+    window.setTimeout(cleanup, 60000);
+  };
   return (
     <div className="screen">
       <div className="page-title standard">
@@ -185,9 +195,15 @@ export function OrdersScreen({
                       </i>
                       <button
                         className="secondary-btn"
-                        onClick={() => window.print()}
+                        onClick={() => printOrder(false)}
                       >
-                        <Printer size={16} /> Imprimer / PDF
+                        <Printer size={16} /> PDF avec prix
+                      </button>
+                      <button
+                        className="secondary-btn"
+                        onClick={() => printOrder(true)}
+                      >
+                        <Printer size={16} /> PDF sans prix
                       </button>
                       <button className="primary-btn" onClick={() => openMail(o)}>
                         <Mail size={16} />
@@ -200,8 +216,8 @@ export function OrdersScreen({
                       <span>Produit</span>
                       <span>Conditionnement</span>
                       <span>Quantité</span>
-                      <span>Prix HT</span>
-                      <span>Total HT</span>
+                      <span className="price-column">Prix HT</span>
+                      <span className="price-column">Total HT</span>
                     </div>
                     {o.lines.map((line) => {
                       const components =
@@ -225,12 +241,12 @@ export function OrdersScreen({
                           </strong>
                           <span>{line.packaging}</span>
                           <b>{line.quantity}</b>
-                          <span>
+                          <span className="price-column">
                             {line.unitPrice
                               ? money(line.unitPrice)
                               : "À renseigner"}
                           </span>
-                          <strong>
+                          <strong className="price-column">
                             {line.unitPrice
                               ? money(line.unitPrice * line.quantity)
                               : "À renseigner"}
@@ -240,7 +256,7 @@ export function OrdersScreen({
                     })}
                   </div>
                   <div className="order-detail-bottom">
-                    <div className="order-total-card">
+                    <div className="order-total-card price-column">
                       <span>Total commande HT</span>
                       <strong>{money(o.total)}</strong>
                     </div>

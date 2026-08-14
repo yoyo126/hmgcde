@@ -376,6 +376,13 @@
   .order-line-view {
     min-width: 0;
   }
+  body.print-without-prices .price-column {
+    display: none !important;
+  }
+  body.print-without-prices .order-lines-head,
+  body.print-without-prices .order-line-view {
+    grid-template-columns: minmax(260px, 2fr) 1.2fr 0.65fr;
+  }
 }
 * {
   box-sizing: border-box;
