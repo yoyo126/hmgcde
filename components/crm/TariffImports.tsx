@@ -18,13 +18,13 @@ import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.js?url";
 import { money, supplierNames, type Product } from "@/lib/crm-data";
 import {
   effectivePrice,
-  getCatalogProducts,
   getImportHistory,
   priceKey,
   saveTariffImport,
   type ImportHistoryItem,
   type PriceOverride,
 } from "@/lib/tariff-storage";
+import { useCatalogProducts } from "@/lib/use-catalog-products";
 
 type RawLine = { name: string; reference: string; price: number };
 type ReviewLine = RawLine & {
@@ -204,10 +204,13 @@ export function TariffImports() {
     getImportHistory(),
   );
   const [saved, setSaved] = useState(false);
-  const [catalogProducts, setCatalogProducts] = useState<Product[]>(() =>
-    getCatalogProducts().sort((a, b) =>
-      a.name.localeCompare(b.name, "fr"),
-    ),
+  const liveCatalogProducts = useCatalogProducts();
+  const catalogProducts = useMemo(
+    () =>
+      [...liveCatalogProducts].sort((a, b) =>
+        a.name.localeCompare(b.name, "fr"),
+      ),
+    [liveCatalogProducts],
   );
 
   const counts = useMemo(
@@ -349,13 +352,6 @@ export function TariffImports() {
       ignored: lines.length - selected.length,
     };
     saveTariffImport({ overrides, newProducts, history: item });
-    if (newProducts.length) {
-      setCatalogProducts((current) =>
-        [...current, ...newProducts].sort((a, b) =>
-          a.name.localeCompare(b.name, "fr"),
-        ),
-      );
-    }
     setHistory(getImportHistory());
     setSaved(true);
   };

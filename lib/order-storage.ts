@@ -3,6 +3,7 @@ import {
   getPurchasingSettings,
   supplierRecipients,
 } from "./settings-storage";
+import { getCatalogProducts } from "./tariff-storage";
 
 export type OrderStatus = "Brouillon" | "Envoyée" | "Reçue";
 export type StoredOrderLine = {
@@ -213,6 +214,7 @@ export const createOrdersFromRequest = (
   request: StoredPurchaseRequest,
   assignments: Record<number, string>,
 ) => {
+  const catalog = getCatalogProducts();
   const assignedLines = request.lines.filter(
     (line) => assignments[line.productId] && !line.ordered,
   );
@@ -229,7 +231,9 @@ export const createOrdersFromRequest = (
     const lines = assignedLines
       .filter((line) => assignments[line.productId] === supplier)
       .map((line) => {
-        const product = products.find((item) => item.id === line.productId)!;
+        const product =
+          catalog.find((item) => item.id === line.productId) ||
+          products.find((item) => item.id === line.productId)!;
         const offer = product.offers.find((item) => item.supplier === supplier);
         return {
           productId: line.productId,
@@ -325,6 +329,7 @@ const escapeHtml = (value: string | number) =>
 
 export const copyOrderEmail = async (order: StoredOrder) => {
   const settings = getPurchasingSettings();
+  const catalog = getCatalogProducts();
   const companyColumns: { key: CompanyKey; label: string }[] = [
     { key: "cpte", label: "CPTE" },
     { key: "pose", label: "HM Pose" },
@@ -339,7 +344,7 @@ export const copyOrderEmail = async (order: StoredOrder) => {
       const dispatch = line.dispatch || emptyDispatch();
       const storedComponents =
         line.components ||
-        products.find((product) => product.id === line.productId)?.contents;
+        catalog.find((product) => product.id === line.productId)?.contents;
       const components = storedComponents?.length
         ? `<div style="margin-top:6px;color:#526071;font-size:12px">${storedComponents
             .map(
@@ -385,7 +390,7 @@ export const copyOrderEmail = async (order: StoredOrder) => {
     const dispatch = line.dispatch || emptyDispatch();
     const storedComponents =
       line.components ||
-      products.find((product) => product.id === line.productId)?.contents;
+      catalog.find((product) => product.id === line.productId)?.contents;
     const components = storedComponents?.length
       ? `\n${storedComponents.map((item) => `  ${item.quantity} × ${item.name}`).join("\n")}`
       : "";

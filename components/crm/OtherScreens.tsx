@@ -54,6 +54,7 @@ import {
   type PurchasingSettings,
 } from "@/lib/settings-storage";
 import type { ScreenId } from "./Sidebar";
+import { useCatalogProducts } from "@/lib/use-catalog-products";
 export function OrdersScreen({
   onNavigate,
 }: {
@@ -61,8 +62,8 @@ export function OrdersScreen({
 }) {
   const [query, setQuery] = useState(""),
     [openOrder, setOpenOrder] = useState<string | null>(null),
-    [orderCatalog] = useState<Product[]>(() => getCatalogProducts()),
     [orders, setOrders] = useState<StoredOrder[]>(() => getStoredOrders());
+  const orderCatalog = useCatalogProducts();
   const filteredOrders = orders.filter((order) =>
     `${order.id} ${order.supplier} ${order.status}`
       .toLowerCase()

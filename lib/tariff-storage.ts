@@ -32,6 +32,13 @@ const DELETED_PRODUCT_KEY = "hm-deleted-product-ids";
 const CATALOG_OVERRIDE_KEY = "hm-catalog-product-overrides";
 const CATALOG_VERSION_KEY = "hm-catalog-version";
 const CATALOG_VERSION = "2026-08-14-catalogue-simple-v1";
+export const CATALOG_CHANGED_EVENT = "hm-catalog-changed";
+
+const notifyCatalogChanged = () => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(CATALOG_CHANGED_EVENT));
+  }
+};
 
 const ensureCatalogVersion = () => {
   if (typeof window === "undefined") return;
@@ -77,21 +84,43 @@ export const getCatalogProducts = () => {
   ensureCatalogVersion();
   const deleted = new Set(getDeletedProductIds());
   const overrides = read<Record<string, Product>>(CATALOG_OVERRIDE_KEY, {});
-  return [...baseProducts, ...getImportedProducts()].map(
-    (product) => overrides[String(product.id)] || product,
-  ).filter(
-    (product) => !deleted.has(product.id),
-  );
+  const prices = getPriceOverrides();
+  const componentPrices = getComponentPriceOverrides();
+  return [...baseProducts, ...getImportedProducts()]
+    .map((product) => overrides[String(product.id)] || product)
+    .filter((product) => !deleted.has(product.id))
+    .map((product) => ({
+      ...product,
+      offers: product.offers.map((offer) => ({
+        ...offer,
+        price: prices[priceKey(product.id, offer.supplier)] ?? offer.price,
+      })),
+      contents: product.contents?.map((item) => ({
+        ...item,
+        supplierPrices: item.supplierPrices
+          ? Object.fromEntries(
+              Object.entries(item.supplierPrices).map(([supplier, price]) => [
+                supplier,
+                componentPrices[
+                  componentPriceKey(product.id, item.name, supplier)
+                ] ?? price,
+              ]),
+            )
+          : item.supplierPrices,
+      })),
+    }));
 };
 export const saveCatalogProducts = (products: Product[]) => {
   localStorage.setItem(
     CATALOG_OVERRIDE_KEY,
     JSON.stringify(Object.fromEntries(products.map((product) => [String(product.id), product]))),
   );
+  notifyCatalogChanged();
 };
 export const deleteCatalogProducts = (productIds: number[]) => {
   const deleted = new Set([...getDeletedProductIds(), ...productIds]);
   localStorage.setItem(DELETED_PRODUCT_KEY, JSON.stringify([...deleted]));
+  notifyCatalogChanged();
 };
 export const getImportHistory = () =>
   read<ImportHistoryItem[]>(HISTORY_KEY, []);
@@ -129,6 +158,7 @@ export const saveManualPriceChanges = ({
     COMPONENT_PRICE_KEY,
     JSON.stringify({ ...getComponentPriceOverrides(), ...componentPrices }),
   );
+  notifyCatalogChanged();
   if (!changes.length) return;
   const historyItem: ManualPriceHistoryItem = {
     id: createLocalId(),
@@ -166,4 +196,5 @@ export const saveTariffImport = ({
     HISTORY_KEY,
     JSON.stringify([history, ...getImportHistory()].slice(0, 30)),
   );
+  notifyCatalogChanged();
 };

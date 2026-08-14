@@ -13,7 +13,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { productFamilies, productSection } from "@/lib/crm-data";
-import { getCatalogProducts } from "@/lib/tariff-storage";
+import { useCatalogProducts } from "@/lib/use-catalog-products";
 import {
   createOrdersFromRequest,
   getStoredRequests,
@@ -41,7 +41,7 @@ export function PurchaseRequests({
     [requests, setRequests] = useState<StoredPurchaseRequest[]>(() =>
       getStoredRequests(),
     );
-  const [products] = useState(() => getCatalogProducts());
+  const products = useCatalogProducts();
 
   const filtered = useMemo(
     () =>

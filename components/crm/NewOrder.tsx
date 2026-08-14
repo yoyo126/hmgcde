@@ -20,7 +20,7 @@ import {
   productSection,
   suppliers,
 } from "@/lib/crm-data";
-import { getCatalogProducts } from "@/lib/tariff-storage";
+import { useCatalogProducts } from "@/lib/use-catalog-products";
 import {
   createMailPreview,
   copyOrderEmail,
@@ -62,7 +62,7 @@ export function NewOrder({
     [orderId] = useState(() => initialOrder?.id || nextOrderId()),
     [reference] = useState(() => initialOrder?.reference || orderReference()),
     [settings] = useState(() => getPurchasingSettings());
-  const [products] = useState(() => getCatalogProducts());
+  const products = useCatalogProducts();
   const totalTeams = Math.max(
     1,
     Object.values(teams).reduce((a, b) => a + b, 0),
