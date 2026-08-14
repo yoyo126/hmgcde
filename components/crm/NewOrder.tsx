@@ -45,7 +45,7 @@ export function NewOrder({
   remainingDrafts?: number;
   onNextDraft?: () => void;
 }) {
-  const [step, setStep] = useState(initialOrder ? 4 : 1),
+  const [step, setStep] = useState(initialOrder ? 4 : 2),
     [teams, setTeams] = useState<Teams>(
       () => getPurchasingSettings().defaultTeams,
     ),
@@ -58,6 +58,7 @@ export function NewOrder({
     [query, setQuery] = useState(""),
     [sent, setSent] = useState(false),
     [mailOpen, setMailOpen] = useState(false),
+    [showTeams, setShowTeams] = useState(false),
     [orderId] = useState(() => initialOrder?.id || nextOrderId()),
     [reference] = useState(() => initialOrder?.reference || orderReference()),
     [settings] = useState(() => getPurchasingSettings());
@@ -215,18 +216,21 @@ export function NewOrder({
         </div>
         <div className="draft-tag">Brouillon automatique</div>
       </div>
-      <div className="stepper">
-        {["Équipes", "Produits", "Répartition", "Validation"].map(
-          (label, i) => (
+      <div className="stepper two-steps">
+        {[
+          { id: 2, label: "Produits" },
+          { id: 4, label: "Validation" },
+        ].map(
+          ({ id, label }, i) => (
             <div
               key={label}
               className={
                 "step " +
-                (step === i + 1 ? "active " : "") +
-                (step > i + 1 ? "done" : "")
+                (step === id ? "active " : "") +
+                (step > id ? "done" : "")
               }
             >
-              <span>{step > i + 1 ? <Check size={15} /> : i + 1}</span>
+              <span>{step > id ? <Check size={15} /> : i + 1}</span>
               <div>
                 <small>ÉTAPE {i + 1}</small>
                 <strong>{label}</strong>
@@ -413,6 +417,52 @@ export function NewOrder({
               title="Bon fournisseur"
               text="Vérifiez le document avant de créer la commande."
             />
+            <div className="default-team-summary">
+              <div>
+                <strong>Équipes appliquées automatiquement</strong>
+                <span>
+                  {companies
+                    .map((company) => `${company.short} : ${teams[company.key]}`)
+                    .join(" · ")}
+                </span>
+              </div>
+              <button
+                className="secondary-btn"
+                onClick={() => setShowTeams((visible) => !visible)}
+              >
+                <Users size={17} />
+                {showTeams ? "Fermer" : "Modifier les équipes"}
+              </button>
+            </div>
+            {showTeams && (
+              <div className="inline-team-editor">
+                <div className="teams-grid">
+                  {companies.map((company) => (
+                    <div className="team-card" key={company.key}>
+                      <div className="company-line">
+                        <span
+                          className="company-dot"
+                          style={{ background: company.color }}
+                        />
+                        <div>
+                          <strong>{company.name}</strong>
+                          <small>Nombre d’équipes</small>
+                        </div>
+                      </div>
+                      <NumberControl
+                        value={teams[company.key]}
+                        onMinus={() =>
+                          team(company.key, teams[company.key] - 1)
+                        }
+                        onPlus={() =>
+                          team(company.key, teams[company.key] + 1)
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="supplier-document">
               <div className="doc-brand">
                 <div className="brand-mark">HM</div>
@@ -502,10 +552,10 @@ export function NewOrder({
         )}
         <div className="wizard-footer">
           <div>
-            {step > 1 && (
+            {step === 4 && !initialOrder && (
               <button
                 className="secondary-btn"
-                onClick={() => setStep(step - 1)}
+                onClick={() => setStep(2)}
               >
                 <ArrowLeft size={17} />
                 Précédent
@@ -517,8 +567,12 @@ export function NewOrder({
               {Object.values(selected).filter((q) => q > 0).length} produit(s) ·{" "}
               <strong>{money(total)}</strong>
             </span>
-            {step < 4 ? (
-              <button className="primary-btn" onClick={() => setStep(step + 1)}>
+            {step === 2 ? (
+              <button
+                className="primary-btn"
+                disabled={!Object.values(selected).some((quantity) => quantity > 0)}
+                onClick={() => setStep(4)}
+              >
                 Continuer <ArrowRight size={17} />
               </button>
             ) : (

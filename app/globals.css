@@ -890,6 +890,10 @@ main {
   max-width: 850px;
   position: relative;
 }
+.stepper.two-steps {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 520px;
+}
 .stepper:before {
   content: "";
   position: absolute;
@@ -898,6 +902,42 @@ main {
   top: 17px;
   height: 1px;
   background: #dfe3ea;
+}
+.default-team-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 13px 15px;
+  border: 1px solid #dce3ed;
+  border-radius: 10px;
+  background: #f7f9fc;
+}
+.default-team-summary strong,
+.default-team-summary span {
+  display: block;
+}
+.default-team-summary span {
+  margin-top: 4px;
+  color: #667085;
+  font-size: 13px;
+}
+.inline-team-editor {
+  margin: -6px 0 18px;
+  padding: 15px;
+  border: 1px solid #dce3ed;
+  border-radius: 10px;
+  background: #fff;
+}
+@media (max-width: 760px) {
+  .default-team-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .default-team-summary .secondary-btn {
+    width: 100%;
+  }
 }
 .step {
   display: flex;
