@@ -26,11 +26,13 @@ export function Sidebar({
   onChange,
   open,
   onClose,
+  requestNotifications = 0,
 }: {
   active: ScreenId;
   onChange: (id: ScreenId) => void;
   open: boolean;
   onClose: () => void;
+  requestNotifications?: number;
 }) {
   return (
     <>
@@ -62,6 +64,9 @@ export function Sidebar({
             >
               <Icon size={19} />
               <span>{label}</span>
+              {id === "purchase-requests" && requestNotifications > 0 && (
+                <b className="nav-notification">{requestNotifications}</b>
+              )}
             </button>
           ))}
           <p className="nav-eyebrow second">ADMINISTRATION</p>
@@ -94,9 +99,11 @@ export function Sidebar({
 export function MobileNav({
   active,
   onChange,
+  requestNotifications = 0,
 }: {
   active: ScreenId;
   onChange: (id: ScreenId) => void;
+  requestNotifications?: number;
 }) {
   return (
     <nav className="mobile-nav">
@@ -107,6 +114,9 @@ export function MobileNav({
           onClick={() => onChange(id)}
         >
           <Icon size={20} />
+          {id === "purchase-requests" && requestNotifications > 0 && (
+            <b className="mobile-notification">{requestNotifications}</b>
+          )}
           <span>
             {label === "Nouvelle commande"
               ? "Commander"

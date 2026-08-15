@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Menu, Search } from "lucide-react";
 import { Dashboard } from "./Dashboard";
 import { NewOrder } from "./NewOrder";
@@ -12,14 +12,36 @@ import {
 } from "./OtherScreens";
 import { PurchaseRequests } from "./PurchaseRequests";
 import { TariffImports } from "./TariffImports";
-import type { StoredOrder } from "@/lib/order-storage";
+import {
+  getNewPurchaseRequestCount,
+  type StoredOrder,
+} from "@/lib/order-storage";
 export function CRMApp() {
   const [screen, setScreen] = useState<ScreenId>("dashboard"),
     [menu, setMenu] = useState(false),
-    [draftOrders, setDraftOrders] = useState<StoredOrder[]>([]);
+    [draftOrders, setDraftOrders] = useState<StoredOrder[]>([]),
+    [orderToOpen, setOrderToOpen] = useState<string | null>(null),
+    [requestNotifications, setRequestNotifications] = useState(() =>
+      getNewPurchaseRequestCount(),
+    );
+  useEffect(() => {
+    const refresh = () =>
+      setRequestNotifications(getNewPurchaseRequestCount());
+    window.addEventListener("hm-purchasing-updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("hm-purchasing-updated", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
   const navigate = (next: ScreenId) => {
     setDraftOrders([]);
+    if (next !== "orders") setOrderToOpen(null);
     setScreen(next);
+  };
+  const openOrder = (orderId: string) => {
+    setOrderToOpen(orderId);
+    setScreen("orders");
   };
   const finalizeRequest = (orders: StoredOrder[]) => {
     setDraftOrders(orders);
@@ -27,7 +49,7 @@ export function CRMApp() {
   };
   const content =
     screen === "dashboard" ? (
-      <Dashboard onNavigate={navigate} />
+      <Dashboard onNavigate={navigate} onOpenOrder={openOrder} />
     ) : screen === "new-order" ? (
       <NewOrder
         key={draftOrders[0]?.id || "new-order"}
@@ -39,7 +61,7 @@ export function CRMApp() {
     ) : screen === "purchase-requests" ? (
       <PurchaseRequests onFinalize={finalizeRequest} />
     ) : screen === "orders" ? (
-      <OrdersScreen onNavigate={navigate} />
+      <OrdersScreen onNavigate={navigate} initialOpenOrder={orderToOpen} />
     ) : screen === "products" ? (
       <ProductsScreen />
     ) : screen === "tariff-imports" ? (
@@ -56,6 +78,7 @@ export function CRMApp() {
         onChange={navigate}
         open={menu}
         onClose={() => setMenu(false)}
+        requestNotifications={requestNotifications}
       />
       <div className="main-shell">
         <header className="topbar">
@@ -68,9 +91,14 @@ export function CRMApp() {
             <kbd>⌘ K</kbd>
           </div>
           <div className="top-actions">
-            <button>
+            <button
+              aria-label={`${requestNotifications} nouvelle(s) demande(s) d’achat`}
+              onClick={() => navigate("purchase-requests")}
+            >
               <Bell size={19} />
-              <span />
+              {requestNotifications > 0 && (
+                <b className="top-notification">{requestNotifications}</b>
+              )}
             </button>
             <div className="top-user">
               <div className="avatar">YD</div>
@@ -83,7 +111,11 @@ export function CRMApp() {
         </header>
         <main>{content}</main>
       </div>
-      <MobileNav active={screen} onChange={navigate} />
+      <MobileNav
+        active={screen}
+        onChange={navigate}
+        requestNotifications={requestNotifications}
+      />
     </div>
   );
 }

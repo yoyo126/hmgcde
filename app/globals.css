@@ -4400,3 +4400,110 @@ main {
     margin: auto;
   }
 }
+
+.nav-notification,
+.mobile-notification {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  margin-left: auto;
+}
+.mobile-nav button { position: relative; }
+.mobile-notification {
+  position: absolute;
+  top: 3px;
+  right: 10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 10px;
+}
+.top-actions > button { position: relative; }
+.top-notification {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.new-request-pill {
+  display: inline-flex;
+  margin-left: 8px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.bulk-supplier-tools {
+  display: grid;
+  grid-template-columns: auto minmax(190px, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  margin: 0 0 16px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f4f7fb;
+  border: 1px solid #dce4ef;
+}
+.bulk-supplier-tools select { min-height: 42px; }
+.request-line-quantity { justify-self: start; }
+.supplier-setting-row {
+  display: grid;
+  grid-template-columns: minmax(170px, .8fr) minmax(260px, 1.6fr) 42px;
+  gap: 10px;
+  align-items: end;
+}
+.supplier-setting-row label { min-width: 0; }
+.add-supplier-btn { margin-left: auto; }
+.icon-danger-btn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff;
+  color: #dc2626;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.dashboard-order-row {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.dashboard-order-row:hover { background: #f7f9fc; }
+.product-toolbar {
+  grid-template-columns: repeat(3, minmax(150px, 220px)) minmax(220px, 1fr);
+}
+.request-toolbar {
+  grid-template-columns: minmax(220px, 1fr) 190px 190px;
+}
+
+@media (max-width: 760px) {
+  .bulk-supplier-tools { grid-template-columns: 1fr; }
+  .supplier-setting-row { grid-template-columns: 1fr 42px; }
+  .supplier-setting-row label:first-child { grid-column: 1 / -1; }
+  .product-toolbar,
+  .request-toolbar { grid-template-columns: 1fr; }
+}

@@ -50,6 +50,7 @@ export type StoredPurchaseRequest = {
   date: string;
   status: RequestStatus;
   lines: PurchaseRequestLine[];
+  seen?: boolean;
 };
 
 const ORDERS_KEY = "hm-orders";
@@ -149,6 +150,7 @@ const seededRequests: StoredPurchaseRequest[] = [
     requester: "Entrepôt HM Group",
     date: "12 août 2026",
     status: "À commander",
+    seen: true,
     lines: [
       products[0],
       products[2],
@@ -180,6 +182,9 @@ export const getStoredOrders = () =>
 export const getStoredRequests = () =>
   read<StoredPurchaseRequest[]>(REQUESTS_KEY, seededRequests);
 
+export const getNewPurchaseRequestCount = () =>
+  getStoredRequests().filter((request) => request.seen === false).length;
+
 const notify = () => window.dispatchEvent(new Event("hm-purchasing-updated"));
 
 export const saveOrder = (order: StoredOrder) => {
@@ -192,6 +197,29 @@ export const savePurchaseRequest = (request: StoredPurchaseRequest) => {
   const current = getStoredRequests().filter((item) => item.id !== request.id);
   localStorage.setItem(REQUESTS_KEY, JSON.stringify([request, ...current]));
   notify();
+};
+
+export const markPurchaseRequestSeen = (requestId: string) => {
+  const request = getStoredRequests().find((item) => item.id === requestId);
+  if (!request || request.seen !== false) return;
+  savePurchaseRequest({ ...request, seen: true });
+};
+
+export const updatePurchaseRequestQuantity = (
+  requestId: string,
+  productId: number,
+  quantity: number,
+) => {
+  const request = getStoredRequests().find((item) => item.id === requestId);
+  if (!request) return;
+  savePurchaseRequest({
+    ...request,
+    lines: request.lines.map((line) =>
+      line.productId === productId && !line.ordered
+        ? { ...line, quantity: Math.max(1, quantity) }
+        : line,
+    ),
+  });
 };
 
 export const nextOrderId = () => {

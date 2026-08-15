@@ -24,7 +24,6 @@ import {
   money,
   productFamilies,
   productSection,
-  supplierNames,
   type Product,
 } from "@/lib/crm-data";
 import {
@@ -55,13 +54,16 @@ import {
 } from "@/lib/settings-storage";
 import type { ScreenId } from "./Sidebar";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
+import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
 export function OrdersScreen({
   onNavigate,
+  initialOpenOrder,
 }: {
   onNavigate: (id: ScreenId) => void;
+  initialOpenOrder?: string | null;
 }) {
   const [query, setQuery] = useState(""),
-    [openOrder, setOpenOrder] = useState<string | null>(null),
+    [openOrder, setOpenOrder] = useState<string | null>(initialOpenOrder || null),
     [orders, setOrders] = useState<StoredOrder[]>(() => getStoredOrders());
   const orderCatalog = useCatalogProducts();
   const filteredOrders = orders.filter((order) =>
@@ -307,6 +309,10 @@ export function ProductsScreen() {
       {},
     ),
     [priceHistory, setPriceHistory] = useState(() => getManualPriceHistory());
+  const purchasingSettings = usePurchasingSettings();
+  const configuredSupplierNames = purchasingSettings.suppliers.map(
+    (supplier) => supplier.name,
+  );
   const editingCatalog = editing;
   const editingPrices = editing;
   const deletingProducts = editing;
@@ -344,7 +350,7 @@ export function ProductsScreen() {
     const components: Record<string, number> = {};
     const changes: ManualPriceChange[] = [];
     catalog.forEach((product) => {
-      supplierNames.forEach((supplier) => {
+      configuredSupplierNames.forEach((supplier) => {
         const key = priceKey(product.id, supplier);
         if (priceDrafts[key] === undefined) return;
         const offer = product.offers.find((item) => item.supplier === supplier);
@@ -430,7 +436,7 @@ export function ProductsScreen() {
           <span className="eyebrow">CATALOGUE UNIQUE</span>
           <h1>Produits</h1>
           <p>
-            {catalog.length} produits en liste avec comparatif des 7
+            {catalog.length} produits en liste avec comparatif des {configuredSupplierNames.length}
             fournisseurs.
           </p>
         </div>
@@ -510,7 +516,7 @@ export function ProductsScreen() {
           <div className="panel-head">
             <div>
               <h2>Historique des modifications de prix</h2>
-              <p>Chaque enregistrement manuel est conservé avec sa date.</p>
+              <p>Les modifications manuelles et les imports sont conservés avec leur date.</p>
             </div>
           </div>
           {priceHistory.length ? (
@@ -519,7 +525,7 @@ export function ProductsScreen() {
                 <summary>
                   <span>
                     <strong>{item.date}</strong>
-                    <small>Administrateur HM</small>
+                    <small>{item.source || "Manuel"} · Administrateur HM</small>
                   </span>
                   <b>{item.changes.length} modification(s)</b>
                 </summary>
@@ -542,7 +548,7 @@ export function ProductsScreen() {
             ))
           ) : (
             <div className="empty-price-history">
-              Aucune modification manuelle enregistrée.
+              Aucune évolution de prix enregistrée.
             </div>
           )}
         </section>
@@ -594,13 +600,13 @@ export function ProductsScreen() {
                     <div className="product-list-head">
                       <span>Produit</span>
                       <span>Conditionnement</span>
-                      {supplierNames.map((supplier) => (
+                      {configuredSupplierNames.map((supplier) => (
                         <span key={supplier}>{supplier}</span>
                       ))}
                       <span />
                     </div>
                     {items.map((p) => {
-                      const supplierPrices = supplierNames.map((supplier) => {
+                      const supplierPrices = configuredSupplierNames.map((supplier) => {
                         const offer = p.offers.find(
                           (item) => item.supplier === supplier,
                         );
@@ -708,7 +714,7 @@ export function ProductsScreen() {
                                 p.offers[0]?.packaging || "À renseigner"
                               )}
                             </span>
-                            {supplierNames.map((supplier) => {
+                            {configuredSupplierNames.map((supplier) => {
                               const supplierPrice = supplierPrices.find(
                                 (item) => item.supplier === supplier,
                               );
@@ -1121,8 +1127,13 @@ export function SettingsScreen() {
     value: string,
   ) => setDraft((current) => ({ ...current, [field]: value }));
   const save = () => {
-    savePurchasingSettings(draft);
-    setSaved(draft);
+    const cleaned = {
+      ...draft,
+      suppliers: draft.suppliers.filter((supplier) => supplier.name.trim()),
+    };
+    savePurchasingSettings(cleaned);
+    setSaved(cleaned);
+    setDraft(cleaned);
     setEditing(false);
   };
   return (
@@ -1167,17 +1178,53 @@ export function SettingsScreen() {
           <div className="settings-form-head">
             <Truck size={21} />
             <div>
-              <h2>E-mails des fournisseurs</h2>
-              <p>Plusieurs adresses possibles, séparées par une virgule.</p>
+              <h2>Fournisseurs et e-mails</h2>
+              <p>Ajoutez vos fournisseurs et plusieurs adresses séparées par « ; ».</p>
             </div>
+            {editing && (
+              <button
+                className="secondary-btn add-supplier-btn"
+                onClick={() =>
+                  setDraft((current) => ({
+                    ...current,
+                    suppliers: [
+                      ...current.suppliers,
+                      { name: "", emails: "" },
+                    ],
+                  }))
+                }
+              >
+                <Plus size={16} /> Ajouter
+              </button>
+            )}
           </div>
           <div className="supplier-email-list">
             {draft.suppliers.map((supplier, index) => (
-              <label key={supplier.name}>
-                <span>{supplier.name}</span>
+              <div className="supplier-setting-row" key={`${supplier.name}-${index}`}>
+                <label>
+                <span>Fournisseur</span>
                 <input
                   disabled={!editing}
-                  placeholder="commande@fournisseur.fr"
+                  placeholder="Nom du fournisseur"
+                  type="text"
+                  value={supplier.name}
+                  onChange={(event) =>
+                    setDraft((current) => ({
+                      ...current,
+                      suppliers: current.suppliers.map((item, itemIndex) =>
+                        itemIndex === index
+                          ? { ...item, name: event.target.value }
+                          : item,
+                      ),
+                    }))
+                  }
+                />
+                </label>
+                <label>
+                <span>Destinataires</span>
+                <input
+                  disabled={!editing}
+                  placeholder="commande@fournisseur.fr ; commercial@fournisseur.fr"
                   type="text"
                   value={supplier.emails}
                   onChange={(event) =>
@@ -1191,7 +1238,24 @@ export function SettingsScreen() {
                     }))
                   }
                 />
-              </label>
+                </label>
+                {editing && (
+                  <button
+                    className="icon-danger-btn"
+                    aria-label={`Supprimer ${supplier.name || "ce fournisseur"}`}
+                    onClick={() =>
+                      setDraft((current) => ({
+                        ...current,
+                        suppliers: current.suppliers.filter(
+                          (_, itemIndex) => itemIndex !== index,
+                        ),
+                      }))
+                    }
+                  >
+                    <Trash2 size={17} />
+                  </button>
+                )}
+              </div>
             ))}
           </div>
           <div className="default-teams-settings">

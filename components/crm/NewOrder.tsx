@@ -18,7 +18,6 @@ import {
   type CompanyKey,
   money,
   productSection,
-  suppliers,
 } from "@/lib/crm-data";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
 import {
@@ -32,6 +31,7 @@ import {
 } from "@/lib/order-storage";
 import type { ScreenId } from "./Sidebar";
 import { getPurchasingSettings } from "@/lib/settings-storage";
+import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
 type Teams = Record<CompanyKey, number>;
 type Selected = Record<number, number>;
 export function NewOrder({
@@ -45,24 +45,37 @@ export function NewOrder({
   remainingDrafts?: number;
   onNextDraft?: () => void;
 }) {
+  const settings = usePurchasingSettings();
   const [step, setStep] = useState(initialOrder ? 4 : 2),
     [teams, setTeams] = useState<Teams>(
       () => getPurchasingSettings().defaultTeams,
     ),
-    [supplier, setSupplier] = useState(initialOrder?.supplier || suppliers[0]),
+    [supplier, setSupplier] = useState(
+      initialOrder?.supplier || settings.suppliers[0]?.name || "",
+    ),
     [selected, setSelected] = useState<Selected>(() =>
       Object.fromEntries(
         initialOrder?.lines.map((line) => [line.productId, line.quantity]) || [],
       ),
     ),
     [query, setQuery] = useState(""),
+    [family, setFamily] = useState("Tous"),
+    [group, setGroup] = useState("Tous les groupes"),
     [sent, setSent] = useState(false),
     [mailOpen, setMailOpen] = useState(false),
     [showTeams, setShowTeams] = useState(false),
     [orderId] = useState(() => initialOrder?.id || nextOrderId()),
-    [reference] = useState(() => initialOrder?.reference || orderReference()),
-    [settings] = useState(() => getPurchasingSettings());
+    [reference] = useState(() => initialOrder?.reference || orderReference());
   const products = useCatalogProducts();
+  const families = ["Tous", ...new Set(products.map((product) => product.family))];
+  const groups = [
+    "Tous les groupes",
+    ...new Set(
+      products
+        .filter((product) => family === "Tous" || product.family === family)
+        .map((product) => productSection(product)),
+    ),
+  ];
   const totalTeams = Math.max(
     1,
     Object.values(teams).reduce((a, b) => a + b, 0),
@@ -70,6 +83,8 @@ export function NewOrder({
   const filtered = products.filter(
     (p) =>
       p.offers.some((o) => o.supplier === supplier) &&
+      (family === "Tous" || p.family === family) &&
+      (group === "Tous les groupes" || productSection(p) === group) &&
       p.name.toLowerCase().includes(query.toLowerCase()),
   );
   const total = useMemo(
@@ -287,14 +302,29 @@ export function NewOrder({
                 FOURNISSEUR
                 <select
                   value={supplier}
-                  onChange={(e) => {
-                    setSupplier(e.target.value);
-                    setSelected({});
-                  }}
+                  onChange={(e) => setSupplier(e.target.value)}
                 >
-                  {suppliers.map((name) => (
+                  {settings.suppliers.map(({ name }) => (
                     <option key={name}>{name}</option>
                   ))}
+                </select>
+              </label>
+              <label>
+                CATÉGORIE
+                <select
+                  value={family}
+                  onChange={(event) => {
+                    setFamily(event.target.value);
+                    setGroup("Tous les groupes");
+                  }}
+                >
+                  {families.map((name) => <option key={name}>{name}</option>)}
+                </select>
+              </label>
+              <label>
+                GROUPE
+                <select value={group} onChange={(event) => setGroup(event.target.value)}>
+                  {groups.map((name) => <option key={name}>{name}</option>)}
                 </select>
               </label>
               <div className="search-box">

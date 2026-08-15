@@ -15,16 +15,18 @@ import {
   UploadCloud,
 } from "lucide-react";
 import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.js?url";
-import { money, supplierNames, type Product } from "@/lib/crm-data";
+import { money, type Product } from "@/lib/crm-data";
 import {
   effectivePrice,
   getImportHistory,
   priceKey,
   saveTariffImport,
   type ImportHistoryItem,
+  type ManualPriceChange,
   type PriceOverride,
 } from "@/lib/tariff-storage";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
+import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
 
 type RawLine = { name: string; reference: string; price: number };
 type ReviewLine = RawLine & {
@@ -193,6 +195,7 @@ const supplierFamily = (supplier: string): Product["family"] =>
       : "Électricité";
 
 export function TariffImports() {
+  const settings = usePurchasingSettings();
   const inputRef = useRef<HTMLInputElement>(null);
   const [supplier, setSupplier] = useState("");
   const [fileName, setFileName] = useState("");
@@ -314,9 +317,19 @@ export function TariffImports() {
     const selected = lines.filter((line) => line.selected);
     const overrides: PriceOverride = {};
     const newProducts: Product[] = [];
+    const priceChanges: ManualPriceChange[] = [];
     selected.forEach((line, index) => {
       if (line.product) {
         overrides[priceKey(line.product.id, supplier)] = line.price;
+        if (line.oldPrice !== line.price) {
+          priceChanges.push({
+            product: line.product.name,
+            supplier,
+            oldPrice: line.oldPrice,
+            newPrice: line.price,
+            scope: "Produit",
+          });
+        }
         return;
       }
       newProducts.push({
@@ -338,6 +351,13 @@ export function TariffImports() {
           },
         ],
       });
+      priceChanges.push({
+        product: line.name,
+        supplier,
+        oldPrice: 0,
+        newPrice: line.price,
+        scope: "Produit",
+      });
     });
     const item: ImportHistoryItem = {
       id: crypto.randomUUID(),
@@ -351,7 +371,7 @@ export function TariffImports() {
       added: selected.filter((line) => line.status === "new").length,
       ignored: lines.length - selected.length,
     };
-    saveTariffImport({ overrides, newProducts, history: item });
+    saveTariffImport({ overrides, newProducts, history: item, changes: priceChanges });
     setHistory(getImportHistory());
     setSaved(true);
   };
@@ -391,7 +411,7 @@ export function TariffImports() {
               onChange={(event) => setSupplier(event.target.value)}
             >
               <option value="">Choisir un fournisseur</option>
-              {supplierNames.map((name) => (
+              {settings.suppliers.map(({ name }) => (
                 <option key={name}>{name}</option>
               ))}
             </select>

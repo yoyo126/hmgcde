@@ -1,4 +1,5 @@
 import { products as baseProducts, type Product } from "./crm-data";
+import { getPurchasingSettings } from "./settings-storage";
 
 export type PriceOverride = Record<string, number>;
 export type ManualPriceChange = {
@@ -12,6 +13,7 @@ export type ManualPriceHistoryItem = {
   id: string;
   date: string;
   changes: ManualPriceChange[];
+  source?: "Manuel" | "Import tarif";
 };
 export type ImportHistoryItem = {
   id: string;
@@ -86,12 +88,36 @@ export const getCatalogProducts = () => {
   const overrides = read<Record<string, Product>>(CATALOG_OVERRIDE_KEY, {});
   const prices = getPriceOverrides();
   const componentPrices = getComponentPriceOverrides();
+  const configuredSuppliers = getPurchasingSettings().suppliers.map(
+    (supplier) => supplier.name,
+  );
   return [...baseProducts, ...getImportedProducts()]
     .map((product) => overrides[String(product.id)] || product)
     .filter((product) => !deleted.has(product.id))
-    .map((product) => ({
+    .map((product) => {
+      const baseOffer = product.offers[0];
+      const offers = [
+        ...product.offers,
+        ...configuredSuppliers
+          .filter(
+            (supplier) =>
+              !product.offers.some((offer) => offer.supplier === supplier),
+          )
+          .map((supplier) => ({
+            supplier,
+            supplierName: product.name,
+            reference: "À renseigner",
+            brand: "À renseigner",
+            price: 0,
+            meterPrice:
+              product.subfamily === "Câbles" ? 0 : undefined,
+            packaging: baseOffer?.packaging || "À renseigner",
+            packagingType: baseOffer?.packagingType || ("fixed" as const),
+          })),
+      ];
+      return {
       ...product,
-      offers: product.offers.map((offer) => ({
+      offers: offers.map((offer) => ({
         ...offer,
         price: prices[priceKey(product.id, offer.supplier)] ?? offer.price,
       })),
@@ -108,7 +134,8 @@ export const getCatalogProducts = () => {
             )
           : item.supplierPrices,
       })),
-    }));
+    };
+    });
 };
 export const saveCatalogProducts = (products: Product[]) => {
   localStorage.setItem(
@@ -167,6 +194,7 @@ export const saveManualPriceChanges = ({
       timeStyle: "short",
     }).format(new Date()),
     changes,
+    source: "Manuel",
   };
   localStorage.setItem(
     MANUAL_HISTORY_KEY,
@@ -178,10 +206,12 @@ export const saveTariffImport = ({
   overrides,
   newProducts,
   history,
+  changes = [],
 }: {
   overrides: PriceOverride;
   newProducts: Product[];
   history: ImportHistoryItem;
+  changes?: ManualPriceChange[];
 }) => {
   localStorage.setItem(
     PRICE_KEY,
@@ -196,5 +226,17 @@ export const saveTariffImport = ({
     HISTORY_KEY,
     JSON.stringify([history, ...getImportHistory()].slice(0, 30)),
   );
+  if (changes.length) {
+    const priceHistory: ManualPriceHistoryItem = {
+      id: `import-${history.id}`,
+      date: history.date,
+      changes,
+      source: "Import tarif",
+    };
+    localStorage.setItem(
+      MANUAL_HISTORY_KEY,
+      JSON.stringify([priceHistory, ...getManualPriceHistory()].slice(0, 50)),
+    );
+  }
   notifyCatalogChanged();
 };

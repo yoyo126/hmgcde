@@ -12,13 +12,16 @@ import {
   Search,
   ShoppingCart,
 } from "lucide-react";
-import { productFamilies, productSection } from "@/lib/crm-data";
+import { money, productSection } from "@/lib/crm-data";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
+import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
 import {
   createOrdersFromRequest,
   getStoredRequests,
+  markPurchaseRequestSeen,
   nextRequestId,
   savePurchaseRequest,
+  updatePurchaseRequestQuantity,
   type StoredPurchaseRequest,
   type StoredOrder,
 } from "@/lib/order-storage";
@@ -34,6 +37,8 @@ export function PurchaseRequests({
     [sentId, setSentId] = useState<string | null>(null),
     [query, setQuery] = useState(""),
     [family, setFamily] = useState("Tous"),
+    [group, setGroup] = useState("Tous les groupes"),
+    [bulkSupplier, setBulkSupplier] = useState(""),
     [quantities, setQuantities] = useState<Quantities>({}),
     [openProduct, setOpenProduct] = useState<number | null>(null),
     [openRequest, setOpenRequest] = useState<string | null>(null),
@@ -42,6 +47,19 @@ export function PurchaseRequests({
       getStoredRequests(),
     );
   const products = useCatalogProducts();
+  const settings = usePurchasingSettings();
+  const families = ["Tous", ...new Set(products.map((product) => product.family))];
+  const groups = useMemo(
+    () => [
+      "Tous les groupes",
+      ...new Set(
+        products
+          .filter((product) => family === "Tous" || product.family === family)
+          .map((product) => productSection(product)),
+      ),
+    ],
+    [family, products],
+  );
 
   const filtered = useMemo(
     () =>
@@ -49,6 +67,7 @@ export function PurchaseRequests({
         .filter(
           (product) =>
             (family === "Tous" || product.family === family) &&
+            (group === "Tous les groupes" || productSection(product) === group) &&
             `${product.name} ${product.offers[0].reference}`
               .toLowerCase()
               .includes(query.toLowerCase()),
@@ -59,7 +78,7 @@ export function PurchaseRequests({
             "fr",
           ),
         ),
-    [family, products, query],
+    [family, group, products, query],
   );
   const selected = products.filter(
     (product) => (quantities[product.id] || 0) > 0,
@@ -78,6 +97,7 @@ export function PurchaseRequests({
         year: "numeric",
       }).format(new Date()),
       status: "À commander",
+      seen: false,
       lines: selected.map((product) => ({
         productId: product.id,
         name: product.name,
@@ -94,6 +114,46 @@ export function PurchaseRequests({
     setRequests(getStoredRequests());
     setAssignments({});
     if (orders.length) onFinalize(orders);
+  };
+
+  const changeStoredQuantity = (
+    requestId: string,
+    productId: number,
+    quantity: number,
+  ) => {
+    updatePurchaseRequestQuantity(requestId, productId, quantity);
+    setRequests(getStoredRequests());
+  };
+
+  const applySupplierToAll = (request: StoredPurchaseRequest) => {
+    if (!bulkSupplier) return;
+    setAssignments((current) => ({
+      ...current,
+      ...Object.fromEntries(
+        request.lines
+          .filter((line) => !line.ordered)
+          .map((line) => [line.productId, bulkSupplier]),
+      ),
+    }));
+  };
+
+  const applyBestPrices = (request: StoredPurchaseRequest) => {
+    setAssignments((current) => ({
+      ...current,
+      ...Object.fromEntries(
+        request.lines
+          .filter((line) => !line.ordered)
+          .map((line) => {
+            const product = products.find((item) => item.id === line.productId);
+            const pricedOffers = product?.offers.filter((offer) => offer.price > 0) || [];
+            const best = pricedOffers.sort((a, b) => a.price - b.price)[0];
+            return [
+              line.productId,
+              best?.supplier || settings.suppliers[0]?.name || "",
+            ];
+          }),
+      ),
+    }));
   };
 
   if (sentId)
@@ -113,10 +173,12 @@ export function PurchaseRequests({
           <button
             className="primary-btn"
             onClick={() => {
+              markPurchaseRequestSeen(sentId);
               setSentId(null);
               setCreating(false);
               setQuantities({});
               setOpenRequest(sentId);
+              setRequests(getStoredRequests());
             }}
           >
             Voir la demande
@@ -166,6 +228,8 @@ export function PurchaseRequests({
               <button
                 className="request-list-row request-row-button"
                 onClick={() => {
+                  markPurchaseRequestSeen(request.id);
+                  setRequests(getStoredRequests());
                   setOpenRequest(
                     openRequest === request.id ? null : request.id,
                   );
@@ -173,12 +237,17 @@ export function PurchaseRequests({
                     Object.fromEntries(
                       request.lines
                         .filter((line) => line.supplier && !line.ordered)
-                        .map((line) => [line.productId, line.supplier]),
+                        .map((line) => [line.productId, line.supplier!]),
                     ),
                   );
                 }}
               >
-                <strong>{request.id}</strong>
+                <strong>
+                  {request.id}
+                  {request.seen === false && (
+                    <small className="new-request-pill">Nouveau</small>
+                  )}
+                </strong>
                 <span>{request.requester}</span>
                 <span>{request.date}</span>
                 <span>{request.lines.length}</span>
@@ -204,6 +273,26 @@ export function PurchaseRequests({
                     </div>
                     <i className="status sent">{request.status}</i>
                   </div>
+                  {request.status !== "Commandée" && (
+                    <div className="bulk-supplier-tools">
+                      <strong>Sélection rapide</strong>
+                      <select
+                        value={bulkSupplier}
+                        onChange={(event) => setBulkSupplier(event.target.value)}
+                      >
+                        <option value="">Choisir un fournisseur</option>
+                        {settings.suppliers.map((supplier) => (
+                          <option key={supplier.name}>{supplier.name}</option>
+                        ))}
+                      </select>
+                      <button className="secondary-btn" onClick={() => applySupplierToAll(request)} disabled={!bulkSupplier}>
+                        Appliquer à tous
+                      </button>
+                      <button className="secondary-btn" onClick={() => applyBestPrices(request)}>
+                        Meilleur prix automatiquement
+                      </button>
+                    </div>
+                  )}
                   <div className="request-assignment-head">
                     <span>Produit</span>
                     <span>Quantité globale</span>
@@ -220,9 +309,25 @@ export function PurchaseRequests({
                         key={line.productId}
                       >
                         <strong>{line.name}</strong>
-                        <span>
-                          {line.quantity} {line.unit.toLowerCase()}
-                        </span>
+                        {line.ordered ? (
+                          <span>{line.quantity} {line.unit.toLowerCase()}</span>
+                        ) : (
+                          <div className="number-control compact request-line-quantity">
+                            <button
+                              aria-label={`Retirer une unité de ${line.name}`}
+                              onClick={() => changeStoredQuantity(request.id, line.productId, line.quantity - 1)}
+                            >
+                              <Minus size={15} />
+                            </button>
+                            <strong>{line.quantity}</strong>
+                            <button
+                              aria-label={`Ajouter une unité de ${line.name}`}
+                              onClick={() => changeStoredQuantity(request.id, line.productId, line.quantity + 1)}
+                            >
+                              <Plus size={15} />
+                            </button>
+                          </div>
+                        )}
                         {line.ordered ? (
                           <b>{line.supplier}</b>
                         ) : (
@@ -237,11 +342,16 @@ export function PurchaseRequests({
                             }
                           >
                             <option value="">À choisir</option>
-                            {product?.offers.map((offer) => (
-                              <option key={offer.supplier}>
-                                {offer.supplier}
+                            {settings.suppliers.map(({ name }) => {
+                              const offer = product?.offers.find(
+                                (item) => item.supplier === name,
+                              );
+                              return (
+                              <option key={name} value={name}>
+                                {name}{offer?.price ? ` — ${money(offer.price)}` : " — prix à renseigner"}
                               </option>
-                            ))}
+                              );
+                            })}
                           </select>
                         )}
                         <span
@@ -305,9 +415,17 @@ export function PurchaseRequests({
             </div>
             <select
               value={family}
-              onChange={(event) => setFamily(event.target.value)}
+              onChange={(event) => {
+                setFamily(event.target.value);
+                setGroup("Tous les groupes");
+              }}
             >
-              {productFamilies.map((item) => (
+              {families.map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
+            <select value={group} onChange={(event) => setGroup(event.target.value)}>
+              {groups.map((item) => (
                 <option key={item}>{item}</option>
               ))}
             </select>

@@ -33,15 +33,13 @@ export const getPurchasingSettings = (): PurchasingSettings => {
     const saved = JSON.parse(
       localStorage.getItem(SETTINGS_KEY) || "",
     ) as Partial<PurchasingSettings>;
+    const savedSuppliers = Array.isArray(saved.suppliers)
+      ? saved.suppliers.filter((supplier) => supplier?.name?.trim())
+      : defaultPurchasingSettings.suppliers;
     return {
       ...defaultPurchasingSettings,
       ...saved,
-      suppliers: supplierNames.map((name) => ({
-        name,
-        emails:
-          saved.suppliers?.find((supplier) => supplier.name === name)?.emails ||
-          "",
-      })),
+      suppliers: savedSuppliers,
       defaultTeams: {
         ...defaultPurchasingSettings.defaultTeams,
         ...saved.defaultTeams,
@@ -53,7 +51,17 @@ export const getPurchasingSettings = (): PurchasingSettings => {
 };
 
 export const savePurchasingSettings = (settings: PurchasingSettings) => {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  const suppliers = settings.suppliers
+    .map((supplier) => ({
+      name: supplier.name.trim(),
+      emails: supplier.emails.trim(),
+    }))
+    .filter(
+      (supplier, index, all) =>
+        supplier.name &&
+        all.findIndex((item) => item.name === supplier.name) === index,
+    );
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...settings, suppliers }));
   window.dispatchEvent(new Event("hm-settings-updated"));
 };
 
