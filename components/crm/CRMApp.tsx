@@ -63,13 +63,13 @@ export function CRMApp() {
     ) : screen === "orders" ? (
       <OrdersScreen onNavigate={navigate} initialOpenOrder={orderToOpen} />
     ) : screen === "products" ? (
-      <ProductsScreen />
+      <ProductsScreen onBack={() => navigate("settings")} />
     ) : screen === "tariff-imports" ? (
-      <TariffImports />
+      <TariffImports onBack={() => navigate("settings")} />
     ) : screen === "users" ? (
-      <UsersScreen />
+      <UsersScreen onBack={() => navigate("settings")} />
     ) : (
-      <SettingsScreen />
+      <SettingsScreen onNavigate={navigate} />
     );
   return (
     <div className="app-shell">

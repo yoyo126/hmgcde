@@ -25,6 +25,7 @@ export type Product = {
   subfamily: string;
   unit: string;
   kind: "simple" | "ensemble";
+  bundleLabel?: string;
   contents?: ProductComponent[];
   offers: SupplierOffer[];
 };

@@ -19,6 +19,7 @@ import { money, type Product } from "@/lib/crm-data";
 import {
   effectivePrice,
   getImportHistory,
+  getManualPriceHistory,
   priceKey,
   saveTariffImport,
   type ImportHistoryItem,
@@ -194,7 +195,7 @@ const supplierFamily = (supplier: string): Product["family"] =>
       ? "Plomberie"
       : "Électricité";
 
-export function TariffImports() {
+export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
   const settings = usePurchasingSettings();
   const inputRef = useRef<HTMLInputElement>(null);
   const [supplier, setSupplier] = useState("");
@@ -205,6 +206,9 @@ export function TariffImports() {
   const [filter, setFilter] = useState<"all" | ReviewLine["status"]>("all");
   const [history, setHistory] = useState<ImportHistoryItem[]>(() =>
     getImportHistory(),
+  );
+  const [priceHistory, setPriceHistory] = useState(() =>
+    getManualPriceHistory(),
   );
   const [saved, setSaved] = useState(false);
   const liveCatalogProducts = useCatalogProducts();
@@ -373,6 +377,7 @@ export function TariffImports() {
     };
     saveTariffImport({ overrides, newProducts, history: item, changes: priceChanges });
     setHistory(getImportHistory());
+    setPriceHistory(getManualPriceHistory());
     setSaved(true);
   };
 
@@ -384,6 +389,9 @@ export function TariffImports() {
     <div className="screen tariff-screen">
       <div className="page-title standard">
         <div>
+          {onBack && (
+            <button className="back-link" onClick={onBack}>← Paramètres</button>
+          )}
           <span className="eyebrow">MISE À JOUR FOURNISSEURS</span>
           <h1>Import tarifs</h1>
           <p>
@@ -661,6 +669,41 @@ export function TariffImports() {
             <strong>Aucun import pour le moment</strong>
             <span>Votre premier fichier apparaîtra ici après validation.</span>
           </div>
+        )}
+      </section>
+      <section className="panel manual-price-history">
+        <div className="panel-head">
+          <div>
+            <h2>Historique complet des prix</h2>
+            <p>Modifications manuelles et imports, avec ancien et nouveau prix.</p>
+          </div>
+          <FileClock />
+        </div>
+        {priceHistory.length ? (
+          priceHistory.map((item) => (
+            <details key={item.id}>
+              <summary>
+                <span>
+                  <strong>{item.date}</strong>
+                  <small>{item.source || "Manuel"}</small>
+                </span>
+                <b>{item.changes.length} modification(s)</b>
+              </summary>
+              <div>
+                {item.changes.map((change, index) => (
+                  <span key={`${change.product}-${change.supplier}-${index}`}>
+                    <span>
+                      <strong>{change.product}</strong>
+                      <small>{change.supplier} · {change.scope}</small>
+                    </span>
+                    <b>{money(change.oldPrice)} → {money(change.newPrice)}</b>
+                  </span>
+                ))}
+              </div>
+            </details>
+          ))
+        ) : (
+          <div className="empty-history">Aucune évolution de prix enregistrée.</div>
         )}
       </section>
     </div>

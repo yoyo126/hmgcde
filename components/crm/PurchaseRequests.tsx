@@ -36,9 +36,11 @@ export function PurchaseRequests({
   const [creating, setCreating] = useState(false),
     [sentId, setSentId] = useState<string | null>(null),
     [query, setQuery] = useState(""),
-    [family, setFamily] = useState("Tous"),
-    [group, setGroup] = useState("Tous les groupes"),
+    [family, setFamily] = useState(""),
+    [group, setGroup] = useState(""),
     [bulkSupplier, setBulkSupplier] = useState(""),
+    [assignmentGroup, setAssignmentGroup] = useState(""),
+    [selectedAssignmentProducts, setSelectedAssignmentProducts] = useState<number[]>([]),
     [quantities, setQuantities] = useState<Quantities>({}),
     [openProduct, setOpenProduct] = useState<number | null>(null),
     [openRequest, setOpenRequest] = useState<string | null>(null),
@@ -48,26 +50,26 @@ export function PurchaseRequests({
     );
   const products = useCatalogProducts();
   const settings = usePurchasingSettings();
-  const families = ["Tous", ...new Set(products.map((product) => product.family))];
+  const families = [...new Set(products.map((product) => product.family))];
   const groups = useMemo(
     () => [
-      "Tous les groupes",
       ...new Set(
         products
-          .filter((product) => family === "Tous" || product.family === family)
+          .filter((product) => product.family === family)
           .map((product) => productSection(product)),
       ),
     ],
     [family, products],
   );
 
-  const filtered = useMemo(
-    () =>
-      products
+  const filtered = useMemo(() => {
+    const searching = Boolean(query.trim());
+    if (!searching && (!family || !group)) return [];
+    return products
         .filter(
           (product) =>
-            (family === "Tous" || product.family === family) &&
-            (group === "Tous les groupes" || productSection(product) === group) &&
+            (searching ||
+              (product.family === family && productSection(product) === group)) &&
             `${product.name} ${product.offers[0].reference}`
               .toLowerCase()
               .includes(query.toLowerCase()),
@@ -77,9 +79,8 @@ export function PurchaseRequests({
             `${b.family} ${productSection(b)} ${b.name}`,
             "fr",
           ),
-        ),
-    [family, group, products, query],
-  );
+        );
+  }, [family, group, products, query]);
   const selected = products.filter(
     (product) => (quantities[product.id] || 0) > 0,
   );
@@ -125,13 +126,16 @@ export function PurchaseRequests({
     setRequests(getStoredRequests());
   };
 
-  const applySupplierToAll = (request: StoredPurchaseRequest) => {
-    if (!bulkSupplier) return;
+  const applySupplierToSelection = (request: StoredPurchaseRequest) => {
+    if (!bulkSupplier || !selectedAssignmentProducts.length) return;
     setAssignments((current) => ({
       ...current,
       ...Object.fromEntries(
         request.lines
-          .filter((line) => !line.ordered)
+          .filter(
+            (line) =>
+              !line.ordered && selectedAssignmentProducts.includes(line.productId),
+          )
           .map((line) => [line.productId, bulkSupplier]),
       ),
     }));
@@ -142,7 +146,10 @@ export function PurchaseRequests({
       ...current,
       ...Object.fromEntries(
         request.lines
-          .filter((line) => !line.ordered)
+          .filter(
+            (line) =>
+              !line.ordered && selectedAssignmentProducts.includes(line.productId),
+          )
           .map((line) => {
             const product = products.find((item) => item.id === line.productId);
             const pricedOffers = product?.offers.filter((offer) => offer.price > 0) || [];
@@ -154,6 +161,18 @@ export function PurchaseRequests({
           }),
       ),
     }));
+  };
+
+  const selectAssignmentGroup = (request: StoredPurchaseRequest) => {
+    if (!assignmentGroup) return;
+    const ids = request.lines
+      .filter((line) => {
+        if (line.ordered) return false;
+        const product = products.find((item) => item.id === line.productId);
+        return product && productSection(product) === assignmentGroup;
+      })
+      .map((line) => line.productId);
+    setSelectedAssignmentProducts(ids);
   };
 
   if (sentId)
@@ -240,6 +259,8 @@ export function PurchaseRequests({
                         .map((line) => [line.productId, line.supplier!]),
                     ),
                   );
+                  setSelectedAssignmentProducts([]);
+                  setAssignmentGroup("");
                 }}
               >
                 <strong>
@@ -275,7 +296,24 @@ export function PurchaseRequests({
                   </div>
                   {request.status !== "Commandée" && (
                     <div className="bulk-supplier-tools">
-                      <strong>Sélection rapide</strong>
+                      <strong>{selectedAssignmentProducts.length} produit(s) sélectionné(s)</strong>
+                      <select
+                        value={assignmentGroup}
+                        onChange={(event) => setAssignmentGroup(event.target.value)}
+                      >
+                        <option value="">Sélectionner un groupe</option>
+                        {[
+                          ...new Set(
+                            request.lines
+                              .map((line) => products.find((item) => item.id === line.productId))
+                              .filter(Boolean)
+                              .map((product) => productSection(product!)),
+                          ),
+                        ].map((name) => <option key={name}>{name}</option>)}
+                      </select>
+                      <button className="secondary-btn" onClick={() => selectAssignmentGroup(request)} disabled={!assignmentGroup}>
+                        Sélectionner le groupe
+                      </button>
                       <select
                         value={bulkSupplier}
                         onChange={(event) => setBulkSupplier(event.target.value)}
@@ -285,11 +323,22 @@ export function PurchaseRequests({
                           <option key={supplier.name}>{supplier.name}</option>
                         ))}
                       </select>
-                      <button className="secondary-btn" onClick={() => applySupplierToAll(request)} disabled={!bulkSupplier}>
-                        Appliquer à tous
+                      <button
+                        className="secondary-btn"
+                        onClick={() => applySupplierToSelection(request)}
+                        disabled={!bulkSupplier || !selectedAssignmentProducts.length}
+                      >
+                        Affecter la sélection
                       </button>
-                      <button className="secondary-btn" onClick={() => applyBestPrices(request)}>
-                        Meilleur prix automatiquement
+                      <button
+                        className="secondary-btn"
+                        onClick={() => applyBestPrices(request)}
+                        disabled={!selectedAssignmentProducts.length}
+                      >
+                        Meilleur prix pour la sélection
+                      </button>
+                      <button className="text-btn" onClick={() => setSelectedAssignmentProducts([])}>
+                        Tout désélectionner
                       </button>
                     </div>
                   )}
@@ -308,7 +357,22 @@ export function PurchaseRequests({
                         className="request-assignment-line"
                         key={line.productId}
                       >
-                        <strong>{line.name}</strong>
+                        <strong className="assignment-product-name">
+                          {!line.ordered && (
+                            <input
+                              type="checkbox"
+                              checked={selectedAssignmentProducts.includes(line.productId)}
+                              onChange={() =>
+                                setSelectedAssignmentProducts((current) =>
+                                  current.includes(line.productId)
+                                    ? current.filter((id) => id !== line.productId)
+                                    : [...current, line.productId],
+                                )
+                              }
+                            />
+                          )}
+                          {line.name}
+                        </strong>
                         {line.ordered ? (
                           <span>{line.quantity} {line.unit.toLowerCase()}</span>
                         ) : (
@@ -417,19 +481,44 @@ export function PurchaseRequests({
               value={family}
               onChange={(event) => {
                 setFamily(event.target.value);
-                setGroup("Tous les groupes");
+                setGroup("");
               }}
             >
+              <option value="">Choisir une catégorie</option>
               {families.map((item) => (
                 <option key={item}>{item}</option>
               ))}
             </select>
             <select value={group} onChange={(event) => setGroup(event.target.value)}>
+              <option value="">Choisir un groupe</option>
               {groups.map((item) => (
                 <option key={item}>{item}</option>
               ))}
             </select>
           </div>
+          {!query.trim() && !family && (
+            <div className="catalog-navigation-cards request-navigation-cards">
+              {families.map((name) => (
+                <button key={name} onClick={() => setFamily(name)}>
+                  <strong>{name}</strong>
+                  <small>Afficher les groupes</small>
+                </button>
+              ))}
+            </div>
+          )}
+          {!query.trim() && family && !group && (
+            <div className="catalog-navigation-cards request-navigation-cards group-cards">
+              <button className="navigation-back-card" onClick={() => setFamily("")}>
+                <strong>← Catégories</strong>
+              </button>
+              {groups.map((name) => (
+                <button key={name} onClick={() => setGroup(name)}>
+                  <strong>{name}</strong>
+                  <small>Voir les produits</small>
+                </button>
+              ))}
+            </div>
+          )}
           <div className="request-products">
             {filtered.map((product) => {
               const quantity = quantities[product.id] || 0;
@@ -455,8 +544,7 @@ export function PurchaseRequests({
                     </span>
                     <h3>{product.name}</h3>
                     <small>
-                      {product.unit} · {product.offers.length} fournisseur(s)
-                      possible(s)
+                      Commande par {product.unit.toLowerCase()}
                     </small>
                     {product.kind === "ensemble" && (
                       <button

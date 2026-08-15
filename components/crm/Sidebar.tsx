@@ -15,12 +15,16 @@ export const navItems = [
   { id: "new-order", label: "Nouvelle commande", icon: PackagePlus },
   { id: "purchase-requests", label: "Demandes d’achat", icon: ClipboardPlus },
   { id: "orders", label: "Commandes", icon: ClipboardList },
+  { id: "settings", label: "Paramètres", icon: Settings },
+] as const;
+export const settingsItems = [
   { id: "products", label: "Produits", icon: Box },
   { id: "tariff-imports", label: "Import tarifs", icon: FileUp },
   { id: "users", label: "Utilisateurs", icon: Users },
-  { id: "settings", label: "Paramètres", icon: Settings },
 ] as const;
-export type ScreenId = (typeof navItems)[number]["id"];
+export type ScreenId =
+  | (typeof navItems)[number]["id"]
+  | (typeof settingsItems)[number]["id"];
 export function Sidebar({
   active,
   onChange,
@@ -53,10 +57,16 @@ export function Sidebar({
         </div>
         <nav>
           <p className="nav-eyebrow">GESTION</p>
-          {navItems.slice(0, 6).map(({ id, label, icon: Icon }) => (
+          {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              className={active === id ? "active" : ""}
+              className={
+                active === id ||
+                (id === "settings" &&
+                  settingsItems.some((item) => item.id === active))
+                  ? "active"
+                  : ""
+              }
               onClick={() => {
                 onChange(id);
                 onClose();
@@ -67,20 +77,6 @@ export function Sidebar({
               {id === "purchase-requests" && requestNotifications > 0 && (
                 <b className="nav-notification">{requestNotifications}</b>
               )}
-            </button>
-          ))}
-          <p className="nav-eyebrow second">ADMINISTRATION</p>
-          {navItems.slice(6).map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              className={active === id ? "active" : ""}
-              onClick={() => {
-                onChange(id);
-                onClose();
-              }}
-            >
-              <Icon size={19} />
-              <span>{label}</span>
             </button>
           ))}
         </nav>
@@ -107,10 +103,16 @@ export function MobileNav({
 }) {
   return (
     <nav className="mobile-nav">
-      {navItems.slice(0, 5).map(({ id, label, icon: Icon }) => (
+      {navItems.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
-          className={active === id ? "active" : ""}
+          className={
+            active === id ||
+            (id === "settings" &&
+              settingsItems.some((item) => item.id === active))
+              ? "active"
+              : ""
+          }
           onClick={() => onChange(id)}
         >
           <Icon size={20} />

@@ -59,20 +59,19 @@ export function NewOrder({
       ),
     ),
     [query, setQuery] = useState(""),
-    [family, setFamily] = useState("Tous"),
-    [group, setGroup] = useState("Tous les groupes"),
+    [family, setFamily] = useState(""),
+    [group, setGroup] = useState(""),
     [sent, setSent] = useState(false),
     [mailOpen, setMailOpen] = useState(false),
     [showTeams, setShowTeams] = useState(false),
     [orderId] = useState(() => initialOrder?.id || nextOrderId()),
     [reference] = useState(() => initialOrder?.reference || orderReference());
   const products = useCatalogProducts();
-  const families = ["Tous", ...new Set(products.map((product) => product.family))];
+  const families = [...new Set(products.map((product) => product.family))];
   const groups = [
-    "Tous les groupes",
     ...new Set(
       products
-        .filter((product) => family === "Tous" || product.family === family)
+        .filter((product) => product.family === family)
         .map((product) => productSection(product)),
     ),
   ];
@@ -80,13 +79,16 @@ export function NewOrder({
     1,
     Object.values(teams).reduce((a, b) => a + b, 0),
   );
-  const filtered = products.filter(
-    (p) =>
-      p.offers.some((o) => o.supplier === supplier) &&
-      (family === "Tous" || p.family === family) &&
-      (group === "Tous les groupes" || productSection(p) === group) &&
-      p.name.toLowerCase().includes(query.toLowerCase()),
-  );
+  const searching = Boolean(query.trim());
+  const catalogReady = searching || Boolean(family && group);
+  const filtered = catalogReady
+    ? products.filter(
+        (p) =>
+          p.offers.some((o) => o.supplier === supplier) &&
+          (searching || (p.family === family && productSection(p) === group)) &&
+          p.name.toLowerCase().includes(query.toLowerCase()),
+      )
+    : [];
   const total = useMemo(
     () =>
       Object.entries(selected).reduce((sum, [id, qty]) => {
@@ -315,15 +317,17 @@ export function NewOrder({
                   value={family}
                   onChange={(event) => {
                     setFamily(event.target.value);
-                    setGroup("Tous les groupes");
+                    setGroup("");
                   }}
                 >
+                  <option value="">Choisir une catégorie</option>
                   {families.map((name) => <option key={name}>{name}</option>)}
                 </select>
               </label>
               <label>
                 GROUPE
                 <select value={group} onChange={(event) => setGroup(event.target.value)}>
+                  <option value="">Choisir un groupe</option>
                   {groups.map((name) => <option key={name}>{name}</option>)}
                 </select>
               </label>
@@ -336,6 +340,29 @@ export function NewOrder({
                 />
               </div>
             </div>
+            {!searching && !family && (
+              <div className="catalog-navigation-cards">
+                {families.map((name) => (
+                  <button key={name} onClick={() => setFamily(name)}>
+                    <strong>{name}</strong>
+                    <small>Afficher les groupes</small>
+                  </button>
+                ))}
+              </div>
+            )}
+            {!searching && family && !group && (
+              <div className="catalog-navigation-cards group-cards">
+                <button className="navigation-back-card" onClick={() => setFamily("")}>
+                  <strong>← Catégories</strong>
+                </button>
+                {groups.map((name) => (
+                  <button key={name} onClick={() => setGroup(name)}>
+                    <strong>{name}</strong>
+                    <small>Voir les produits</small>
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="select-products">
               {filtered.map((p) => {
                 const o = p.offers.find((x) => x.supplier === supplier)!,

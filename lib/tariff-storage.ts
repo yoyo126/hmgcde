@@ -138,6 +138,15 @@ export const getCatalogProducts = () => {
     });
 };
 export const saveCatalogProducts = (products: Product[]) => {
+  const imported = getImportedProducts();
+  const knownIds = new Set([...baseProducts, ...imported].map((product) => product.id));
+  const newProducts = products.filter((product) => !knownIds.has(product.id));
+  if (newProducts.length) {
+    localStorage.setItem(
+      PRODUCT_KEY,
+      JSON.stringify([...imported, ...newProducts]),
+    );
+  }
   localStorage.setItem(
     CATALOG_OVERRIDE_KEY,
     JSON.stringify(Object.fromEntries(products.map((product) => [String(product.id), product]))),

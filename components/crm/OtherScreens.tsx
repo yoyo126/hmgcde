@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
 import {
+  Box,
   ChevronDown,
   ChevronRight,
   FileText,
+  FileUp,
   History,
   Mail,
   MoreHorizontal,
@@ -16,6 +18,7 @@ import {
   SlidersHorizontal,
   Trash2,
   Truck,
+  Users,
   X,
 } from "lucide-react";
 import {
@@ -293,7 +296,7 @@ export function OrdersScreen({
     </div>
   );
 }
-export function ProductsScreen() {
+export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
   const [query, setQuery] = useState(""),
     [family, setFamily] = useState("Tous"),
     [open, setOpen] = useState<number | null>(null),
@@ -322,6 +325,55 @@ export function ProductsScreen() {
       current.map((product) => (product.id === productId ? update(product) : product)),
     );
 
+  const addProduct = (kind: Product["kind"]) => {
+    const id = Date.now();
+    const productFamily = family === "Tous" ? "Électricité" : family;
+    const product: Product = {
+      id,
+      name: kind === "ensemble" ? "Nouvel ensemble" : "Nouveau produit",
+      family: productFamily,
+      subfamily:
+        productFamily === "Électricité" ? "Consommables" : productFamily,
+      unit: kind === "ensemble" ? "Ensemble" : "Pièce",
+      kind,
+      bundleLabel: kind === "ensemble" ? "Ensemble" : undefined,
+      contents: kind === "ensemble" ? [] : undefined,
+      offers: configuredSupplierNames.map((supplier) => ({
+        supplier,
+        supplierName: kind === "ensemble" ? "Nouvel ensemble" : "Nouveau produit",
+        reference: "À renseigner",
+        brand: "À renseigner",
+        price: 0,
+        packaging: kind === "ensemble" ? "Ensemble complet" : "Pièce",
+        packagingType: "fixed",
+      })),
+    };
+    setCatalog((current) => [product, ...current]);
+    setOpen(kind === "ensemble" ? id : null);
+  };
+
+  const addComponent = (productId: number) =>
+    updateProduct(productId, (product) => ({
+      ...product,
+      contents: [
+        ...(product.contents || []),
+        {
+          name: "Nouveau sous-produit",
+          quantity: 1,
+          unitPrice: 0,
+          supplierPrices: Object.fromEntries(
+            configuredSupplierNames.map((supplier) => [supplier, 0]),
+          ),
+        },
+      ],
+    }));
+
+  const deleteComponent = (productId: number, componentIndex: number) =>
+    updateProduct(productId, (product) => ({
+      ...product,
+      contents: product.contents?.filter((_, index) => index !== componentIndex),
+    }));
+
   const cancelEditing = () => {
     setCatalog(getCatalogProducts());
     setEditing(false);
@@ -349,6 +401,7 @@ export function ProductsScreen() {
     const prices: Record<string, number> = {};
     const components: Record<string, number> = {};
     const changes: ManualPriceChange[] = [];
+    const originalCatalog = getCatalogProducts();
     catalog.forEach((product) => {
       configuredSupplierNames.forEach((supplier) => {
         const key = priceKey(product.id, supplier);
@@ -398,6 +451,23 @@ export function ProductsScreen() {
           });
         });
       });
+      product.offers.forEach((offer) => {
+        const oldMeterPrice =
+          originalCatalog
+            .find((item) => item.id === product.id)
+            ?.offers.find((item) => item.supplier === offer.supplier)
+            ?.meterPrice || 0;
+        const newMeterPrice = offer.meterPrice || 0;
+        if (oldMeterPrice !== newMeterPrice) {
+          changes.push({
+            product: `${product.name} · prix au mètre`,
+            supplier: offer.supplier,
+            oldPrice: oldMeterPrice,
+            newPrice: newMeterPrice,
+            scope: "Produit",
+          });
+        }
+      });
     });
     saveManualPriceChanges({ prices, componentPrices: components, changes });
     saveCatalogProducts(catalog);
@@ -433,6 +503,9 @@ export function ProductsScreen() {
     <div className="screen">
       <div className="page-title standard product-page-title">
         <div>
+          {onBack && (
+            <button className="back-link" onClick={onBack}>← Paramètres</button>
+          )}
           <span className="eyebrow">CATALOGUE UNIQUE</span>
           <h1>Produits</h1>
           <p>
@@ -443,6 +516,12 @@ export function ProductsScreen() {
         <div className="price-edit-actions">
           {editing ? (
             <>
+              <button className="secondary-btn" onClick={() => addProduct("simple")}>
+                <Plus size={18} /> Produit
+              </button>
+              <button className="secondary-btn" onClick={() => addProduct("ensemble")}>
+                <Plus size={18} /> Ensemble
+              </button>
               <button className="secondary-btn" onClick={cancelEditing}>
                 <X size={18} /> Annuler
               </button>
@@ -681,13 +760,49 @@ export function ProductsScreen() {
                                       <option key={item}>{item}</option>
                                     ))}
                                   </select>
+                                  <select
+                                    className="catalog-text-input"
+                                    aria-label={`Type de ${p.name}`}
+                                    value={p.kind}
+                                    onChange={(event) =>
+                                      updateProduct(p.id, (product) => ({
+                                        ...product,
+                                        kind: event.target.value as Product["kind"],
+                                        contents:
+                                          event.target.value === "ensemble"
+                                            ? product.contents || []
+                                            : undefined,
+                                        bundleLabel:
+                                          event.target.value === "ensemble"
+                                            ? product.bundleLabel || "Ensemble"
+                                            : undefined,
+                                      }))
+                                    }
+                                  >
+                                    <option value="simple">Produit simple</option>
+                                    <option value="ensemble">Ensemble composé</option>
+                                  </select>
+                                  {p.kind === "ensemble" && (
+                                    <input
+                                      className="catalog-text-input"
+                                      aria-label={`Nom du type d’ensemble ${p.name}`}
+                                      value={p.bundleLabel || ""}
+                                      placeholder="Ex. Coffret, carton, kit…"
+                                      onChange={(event) =>
+                                        updateProduct(p.id, (product) => ({
+                                          ...product,
+                                          bundleLabel: event.target.value,
+                                        }))
+                                      }
+                                    />
+                                  )}
                                 </>
                               ) : (
                                 <strong>{p.name}</strong>
                               )}
                               <small>
                                 {p.kind === "ensemble"
-                                  ? "Ensemble avec sous-produits"
+                                  ? `${p.bundleLabel || "Ensemble"} avec sous-produits`
                                   : `Commande par ${p.unit.toLowerCase()}`}
                               </small>
                             </span>
@@ -849,9 +964,16 @@ export function ProductsScreen() {
                           </div>
                           {open === p.id && (
                             <div className="composition-box list-composition">
-                              <strong className="component-comparison-title">
-                                Comparatif pièce par pièce
-                              </strong>
+                              <div className="component-title-row">
+                                <strong className="component-comparison-title">
+                                  {p.bundleLabel || "Ensemble"} · détail pièce par pièce
+                                </strong>
+                                {editingCatalog && (
+                                  <button className="secondary-btn" onClick={() => addComponent(p.id)}>
+                                    <Plus size={16} /> Ajouter un sous-produit
+                                  </button>
+                                )}
+                              </div>
                               <div className="component-price-scroll">
                                 <div
                                   className="component-price-grid"
@@ -873,7 +995,7 @@ export function ProductsScreen() {
                                       {offer.supplier}
                                     </span>
                                   ))}
-                                  {p.contents?.flatMap((item) => {
+                                  {p.contents?.flatMap((item, componentIndex) => {
                                     const prices = p.offers
                                       .map((offer) => {
                                         const key = componentPriceKey(
@@ -920,6 +1042,15 @@ export function ProductsScreen() {
                                             }
                                           />
                                         ) : item.name}
+                                        {editingCatalog && (
+                                          <button
+                                            className="component-delete-btn"
+                                            aria-label={`Supprimer ${item.name}`}
+                                            onClick={() => deleteComponent(p.id, componentIndex)}
+                                          >
+                                            <Trash2 size={15} />
+                                          </button>
+                                        )}
                                       </span>,
                                       <span
                                         className="component-quantity"
@@ -1039,7 +1170,7 @@ export function ProductsScreen() {
     </div>
   );
 }
-export function UsersScreen() {
+export function UsersScreen({ onBack }: { onBack?: () => void } = {}) {
   const users = [
     ["Administrateur HM", "admin@exemple.fr", "Administrateur", "AH", "Actif"],
     ["Responsable achats", "achats@exemple.fr", "Commandes", "RA", "Actif"],
@@ -1047,6 +1178,9 @@ export function UsersScreen() {
   ];
   return (
     <div className="screen">
+      {onBack && (
+        <button className="back-link settings-back-link" onClick={onBack}>← Paramètres</button>
+      )}
       <ScreenHeader
         eyebrow="ACCÈS"
         title="Utilisateurs et droits"
@@ -1114,7 +1248,11 @@ export function UsersScreen() {
     </div>
   );
 }
-export function SettingsScreen() {
+export function SettingsScreen({
+  onNavigate,
+}: {
+  onNavigate: (id: ScreenId) => void;
+}) {
   const [editing, setEditing] = useState(false),
     [saved, setSaved] = useState<PurchasingSettings>(() =>
       getPurchasingSettings(),
@@ -1166,6 +1304,23 @@ export function SettingsScreen() {
             </button>
           )}
         </div>
+      </div>
+      <div className="settings-hub-grid">
+        <button onClick={() => onNavigate("products")}>
+          <span><Box size={22} /></span>
+          <strong>Produits et ensembles</strong>
+          <small>Produits, coffrets, cartons, kits et sous-produits</small>
+        </button>
+        <button onClick={() => onNavigate("tariff-imports")}>
+          <span><FileUp size={22} /></span>
+          <strong>Tarifs et historique</strong>
+          <small>Imports Excel/PDF et évolution des prix</small>
+        </button>
+        <button onClick={() => onNavigate("users")}>
+          <span><Users size={22} /></span>
+          <strong>Utilisateurs et droits</strong>
+          <small>Accès administrateur, commandes ou lecture</small>
+        </button>
       </div>
       {!editing && (
         <div className="settings-lock-note">
