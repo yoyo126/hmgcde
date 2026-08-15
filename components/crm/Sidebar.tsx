@@ -10,6 +10,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { CRM_VERSION } from "@/lib/version";
 export const navItems = [
   { id: "dashboard", label: "Tableau de bord", icon: BarChart3 },
   { id: "new-order", label: "Nouvelle commande", icon: PackagePlus },
@@ -87,6 +88,7 @@ export function Sidebar({
             <small>Administrateur</small>
           </div>
           <span className="online-dot" />
+          <small className="crm-version">Version {CRM_VERSION}</small>
         </div>
       </aside>
     </>

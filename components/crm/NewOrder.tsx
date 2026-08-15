@@ -34,6 +34,7 @@ import { getPurchasingSettings } from "@/lib/settings-storage";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
 type Teams = Record<CompanyKey, number>;
 type Selected = Record<number, number>;
+type Dispatches = Record<number, Record<CompanyKey, number>>;
 export function NewOrder({
   onNavigate,
   initialOrder,
@@ -57,6 +58,13 @@ export function NewOrder({
       Object.fromEntries(
         initialOrder?.lines.map((line) => [line.productId, line.quantity]) || [],
       ),
+    ),
+    [dispatchOverrides, setDispatchOverrides] = useState<Dispatches>(() =>
+      Object.fromEntries(
+        initialOrder?.lines
+          .filter((line) => line.dispatch)
+          .map((line) => [line.productId, line.dispatch]) || [],
+      ) as Dispatches,
     ),
     [query, setQuery] = useState(""),
     [family, setFamily] = useState(""),
@@ -114,6 +122,38 @@ export function NewOrder({
       return value;
     });
   };
+  const dispatchFor = (productId: number, quantity: number) =>
+    dispatchOverrides[productId] ||
+    (Object.fromEntries(
+      companies.map((company, index) => [company.key, sharesFor(quantity)[index]]),
+    ) as Record<CompanyKey, number>);
+  const updateDispatch = (
+    productId: number,
+    quantity: number,
+    company: CompanyKey,
+    value: number,
+  ) =>
+    setDispatchOverrides((current) => ({
+      ...current,
+      [productId]: {
+        ...dispatchFor(productId, quantity),
+        [company]: Math.max(0, value),
+      },
+    }));
+  const selectedLines = Object.entries(selected).filter(([, quantity]) => quantity > 0);
+  const dispatchValid = selectedLines.every(([id, quantity]) =>
+    Object.values(dispatchFor(Number(id), quantity)).reduce((sum, value) => sum + value, 0) === quantity,
+  );
+  const companyTotals = Object.fromEntries(
+    companies.map((company) => [
+      company.key,
+      selectedLines.reduce(
+        (sum, [id, quantity]) =>
+          sum + dispatchFor(Number(id), quantity)[company.key],
+        0,
+      ),
+    ]),
+  ) as Record<CompanyKey, number>;
   const buildOrder = (status: "Brouillon" | "Envoyée"): StoredOrder => {
     const order: StoredOrder = {
       id: orderId,
@@ -142,12 +182,7 @@ export function NewOrder({
               name,
               quantity,
             })),
-            dispatch: Object.fromEntries(
-              companies.map((company, index) => [
-                company.key,
-                sharesFor(quantity)[index],
-              ]),
-            ) as Record<CompanyKey, number>,
+            dispatch: dispatchFor(product.id, quantity),
           };
         }),
       total,
@@ -554,7 +589,11 @@ export function NewOrder({
                   .map(([id, n]) => {
                     const p = products.find((x) => x.id === Number(id))!,
                       o = p.offers.find((x) => x.supplier === supplier)!,
-                      shares = sharesFor(n);
+                      dispatch = dispatchFor(Number(id), n),
+                      dispatchTotal = Object.values(dispatch).reduce(
+                        (sum, value) => sum + value,
+                        0,
+                      );
                     return (
                       <div key={id}>
                         <span>
@@ -594,12 +633,48 @@ export function NewOrder({
                             {o.price ? money(o.price * n) : "À saisir"}
                           </strong>
                         </span>
-                        {shares.map((value, index) => (
-                          <span key={companies[index].key}>{value}</span>
+                        {companies.map((company) => (
+                          <span className="dispatch-quantity-control" key={company.key}>
+                            <NumberControl
+                              compact
+                              value={dispatch[company.key]}
+                              onMinus={() =>
+                                updateDispatch(
+                                  Number(id),
+                                  n,
+                                  company.key,
+                                  dispatch[company.key] - 1,
+                                )
+                              }
+                              onPlus={() =>
+                                updateDispatch(
+                                  Number(id),
+                                  n,
+                                  company.key,
+                                  dispatch[company.key] + 1,
+                                )
+                              }
+                            />
+                          </span>
                         ))}
+                        {dispatchTotal !== n && (
+                          <small className="dispatch-error">
+                            Répartition : {dispatchTotal} au lieu de {n}
+                          </small>
+                        )}
                       </div>
                     );
                   })}
+                <div className="dispatch-total-row">
+                  <span><strong>TOTAL PAR SOCIÉTÉ</strong></span>
+                  <span />
+                  <span>{selectedLines.reduce((sum, [, quantity]) => sum + quantity, 0)}</span>
+                  <span />
+                  <span />
+                  {companies.map((company) => (
+                    <span key={company.key}><strong>{companyTotals[company.key]}</strong></span>
+                  ))}
+                </div>
               </div>
               <div className="doc-note">
                 Le nombre d’équipes n’apparaît jamais sur ce document.
@@ -633,9 +708,9 @@ export function NewOrder({
                 Continuer <ArrowRight size={17} />
               </button>
             ) : (
-              <button className="primary-btn" onClick={createOrder}>
+              <button className="primary-btn" onClick={createOrder} disabled={!dispatchValid}>
                 <Check size={17} />
-                Créer la commande
+                {dispatchValid ? "Créer la commande" : "Corriger la répartition"}
               </button>
             )}
           </div>

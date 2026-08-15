@@ -58,6 +58,7 @@ import {
 import type { ScreenId } from "./Sidebar";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
+import { CRM_VERSION, CRM_VERSION_HISTORY } from "@/lib/version";
 export function OrdersScreen({
   onNavigate,
   initialOpenOrder,
@@ -1253,7 +1254,10 @@ export function SettingsScreen({
 }: {
   onNavigate: (id: ScreenId) => void;
 }) {
-  const [editing, setEditing] = useState(false),
+  const [section, setSection] = useState<
+      null | "suppliers" | "teams" | "order" | "versions"
+    >(null),
+    [editing, setEditing] = useState(false),
     [saved, setSaved] = useState<PurchasingSettings>(() =>
       getPurchasingSettings(),
     ),
@@ -1282,7 +1286,8 @@ export function SettingsScreen({
           <h1>Paramètres</h1>
           <p>Adresses fournisseurs, modèle d’e-mail et livraison.</p>
         </div>
-        <div className="settings-actions">
+        {(section === "suppliers" || section === "teams" || section === "order") && (
+          <div className="settings-actions">
           {editing ? (
             <>
               <button
@@ -1303,9 +1308,11 @@ export function SettingsScreen({
               <Pencil size={17} /> Modifier les paramètres
             </button>
           )}
-        </div>
+          </div>
+        )}
       </div>
-      <div className="settings-hub-grid">
+      {section === null && (
+      <div className="settings-hub-grid settings-main-grid">
         <button onClick={() => onNavigate("products")}>
           <span><Box size={22} /></span>
           <strong>Produits et ensembles</strong>
@@ -1321,14 +1328,70 @@ export function SettingsScreen({
           <strong>Utilisateurs et droits</strong>
           <small>Accès administrateur, commandes ou lecture</small>
         </button>
+        <button onClick={() => setSection("suppliers")}>
+          <span><Truck size={22} /></span>
+          <strong>Fournisseurs et e-mails</strong>
+          <small>Ajouter les fournisseurs et leurs destinataires</small>
+        </button>
+        <button onClick={() => setSection("teams")}>
+          <span><ShieldCheck size={22} /></span>
+          <strong>Équipes par défaut</strong>
+          <small>Valeurs reprises automatiquement dans les commandes</small>
+        </button>
+        <button onClick={() => setSection("order")}>
+          <span><Mail size={22} /></span>
+          <strong>E-mail et livraison</strong>
+          <small>Objet, message, signature et adresse HM Group</small>
+        </button>
+        <button onClick={() => setSection("versions")}>
+          <span><History size={22} /></span>
+          <strong>Versions du CRM</strong>
+          <small>Version actuelle {CRM_VERSION} et historique des évolutions</small>
+        </button>
       </div>
-      {!editing && (
+      )}
+      {section !== null && (
+        <button
+          className="back-link settings-section-back"
+          onClick={() => {
+            setEditing(false);
+            setDraft(saved);
+            setSection(null);
+          }}
+        >
+          ← Toutes les rubriques
+        </button>
+      )}
+      {section === "versions" && (
+        <section className="panel version-history-panel">
+          <div className="panel-head">
+            <div>
+              <h2>Historique des versions</h2>
+              <p>Version actuellement installée : {CRM_VERSION}</p>
+            </div>
+          </div>
+          <div className="version-timeline">
+            {CRM_VERSION_HISTORY.map((item, index) => (
+              <article key={item.version} className={index === 0 ? "current" : ""}>
+                <span className="version-number">v{item.version}</span>
+                <div>
+                  <strong>{item.title}</strong>
+                  <small>{item.date}</small>
+                  <ul>{item.changes.map((change) => <li key={change}>{change}</li>)}</ul>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+      {(section === "suppliers" || section === "teams" || section === "order") && !editing && (
         <div className="settings-lock-note">
           <ShieldCheck size={18} /> Les paramètres sont verrouillés. Cliquez sur
           « Modifier les paramètres » pour les changer.
         </div>
       )}
-      <div className="purchasing-settings-grid">
+      {(section === "suppliers" || section === "teams" || section === "order") && (
+      <div className={`purchasing-settings-grid settings-view-${section}`}>
         <section className="panel settings-form-card supplier-settings-card">
           <div className="settings-form-head">
             <Truck size={21} />
@@ -1506,6 +1569,7 @@ export function SettingsScreen({
           </div>
         </section>
       </div>
+      )}
     </div>
   );
 }
