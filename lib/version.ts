@@ -1,6 +1,15 @@
-export const CRM_VERSION = "2.1.0";
+export const CRM_VERSION = "2.1.1";
 
 export const CRM_VERSION_HISTORY = [
+  {
+    version: "2.1.1",
+    date: "16 août 2026",
+    title: "Récapitulatif global de commande",
+    changes: [
+      "Tableau unique avec tous les produits et toutes les sociétés",
+      "Modification groupée des quantités avant validation",
+    ],
+  },
   {
     version: "2.1.0",
     date: "16 août 2026",

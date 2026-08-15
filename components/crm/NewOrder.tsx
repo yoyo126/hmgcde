@@ -71,6 +71,7 @@ export function NewOrder({
     [group, setGroup] = useState(""),
     [sent, setSent] = useState(false),
     [mailOpen, setMailOpen] = useState(false),
+    [editingRecap, setEditingRecap] = useState(false),
     [showTeams, setShowTeams] = useState(false),
     [orderId] = useState(() => initialOrder?.id || nextOrderId()),
     [reference] = useState(() => initialOrder?.reference || orderReference());
@@ -504,11 +505,20 @@ export function NewOrder({
         )}
         {step === 4 && (
           <div className="wizard-content">
-            <Heading
-              icon={<CheckCircle2 />}
-              title="Bon fournisseur"
-              text="Vérifiez le document avant de créer la commande."
-            />
+            <div className="final-recap-heading">
+              <Heading
+                icon={<CheckCircle2 />}
+                title="Récapitulatif final"
+                text="Tous les produits et leur répartition sont regroupés dans ce tableau."
+              />
+              <button
+                className={editingRecap ? "primary-btn" : "secondary-btn"}
+                onClick={() => setEditingRecap((editing) => !editing)}
+              >
+                {editingRecap ? <Check size={17} /> : null}
+                {editingRecap ? "Terminer les modifications" : "Modifier le récapitulatif"}
+              </button>
+            </div>
             <div className="default-team-summary">
               <div>
                 <strong>Équipes appliquées automatiquement</strong>
@@ -620,12 +630,19 @@ export function NewOrder({
                         </span>
                         <span>{o.packaging}</span>
                         <span className="validation-qty">
-                          <NumberControl
-                            compact
-                            value={n}
-                            onMinus={() => qty(Number(id), n - 1)}
-                            onPlus={() => qty(Number(id), n + 1)}
-                          />
+                          {editingRecap ? (
+                            <input
+                              className="recap-qty-input"
+                              type="number"
+                              min="0"
+                              value={n}
+                              onChange={(event) =>
+                                qty(Number(id), Number(event.target.value))
+                              }
+                            />
+                          ) : (
+                            <strong>{n}</strong>
+                          )}
                         </span>
                         <span>{o.price ? money(o.price) : "À saisir"}</span>
                         <span>
@@ -635,26 +652,24 @@ export function NewOrder({
                         </span>
                         {companies.map((company) => (
                           <span className="dispatch-quantity-control" key={company.key}>
-                            <NumberControl
-                              compact
-                              value={dispatch[company.key]}
-                              onMinus={() =>
-                                updateDispatch(
-                                  Number(id),
-                                  n,
-                                  company.key,
-                                  dispatch[company.key] - 1,
-                                )
-                              }
-                              onPlus={() =>
-                                updateDispatch(
-                                  Number(id),
-                                  n,
-                                  company.key,
-                                  dispatch[company.key] + 1,
-                                )
-                              }
-                            />
+                            {editingRecap ? (
+                              <input
+                                className="recap-qty-input"
+                                type="number"
+                                min="0"
+                                value={dispatch[company.key]}
+                                onChange={(event) =>
+                                  updateDispatch(
+                                    Number(id),
+                                    n,
+                                    company.key,
+                                    Number(event.target.value),
+                                  )
+                                }
+                              />
+                            ) : (
+                              <strong>{dispatch[company.key]}</strong>
+                            )}
                           </span>
                         ))}
                         {dispatchTotal !== n && (
@@ -677,7 +692,7 @@ export function NewOrder({
                 </div>
               </div>
               <div className="doc-note">
-                Le nombre d’équipes n’apparaît jamais sur ce document.
+                Vue globale avant validation. Le nombre d’équipes n’apparaît jamais sur le document fournisseur.
               </div>
             </div>
           </div>
