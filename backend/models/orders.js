@@ -96,7 +96,15 @@ export const listOrders = async () => {
   }));
 };
 
-const parseJson = (value) => (typeof value === "string" ? JSON.parse(value) : value);
+/** Même prudence que pour les réglages : la colonne JSON peut arriver déjà décodée. */
+const parseJson = (value) => {
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+};
 
 /**
  * Prochain code disponible. Calculé côté serveur : deux filiales qui créent une

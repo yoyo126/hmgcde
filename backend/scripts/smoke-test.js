@@ -60,7 +60,8 @@ const run = async () => {
   // 5. Chargement initial : le catalogue amorcé doit être là.
   const boot = await call("GET", "/bootstrap");
   const data = boot.payload || {};
-  check("chargement initial", boot.status === 200);
+  check("chargement initial", boot.status === 200, JSON.stringify(boot.payload));
+  if (boot.status !== 200) return;
   check("les 4 sociétés sont présentes", data.companies?.length === 4, `reçu ${data.companies?.length}`);
   check("le catalogue est amorcé", data.products?.length >= 70, `reçu ${data.products?.length}`);
   check("les fournisseurs sont présents", data.settings?.suppliers?.length >= 7);

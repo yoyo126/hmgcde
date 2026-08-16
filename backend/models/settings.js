@@ -22,7 +22,18 @@ const DEFAULTS = {
   deliveryAddress: "Adresse de livraison HM Group à renseigner",
 };
 
-const parseValue = (value) => (typeof value === "string" ? JSON.parse(value) : value);
+/**
+ * mysql2 décode déjà les colonnes JSON : une valeur revient donc en objet ou
+ * en chaîne selon les cas. On accepte les deux plutôt que de supposer.
+ */
+const parseValue = (value) => {
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+};
 
 export const getSettings = async () => {
   const [rows, suppliers, companies] = await Promise.all([
