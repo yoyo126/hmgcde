@@ -127,7 +127,7 @@ export const saveManualPriceChanges = ({
           timeStyle: "short",
         }).format(new Date()),
         changes,
-        source: "Manuel",
+        source: "Manuel" as const,
       },
       ...store.priceHistory,
     ].slice(0, 50);
@@ -155,7 +155,7 @@ export const saveTariffImport = ({
   store.importHistory = [history, ...store.importHistory].slice(0, 30);
   if (changes.length) {
     store.priceHistory = [
-      { id: `import-${history.id}`, date: history.date, changes, source: "Import tarif" },
+      { id: `import-${history.id}`, date: history.date, changes, source: "Import tarif" as const },
       ...store.priceHistory,
     ].slice(0, 50);
   }
