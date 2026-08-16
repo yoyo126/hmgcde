@@ -4921,3 +4921,16 @@ body {
   color: var(--blue);
   border-color: rgba(50, 103, 227, 0.4);
 }
+
+/* Bandeau de l'aperçu de démonstration (GitHub Pages) */
+.app-demo-banner {
+  position: sticky;
+  top: 0;
+  z-index: 55;
+  padding: 7px 14px;
+  text-align: center;
+  font-size: 12.5px;
+  color: #7c4a03;
+  background: #fdf0d5;
+  border-bottom: 1px solid #f0d9a8;
+}

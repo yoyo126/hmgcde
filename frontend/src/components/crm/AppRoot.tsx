@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { API_ERROR_EVENT, SESSION_LOST_EVENT, api } from "@/lib/api";
+import { DEMO_USER, IS_DEMO, resetDemoState } from "@/lib/demo-mode";
 import { hydrate, resetStore, store } from "@/lib/store";
 import type { SessionUser } from "@/lib/types";
 import { CRMApp } from "./CRMApp";
@@ -21,6 +22,13 @@ export function AppRoot() {
   const load = useCallback(async () => {
     setPhase("loading");
     try {
+      // L'aperçu de démonstration n'a pas de serveur : ni session, ni connexion.
+      if (IS_DEMO) {
+        await hydrate();
+        setUser(DEMO_USER);
+        setPhase("ready");
+        return;
+      }
       const session = await api.get<{ user: SessionUser | null }>("/auth/me");
       if (!session.user) {
         resetStore();
@@ -61,6 +69,12 @@ export function AppRoot() {
   }, []);
 
   const signOut = useCallback(async () => {
+    if (IS_DEMO) {
+      // Pas de session à fermer : le bouton remet la démonstration à zéro.
+      resetDemoState();
+      window.location.reload();
+      return;
+    }
     await api.post("/auth/logout").catch(() => {});
     resetStore();
     setUser(null);
@@ -94,6 +108,12 @@ export function AppRoot() {
 
   return (
     <>
+      {IS_DEMO && (
+        <div className="app-demo-banner">
+          Aperçu de démonstration — les données restent dans ce navigateur et ne
+          sont partagées avec personne.
+        </div>
+      )}
       {notice && (
         <div className="app-notice" role="alert">
           <AlertTriangle size={17} />

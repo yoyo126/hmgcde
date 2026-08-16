@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
+import { IS_DEMO } from "@/lib/demo-mode";
 import type { AppUser } from "@/lib/types";
 import {
   companies,
@@ -1199,6 +1200,22 @@ export function UsersScreen({ onBack }: { onBack?: () => void } = {}) {
     });
 
   useEffect(() => {
+    if (IS_DEMO) {
+      // L'aperçu n'a pas de serveur : on montre l'écran avec un compte fictif.
+      setUsers([
+        {
+          id: 0,
+          email: "demo@hmgroup.fr",
+          name: "Démonstration",
+          role: "admin",
+          active: true,
+          lastLoginAt: null,
+          createdAt: "",
+        },
+      ]);
+      setLoading(false);
+      return;
+    }
     api
       .get<{ users: AppUser[] }>("/users")
       .then(({ users: list }) => setUsers(list))

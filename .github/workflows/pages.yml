@@ -1,0 +1,58 @@
+name: Publier l'aperçu sur GitHub Pages
+
+# Aperçu de l'application, à regarder avant toute mise en ligne sur le serveur.
+# GitHub Pages n'héberge que des fichiers : l'aperçu tourne donc en mode
+# démonstration, avec ses données dans le navigateur du visiteur. Le partage
+# des données entre les sociétés, lui, ne s'observe que sur le vrai serveur.
+
+on:
+  push:
+    branches: [main, refactor/node-mysql]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  construire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer les dépendances
+        run: npm --prefix frontend install --no-audit --no-fund
+
+      - name: Construire l'aperçu
+        env:
+          VITE_DEMO: "1"
+          VITE_BASE: /hmgcde/
+        run: npm --prefix frontend run build
+
+      - name: Page de repli pour la navigation directe
+        run: cp frontend/dist/index.html frontend/dist/404.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: frontend/dist
+
+  publier:
+    needs: construire
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - id: deploiement
+        uses: actions/deploy-pages@v4

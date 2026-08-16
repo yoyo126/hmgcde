@@ -1,4 +1,5 @@
 import { api, reportApiError } from "./api";
+import { DEMO_USER, IS_DEMO, loadDemoState, saveDemoState } from "./demo-mode";
 import type {
   Company,
   ImportHistoryItem,
@@ -78,11 +79,27 @@ type Bootstrap = {
 
 /** Charge toute l'application en un aller-retour. */
 export const hydrate = async () => {
-  const data = await api.get<Bootstrap>("/bootstrap");
+  // En démonstration (aperçu GitHub Pages), il n'y a pas de serveur :
+  // les données viennent du navigateur.
+  const data = IS_DEMO
+    ? ({ ...loadDemoState(), user: DEMO_USER } as unknown as Bootstrap)
+    : await api.get<Bootstrap>("/bootstrap");
   Object.assign(state, data, { ready: true });
   emit(CATALOG_CHANGED_EVENT, PURCHASING_UPDATED_EVENT, SETTINGS_UPDATED_EVENT, STORE_READY_EVENT);
   return data;
 };
+
+/** Photographie de l'état, mémorisée dans le navigateur en démonstration. */
+const snapshotDemo = () =>
+  saveDemoState({
+    companies: state.companies,
+    settings: state.settings,
+    products: state.products,
+    orders: state.orders,
+    requests: state.requests,
+    priceHistory: state.priceHistory,
+    importHistory: state.importHistory,
+  });
 
 export const resetStore = () => {
   Object.assign(state, {
@@ -108,6 +125,12 @@ const persist = async <T extends Partial<StoreState>>(
   run: () => Promise<T>,
   events: string[],
 ) => {
+  if (IS_DEMO) {
+    // Le cache vient d'être mis à jour par l'appelant : il suffit de le garder.
+    snapshotDemo();
+    emit(...events);
+    return;
+  }
   try {
     const result = await run();
     Object.assign(state, result);

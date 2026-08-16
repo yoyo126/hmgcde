@@ -11,6 +11,8 @@ export default defineConfig(({ mode }) => {
   const apiTarget = env.VITE_API_PROXY || "http://127.0.0.1:3001";
 
   return {
+    // GitHub Pages sert le site depuis /hmgcde/ ; en local, la racine.
+    base: env.VITE_BASE || "/",
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
