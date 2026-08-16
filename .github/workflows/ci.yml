@@ -3,12 +3,19 @@ name: Vérification
 # À chaque push, GitHub compile l'interface et lance l'API contre une vraie
 # base MySQL. C'est le filet de sécurité du projet : aucune machine locale
 # n'est nécessaire pour savoir si le code tient debout.
+#
+# Le journal complet est publié sur la branche `ci-logs` (fichier
+# logs/latest.log), afin de pouvoir diagnostiquer un échec sans avoir à
+# ouvrir l'interface GitHub.
 
 on:
   push:
     branches: ["**"]
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   verifier:
@@ -40,6 +47,7 @@ jobs:
       SESSION_SECRET: secret-de-test-sans-valeur
       SEED_ADMIN_EMAIL: admin@hmgroup.fr
       SEED_ADMIN_PASSWORD: motdepasse-de-test-ci
+      SMOKE_PASSWORD: motdepasse-de-test-ci
 
     steps:
       - uses: actions/checkout@v4
@@ -48,39 +56,39 @@ jobs:
         with:
           node-version: 20
 
-      - name: Installer les dépendances
+      - name: Vérification complète
+        id: verification
         run: |
-          npm --prefix backend install
-          npm --prefix frontend install
+          set -o pipefail
+          bash scripts/ci-run.sh 2>&1 | tee "$RUNNER_TEMP/ci.log"
 
-      - name: Compiler l'interface (TypeScript + Vite)
-        run: npm --prefix frontend run build
-
-      - name: Créer le schéma MySQL
-        run: npm --prefix backend run migrate
-
-      - name: Amorcer les données (sociétés, fournisseurs, catalogue)
-        run: npm --prefix backend run seed
-
-      - name: Démarrer l'API
+      - name: Publier le journal sur la branche ci-logs
+        if: always()
         run: |
-          npm --prefix backend start > api.log 2>&1 &
-          for i in $(seq 1 30); do
-            if curl -sf http://127.0.0.1:3001/api/health > /dev/null; then
-              echo "API prête."
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "L'API n'a pas démarré :"
-          cat api.log
-          exit 1
-
-      - name: Tester le parcours métier
-        env:
-          SMOKE_PASSWORD: motdepasse-de-test-ci
-        run: node backend/scripts/smoke-test.js
-
-      - name: Journal du serveur en cas d'échec
-        if: failure()
-        run: cat api.log || true
+          repo="https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"
+          cd "$RUNNER_TEMP"
+          rm -rf journal
+          git clone --depth 1 --branch ci-logs "$repo" journal 2>/dev/null || {
+            mkdir journal
+            cd journal
+            git init -q
+            git checkout -q --orphan ci-logs
+            git remote add origin "$repo"
+            cd ..
+          }
+          cd journal
+          mkdir -p logs
+          {
+            echo "Run ................ ${{ github.run_id }}"
+            echo "Branche ............ ${{ github.ref_name }}"
+            echo "Commit ............. ${{ github.sha }}"
+            echo "Résultat ........... ${{ steps.verification.outcome }}"
+            echo "Date ............... $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo "──────────────────────────────────────────────────────────"
+            cat "$RUNNER_TEMP/ci.log"
+          } > logs/latest.log
+          cp logs/latest.log "logs/${{ github.run_id }}.log"
+          git add -A
+          git -c user.name="Vérification" -c user.email="ci@hmgroup.local" \
+              commit -q -m "journal ${{ github.run_id }} — ${{ steps.verification.outcome }}"
+          git push -q origin HEAD:ci-logs
