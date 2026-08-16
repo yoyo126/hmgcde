@@ -299,6 +299,38 @@ export function OrdersScreen({
     </div>
   );
 }
+/**
+ * Prix d'un ensemble (coffret, carton, kit) chez un fournisseur : la somme de
+ * son contenu, quantité par quantité. Dès qu'un prix de détail est saisi, le
+ * prix du coffret en découle — il n'y a plus à le recalculer à la main.
+ *
+ * `drafts` contient les prix en cours de saisie, pour que le total suive la
+ * frappe avant même l'enregistrement.
+ */
+const bundlePriceFor = (
+  product: Product,
+  supplier: string,
+  drafts: Record<string, string>,
+) =>
+  (product.contents || []).reduce((total, item) => {
+    const draft = drafts[componentPriceKey(product.id, item.name, supplier)];
+    const unitPrice =
+      draft !== undefined && draft !== ""
+        ? Number(draft)
+        : effectiveComponentPrice(
+            product.id,
+            item.name,
+            supplier,
+            componentPrice(item, supplier),
+          );
+    if (!Number.isFinite(unitPrice) || unitPrice <= 0) return total;
+    return total + unitPrice * (Number(item.quantity) || 0);
+  }, 0);
+
+/** Un ensemble dont au moins un élément est chiffré pilote son propre prix. */
+const isComputedBundle = (product: Product) =>
+  Boolean(product.contents?.length);
+
 export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
   const [query, setQuery] = useState(""),
     [family, setFamily] = useState("Tous"),
@@ -406,9 +438,32 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
     const changes: ManualPriceChange[] = [];
     const originalCatalog = getCatalogProducts();
     catalog.forEach((product) => {
+      // Un ensemble tire son prix de son contenu : on enregistre le total
+      // calculé, pour que les commandes et les e-mails utilisent le bon.
+      if (isComputedBundle(product)) {
+        configuredSupplierNames.forEach((supplier) => {
+          const total = bundlePriceFor(product, supplier, componentPrices);
+          if (total <= 0) return;
+          const key = priceKey(product.id, supplier);
+          const offer = product.offers.find((item) => item.supplier === supplier);
+          const oldPrice = effectivePrice(product.id, supplier, offer?.price || 0);
+          const newPrice = Math.round(total * 100) / 100;
+          if (newPrice === oldPrice) return;
+          prices[key] = newPrice;
+          changes.push({
+            product: `${product.name} (total du détail)`,
+            supplier,
+            oldPrice,
+            newPrice,
+            scope: "Produit",
+          });
+        });
+      }
       configuredSupplierNames.forEach((supplier) => {
         const key = priceKey(product.id, supplier);
         if (priceDrafts[key] === undefined) return;
+        // Le total calculé l'emporte sur une ancienne saisie manuelle.
+        if (isComputedBundle(product) && prices[key] !== undefined) return;
         const offer = product.offers.find((item) => item.supplier === supplier);
         const oldPrice = effectivePrice(
           product.id,
@@ -692,14 +747,21 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                         const offer = p.offers.find(
                           (item) => item.supplier === supplier,
                         );
+                        const stored = effectivePrice(
+                          p.id,
+                          supplier,
+                          offer?.price || 0,
+                        );
+                        // Pour un coffret, le détail fait foi dès qu'il est chiffré ;
+                        // sinon on garde le prix saisi jusqu'ici.
+                        const computed = isComputedBundle(p)
+                          ? bundlePriceFor(p, supplier, componentPrices)
+                          : 0;
                         return {
                           supplier,
                           offer,
-                          price: effectivePrice(
-                            p.id,
-                            supplier,
-                            offer?.price || 0,
-                          ),
+                          price: computed > 0 ? computed : stored,
+                          computed: computed > 0,
                         };
                       });
                       const knownPrices = supplierPrices
@@ -856,7 +918,12 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                   key={supplier}
                                   data-label={supplier}
                                 >
-                                  {editingPrices && (offer || price > 0) ? (
+                                  {supplierPrice?.computed ? (
+                                    <b className="computed-price">
+                                      {money(price)}
+                                      <small>calculé sur le détail</small>
+                                    </b>
+                                  ) : editingPrices && (offer || price > 0) ? (
                                     <label className="catalog-price-input">
                                       <input
                                         aria-label={`Prix de ${p.name} chez ${supplier}`}

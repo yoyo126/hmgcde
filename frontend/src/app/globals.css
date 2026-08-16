@@ -4934,3 +4934,16 @@ body {
   background: #fdf0d5;
   border-bottom: 1px solid #f0d9a8;
 }
+
+/* Prix d'un ensemble, calculé à partir du détail de son contenu */
+.computed-price {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.computed-price small {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--blue);
+  letter-spacing: 0.01em;
+}
