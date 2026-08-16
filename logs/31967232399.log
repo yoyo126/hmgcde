@@ -1,0 +1,45 @@
+Run ................ 31967232399
+Branche ............ refactor/node-mysql
+Commit ............. 9df0613d11f3c876101514e9a61c70b90795de59
+Résultat ........... failure
+Date ............... 2026-08-16 19:20 UTC
+──────────────────────────────────────────────────────────
+
+══════════════════════════════════════════════════════════════
+▶ Versions
+══════════════════════════════════════════════════════════════
+v20.20.2
+10.8.2
+
+══════════════════════════════════════════════════════════════
+▶ Installation des dépendances du backend
+══════════════════════════════════════════════════════════════
+
+added 96 packages in 3s
+
+══════════════════════════════════════════════════════════════
+▶ Installation des dépendances de l'interface
+══════════════════════════════════════════════════════════════
+npm error code ERESOLVE
+npm error ERESOLVE unable to resolve dependency tree
+npm error
+npm error While resolving: hmgcde-frontend@3.0.0
+npm error Found: vite@7.3.6
+npm error node_modules/vite
+npm error   dev vite@"^7.1.5" from the root project
+npm error
+npm error Could not resolve dependency:
+npm error peer vite@"^8.0.0" from @vitejs/plugin-react@6.0.5
+npm error node_modules/@vitejs/plugin-react
+npm error   dev @vitejs/plugin-react@"^6.0.2" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/runner/.npm/_logs/2026-08-16T19_20_11_512Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-08-16T19_20_11_512Z-debug-0.log
+
+✗ ÉCHEC à l'étape : installation interface
