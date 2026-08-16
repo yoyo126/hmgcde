@@ -109,7 +109,12 @@ const run = async () => {
   check("la répartition par société est conservée", stored?.lines?.[0]?.dispatch?.cpte === 4,
     JSON.stringify(stored?.lines?.[0]?.dispatch));
   check("le fournisseur est conservé", stored?.supplier === supplier);
-  check("la date est renvoyée en français", /\d{1,2} \w+ \d{4}/.test(stored?.date || ""));
+  // \w ne couvre pas les accents : « 12 août 2026 » ne matchait pas.
+  check(
+    "la date est renvoyée en français",
+    /^\d{1,2} [\p{L}éûô]+ \d{4}$/u.test(stored?.date || ""),
+    `reçu « ${stored?.date} »`,
+  );
 
   // 8. Modification d'un prix : le catalogue et l'historique doivent suivre.
   const priceKey = `${product.id}|||${supplier}`;
