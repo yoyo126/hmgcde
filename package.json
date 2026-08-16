@@ -1,48 +1,20 @@
 {
   "name": "hmgcde",
-  "version": "0.1.0",
+  "version": "3.0.0",
   "private": true,
-  "engines": {
-    "node": ">=22.13.0"
-  },
+  "displayName": "Achats filiales HM Group",
+  "description": "Préparation, répartition et suivi des commandes de fournitures pour les sociétés du groupe HM.",
   "scripts": {
-    "install:ci": "bash scripts/install-ci.sh",
-    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vite",
-    "build": "bash scripts/build-verified.sh",
-    "build:pages": "vite build --config vite.github.config.ts",
-    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs",
-    "validate:artifact": "bash scripts/validate-artifact.sh",
-    "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate"
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "setup": "npm --prefix backend run setup",
+    "dev:api": "npm --prefix backend run dev",
+    "dev:web": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix backend start",
+    "typecheck": "npm --prefix frontend run typecheck",
+    "lint": "npm --prefix frontend run lint"
   },
-  "dependencies": {
-    "drizzle-orm": "0.45.2",
-    "lucide-react": "^0.468.0",
-    "next": "16.2.6",
-    "pdfjs-dist": "3.11.174",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "xlsx": "^0.18.5"
-  },
-  "devDependencies": {
-    "@cloudflare/vite-plugin": "1.37.1",
-    "@tailwindcss/postcss": "4.2.1",
-    "@types/node": "22.19.19",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react": "6.0.2",
-    "@vitejs/plugin-rsc": "0.5.26",
-    "drizzle-kit": "0.31.10",
-    "eslint": "9.39.4",
-    "eslint-config-next": "16.2.6",
-    "react-server-dom-webpack": "19.2.6",
-    "tailwindcss": "4.2.1",
-    "typescript": "5.9.3",
-    "vinext": "0.0.50",
-    "vite": "8.0.13",
-    "wrangler": "4.92.0"
-  },
-  "type": "module",
-  "displayName": "Achats filiales HM Group"
+  "engines": {
+    "node": ">=20.11.0"
+  }
 }
