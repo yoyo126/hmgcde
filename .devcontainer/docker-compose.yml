@@ -1,0 +1,23 @@
+# Environnement de test complet, monté par GitHub Codespaces :
+# un conteneur Node pour l'application, un conteneur MySQL pour les données.
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    # L'application partage le réseau de la base : MySQL est donc joignable
+    # sur 127.0.0.1:3306, comme sur un poste classique.
+    network_mode: service:db
+
+  db:
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: hmgcde-dev
+      MYSQL_DATABASE: hmgcde
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:

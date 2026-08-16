@@ -19,7 +19,10 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: Number(env.VITE_PORT || 5173),
-      host: "127.0.0.1",
+      // 0.0.0.0 dans un conteneur (Codespaces), sinon uniquement la machine.
+      host: env.VITE_HOST || (env.CODESPACES ? "0.0.0.0" : "127.0.0.1"),
+      // Codespaces sert l'aperçu depuis un sous-domaine github.dev.
+      allowedHosts: [".app.github.dev", ".github.dev"],
       proxy: {
         "/api": {
           target: apiTarget,

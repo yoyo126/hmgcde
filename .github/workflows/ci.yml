@@ -1,0 +1,86 @@
+name: Vérification
+
+# À chaque push, GitHub compile l'interface et lance l'API contre une vraie
+# base MySQL. C'est le filet de sécurité du projet : aucune machine locale
+# n'est nécessaire pour savoir si le code tient debout.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verifier:
+    name: Interface et API
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: motdepasse-ci
+          MYSQL_DATABASE: hmgcde
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pmotdepasse-ci"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      NODE_ENV: test
+      PORT: 3001
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: motdepasse-ci
+      DB_NAME: hmgcde
+      SESSION_SECRET: secret-de-test-sans-valeur
+      SEED_ADMIN_EMAIL: admin@hmgroup.fr
+      SEED_ADMIN_PASSWORD: motdepasse-de-test-ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer les dépendances
+        run: |
+          npm --prefix backend install
+          npm --prefix frontend install
+
+      - name: Compiler l'interface (TypeScript + Vite)
+        run: npm --prefix frontend run build
+
+      - name: Créer le schéma MySQL
+        run: npm --prefix backend run migrate
+
+      - name: Amorcer les données (sociétés, fournisseurs, catalogue)
+        run: npm --prefix backend run seed
+
+      - name: Démarrer l'API
+        run: |
+          npm --prefix backend start > api.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3001/api/health > /dev/null; then
+              echo "API prête."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "L'API n'a pas démarré :"
+          cat api.log
+          exit 1
+
+      - name: Tester le parcours métier
+        env:
+          SMOKE_PASSWORD: motdepasse-de-test-ci
+        run: node backend/scripts/smoke-test.js
+
+      - name: Journal du serveur en cas d'échec
+        if: failure()
+        run: cat api.log || true
