@@ -572,8 +572,8 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
           <span className="eyebrow">CATALOGUE UNIQUE</span>
           <h1>Produits</h1>
           <p>
-            {catalog.length} produits en liste avec comparatif des {configuredSupplierNames.length}
-            fournisseurs.
+            {catalog.length} produits en liste avec comparatif des{" "}
+            {configuredSupplierNames.length} fournisseurs.
           </p>
         </div>
         <div className="price-edit-actions">

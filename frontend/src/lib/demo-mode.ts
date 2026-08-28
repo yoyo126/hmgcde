@@ -48,21 +48,16 @@ const SUPPLIERS = [
   "CLIM+",
 ];
 
-// Mêmes règles que l'amorçage du serveur (backend/db/seed.js) : la démo doit
-// montrer exactement le catalogue que verra l'application réelle.
-const suppliersForFamily = (family: string) =>
-  family === "Électricité"
-    ? ["YESS ELECTRIQUE", "EURELEC", "REXEL"]
-    : family === "Plomberie" || family === "SSc"
-      ? ["CEDEO", "AUBADE", "DAST SOLUTION"]
-      : ["CLIM+", "CEDEO", "AUBADE", "DAST SOLUTION"];
+// La démo doit montrer exactement le catalogue de l'application réelle : le
+// serveur propose chaque produit chez TOUS les fournisseurs (voir
+// completeOffers dans backend/models/catalog.js), donc la démo aussi.
 
 const buildProducts = (): Product[] =>
   catalogSeeds.map((seed, index) => {
     const isCable = seed.family === "Électricité" && Boolean(seed.packaging);
     const isPlumbingCarton = seed.name.toLowerCase().startsWith("carton plomberie");
     const packaging = seed.packaging || (isPlumbingCarton ? "Carton complet" : "À renseigner");
-    const supplierList = suppliersForFamily(seed.family);
+    const supplierList = SUPPLIERS;
 
     const offers: SupplierOffer[] = supplierList.map((supplier) => ({
       supplier,
