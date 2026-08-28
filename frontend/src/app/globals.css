@@ -5244,3 +5244,35 @@ body {
     font-size: 24px;
   }
 }
+
+@media (max-width: 760px) {
+  /* Deuxième passe : après la mise en ligne, le premier produit démarrait
+     encore à 659 px. Les textes d'explication et les intitulés de filtres
+     coûtaient plus de place que le contenu lui-même. */
+  .page-title > div > p,
+  .wizard-heading p {
+    display: none;
+  }
+  .product-toolbar {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 10px;
+    padding: 8px 0;
+  }
+  /* Fournisseur et catégorie côte à côte, groupe en dessous. */
+  .product-toolbar label:first-child {
+    grid-column: auto;
+  }
+  .product-toolbar label:last-child {
+    grid-column: 1 / -1;
+  }
+  .product-toolbar select {
+    min-height: 42px;
+  }
+  .wizard-heading {
+    margin-bottom: 6px;
+  }
+  .wizard-heading h2,
+  .wizard-heading strong {
+    font-size: 17px;
+  }
+}
