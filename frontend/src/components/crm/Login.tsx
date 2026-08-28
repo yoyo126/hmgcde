@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { LogIn, ShieldCheck } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import type { SessionUser } from "@/lib/types";
+import { HmLogo } from "./HmLogo";
 
 /**
  * Écran de connexion. Il remplace l'authentification ChatGPT : l'application
@@ -32,10 +33,9 @@ export function Login({ onSignedIn }: { onSignedIn: (user: SessionUser) => void 
   return (
     <div className="login-shell">
       <form className="login-card" onSubmit={submit}>
-        <div className="login-badge">
-          <ShieldCheck size={26} />
-        </div>
+        <HmLogo className="login-logo" />
         <h1>Achats filiales</h1>
+        <p className="login-company">HM GROUP</p>
         <p className="login-intro">
           Commandes et répartition pour CPTE&nbsp;Conseil, HM&nbsp;Pose, HM&nbsp;Instal et
           HM&nbsp;PAC.

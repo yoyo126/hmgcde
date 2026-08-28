@@ -1,3 +1,4 @@
+import { hidesPrices, stripOrderPrices, stripProductPrices } from "../middleware/auth.js";
 import { asyncHandler } from "../middleware/errors.js";
 import * as catalog from "../models/catalog.js";
 import * as orders from "../models/orders.js";
@@ -21,14 +22,17 @@ export const bootstrap = asyncHandler(async (req, res) => {
       catalog.listImportHistory(),
     ]);
 
+  // Le profil « demandeur » ne reçoit tout simplement pas les montants.
+  const masque = hidesPrices(req);
+
   res.json({
     user: req.session.user,
     companies,
     settings: appSettings,
-    products,
-    orders: orderList,
+    products: masque ? stripProductPrices(products) : products,
+    orders: masque ? stripOrderPrices(orderList) : orderList,
     requests: requestList,
-    priceHistory,
-    importHistory,
+    priceHistory: masque ? [] : priceHistory,
+    importHistory: masque ? [] : importHistory,
   });
 });

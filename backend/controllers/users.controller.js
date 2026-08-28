@@ -2,7 +2,7 @@ import { asyncHandler, HttpError } from "../middleware/errors.js";
 import * as users from "../models/users.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const ROLES = ["admin", "acheteur", "lecteur"];
+const ROLES = ["admin", "acheteur", "demandeur", "lecteur"];
 
 export const list = asyncHandler(async (req, res) => {
   res.json({ users: await users.listUsers() });

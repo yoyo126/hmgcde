@@ -142,7 +142,7 @@ export type SessionUser = {
   id: number;
   email: string;
   name: string;
-  role: "admin" | "acheteur" | "lecteur";
+  role: "admin" | "acheteur" | "demandeur" | "lecteur";
 };
 
 export type AppUser = SessionUser & {

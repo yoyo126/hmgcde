@@ -15,6 +15,10 @@ const SEPARATOR = "|||";
 // --- Lecture --------------------------------------------------------------
 
 export const listCatalog = async () => {
+  const activeSuppliers = await query(
+    "SELECT name FROM hmgcde_suppliers WHERE is_active = 1 ORDER BY position, name",
+  );
+
   const [products, offers, components, componentPrices] = await Promise.all([
     query(
       `SELECT id, code, name, family, subfamily, unit, kind, bundle_label
@@ -88,8 +92,36 @@ export const listCatalog = async () => {
     ...(contentsByProduct.has(product.id)
       ? { contents: contentsByProduct.get(product.id) }
       : {}),
-    offers: offersByProduct.get(product.id) || [],
+    offers: completeOffers(offersByProduct.get(product.id) || [], activeSuppliers),
   }));
+};
+
+/**
+ * Tout produit doit pouvoir être commandé chez n'importe quel fournisseur :
+ * on complète donc ses offres avec les fournisseurs manquants, prix à zéro,
+ * en reprenant le conditionnement déjà connu. Sans cela, l'écran Produits
+ * afficherait « — » et n'offrirait aucune case pour saisir le prix.
+ */
+const completeOffers = (offers, suppliers) => {
+  const known = new Set(offers.map((offer) => offer.supplier));
+  const reference = offers[0];
+  const missing = suppliers
+    .filter((supplier) => !known.has(supplier.name))
+    .map((supplier) => ({
+      supplier: supplier.name,
+      supplierName: reference?.supplierName || "",
+      reference: "À renseigner",
+      brand: "À renseigner",
+      price: 0,
+      ...(reference && reference.meterPrice !== undefined ? { meterPrice: 0 } : {}),
+      packaging: reference?.packaging || "À renseigner",
+      packagingType: reference?.packagingType || "fixed",
+    }));
+  // On garde l'ordre des fournisseurs tel qu'il est paramétré.
+  const order = new Map(suppliers.map((supplier, index) => [supplier.name, index]));
+  return [...offers, ...missing].sort(
+    (a, b) => (order.get(a.supplier) ?? 99) - (order.get(b.supplier) ?? 99),
+  );
 };
 
 export const listPriceHistory = async (limit = 50) => {

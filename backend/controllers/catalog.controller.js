@@ -1,8 +1,10 @@
+import { hidesPrices, stripProductPrices } from "../middleware/auth.js";
 import { asyncHandler, HttpError } from "../middleware/errors.js";
 import * as catalog from "../models/catalog.js";
 
 export const list = asyncHandler(async (req, res) => {
-  res.json({ products: await catalog.listCatalog() });
+  const products = await catalog.listCatalog();
+  res.json({ products: hidesPrices(req) ? stripProductPrices(products) : products });
 });
 
 export const save = asyncHandler(async (req, res) => {

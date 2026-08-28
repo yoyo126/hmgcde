@@ -4947,3 +4947,45 @@ body {
   color: var(--blue);
   letter-spacing: 0.01em;
 }
+
+/* Conditionnement rappelé sur les lignes de demande d'achat */
+.request-line-packaging {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+/* ── Identité HM Group ──────────────────────────────────────────────────── */
+.brand-logo {
+  width: 41px;
+  height: 41px;
+  flex: none;
+  border-radius: 12px;
+  box-shadow: 0 7px 18px #0004;
+}
+.login-logo {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 14px;
+  display: block;
+  border-radius: 17px;
+  box-shadow: 0 12px 30px rgba(23, 34, 59, 0.22);
+}
+.login-company {
+  margin: -4px 0 14px;
+  text-align: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+
+/* Rappel du périmètre d'un profil dans la création de compte */
+.role-help {
+  display: block;
+  margin: -4px 0 10px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+}

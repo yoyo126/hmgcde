@@ -4,6 +4,7 @@ import { API_ERROR_EVENT, SESSION_LOST_EVENT, api } from "@/lib/api";
 import { DEMO_USER, IS_DEMO, resetDemoState } from "@/lib/demo-mode";
 import { hydrate, resetStore, store } from "@/lib/store";
 import type { SessionUser } from "@/lib/types";
+import { PermissionsProvider } from "./permissions-context";
 import { CRMApp } from "./CRMApp";
 import { Login } from "./Login";
 
@@ -123,7 +124,9 @@ export function AppRoot() {
           </button>
         </div>
       )}
+      <PermissionsProvider role={user.role}>
       <CRMApp user={user} onSignOut={signOut} />
+      </PermissionsProvider>
     </>
   );
 }

@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { IS_DEMO } from "@/lib/demo-mode";
+import { ROLE_DESCRIPTIONS as ROLE_HELP } from "@/lib/permissions";
+import { usePermissions } from "./permissions-context";
 import type { AppUser } from "@/lib/types";
 import {
   companies,
@@ -351,9 +353,12 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
   const configuredSupplierNames = purchasingSettings.suppliers.map(
     (supplier) => supplier.name,
   );
-  const editingCatalog = editing;
-  const editingPrices = editing;
-  const deletingProducts = editing;
+  const can = usePermissions();
+  // Un profil sans droit d'écriture consulte le catalogue, sans jamais
+  // basculer en modification — le serveur refuserait de toute façon.
+  const editingCatalog = editing && can.canManagePurchasing;
+  const editingPrices = editing && can.canManagePurchasing && can.canSeePrices;
+  const deletingProducts = editing && can.canManagePurchasing;
 
   const updateProduct = (productId: number, update: (product: Product) => Product) =>
     setCatalog((current) =>
@@ -1242,7 +1247,8 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
 }
 const ROLE_LABELS: Record<AppUser["role"], string> = {
   admin: "Administrateur",
-  acheteur: "Commandes",
+  acheteur: "Achats et commandes",
+  demandeur: "Demandes d’achat",
   lecteur: "Lecture seule",
 };
 
@@ -1373,9 +1379,11 @@ export function UsersScreen({ onBack }: { onBack?: () => void } = {}) {
                 }
               >
                 <option value="admin">Administrateur</option>
-                <option value="acheteur">Commandes</option>
+                <option value="acheteur">Achats et commandes</option>
+                <option value="demandeur">Demandes d’achat</option>
                 <option value="lecteur">Lecture seule</option>
               </select>
+              <small className="role-help">{ROLE_HELP[draft.role]}</small>
               <button className="primary-btn" onClick={() => void addUser()}>
                 <Plus size={16} /> Créer le compte
               </button>

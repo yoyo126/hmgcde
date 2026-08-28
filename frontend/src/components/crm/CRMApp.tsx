@@ -15,13 +15,9 @@ import {
   getNewPurchaseRequestCount,
   type StoredOrder,
 } from "@/lib/order-storage";
+import { ROLE_LABELS } from "@/lib/permissions";
 import type { SessionUser } from "@/lib/types";
-
-const ROLE_LABELS: Record<SessionUser["role"], string> = {
-  admin: "Administrateur",
-  acheteur: "Commandes",
-  lecteur: "Lecture seule",
-};
+import { usePermissions } from "./permissions-context";
 
 /** Initiales affichées dans la pastille utilisateur. */
 const initials = (user: SessionUser) =>
@@ -39,6 +35,7 @@ export function CRMApp({
   user: SessionUser;
   onSignOut: () => void;
 }) {
+  const can = usePermissions();
   const [screen, setScreen] = useState<ScreenId>("dashboard"),
     [menu, setMenu] = useState(false),
     [draftOrders, setDraftOrders] = useState<StoredOrder[]>([]),
@@ -56,7 +53,17 @@ export function CRMApp({
       window.removeEventListener("storage", refresh);
     };
   }, []);
+  // Un écran interdit ne s'ouvre pas, même en forçant la navigation.
+  const allowed = (id: ScreenId) => {
+    if (id === "users") return can.canManageUsers;
+    if (id === "settings" || id === "tariff-imports") return can.canSeeSettings;
+    if (id === "new-order") return can.canManagePurchasing;
+    if (id === "purchase-requests") return can.canRequest || can.canManagePurchasing;
+    return true;
+  };
+
   const navigate = (next: ScreenId) => {
+    if (!allowed(next)) return;
     setDraftOrders([]);
     if (next !== "orders") setOrderToOpen(null);
     setScreen(next);
@@ -96,6 +103,7 @@ export function CRMApp({
   return (
     <div className="app-shell">
       <Sidebar
+        user={user}
         active={screen}
         onChange={navigate}
         open={menu}

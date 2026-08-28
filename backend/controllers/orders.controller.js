@@ -1,8 +1,10 @@
+import { hidesPrices, stripOrderPrices } from "../middleware/auth.js";
 import { asyncHandler, HttpError } from "../middleware/errors.js";
 import * as orders from "../models/orders.js";
 
 export const list = asyncHandler(async (req, res) => {
-  res.json({ orders: await orders.listOrders() });
+  const list = await orders.listOrders();
+  res.json({ orders: hidesPrices(req) ? stripOrderPrices(list) : list });
 });
 
 export const nextCode = asyncHandler(async (req, res) => {

@@ -48,6 +48,21 @@ export function PurchaseRequests({
       getStoredRequests(),
     );
   const products = useCatalogProducts();
+
+  /**
+   * Conditionnement du produit demandé : une couronne de 100 m et une couronne
+   * de 20 m ne se commandent pas pareil, l'info manquait sur les lignes.
+   * On prend celui du fournisseur retenu quand il est déjà choisi.
+   */
+  const packagingFor = (productId: number, supplier?: string) => {
+    const product = products.find((item) => item.id === productId);
+    if (!product) return "";
+    const offer =
+      (supplier && product.offers.find((item) => item.supplier === supplier)) ||
+      product.offers.find((item) => item.packaging && item.packaging !== "À renseigner") ||
+      product.offers[0];
+    return offer?.packaging && offer.packaging !== "À renseigner" ? offer.packaging : product.unit;
+  };
   const settings = usePurchasingSettings();
   const families = [...new Set(products.map((product) => product.family))];
   const groups = useMemo(
@@ -372,6 +387,9 @@ export function PurchaseRequests({
                           )}
                           {line.name}
                         </strong>
+                        <small className="request-line-packaging">
+                          {packagingFor(line.productId, line.supplier)}
+                        </small>
                         {line.ordered ? (
                           <span>{line.quantity} {line.unit.toLowerCase()}</span>
                         ) : (
@@ -544,6 +562,12 @@ export function PurchaseRequests({
                     <h3>{product.name}</h3>
                     <small>
                       Commande par {product.unit.toLowerCase()}
+                      {(() => {
+                        const packaging = packagingFor(product.id);
+                        return packaging && packaging !== product.unit
+                          ? ` · ${packaging}`
+                          : "";
+                      })()}
                     </small>
                     {product.kind === "ensemble" && (
                       <button
@@ -603,7 +627,7 @@ export function PurchaseRequests({
                 <div key={product.id}>
                   <span>
                     <strong>{product.name}</strong>
-                    <small>{product.unit}</small>
+                    <small>{packagingFor(product.id) || product.unit}</small>
                   </span>
                   <b>{quantities[product.id]}</b>
                 </div>

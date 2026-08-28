@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { money } from "@/lib/crm-data";
 import { getStoredOrders } from "@/lib/order-storage";
+import { usePermissions } from "./permissions-context";
 import type { ScreenId } from "./Sidebar";
 
 const statusClass = (status: string) =>
@@ -24,6 +25,7 @@ export function Dashboard({
   onNavigate: (id: ScreenId) => void;
   onOpenOrder: (orderId: string) => void;
 }) {
+  const can = usePermissions();
   const [orders, setOrders] = useState(() => getStoredOrders());
   useEffect(() => {
     const refresh = () => setOrders(getStoredOrders());
@@ -52,7 +54,9 @@ export function Dashboard({
       </div>
       <div className="stats-grid">
         <Stat icon={<ShoppingCart />} label="Commandes" value={String(orders.length)} note="Total enregistré" tone="blue" />
-        <Stat icon={<Euro />} label="Total commandé" value={money(total)} note="Toutes commandes" tone="green" />
+        {can.canSeePrices && (
+          <Stat icon={<Euro />} label="Total commandé" value={money(total)} note="Toutes commandes" tone="green" />
+        )}
         <Stat icon={<Clock3 />} label="En attente" value={String(waiting)} note="À suivre" tone="amber" />
         <Stat icon={<CheckCircle2 />} label="Réceptionnées" value={String(received)} note="Terminées" tone="violet" />
       </div>
@@ -81,7 +85,7 @@ export function Dashboard({
                 </div>
                 <div className="order-date">{order.date}</div>
                 <div className="order-total">
-                  <strong>{money(order.total)}</strong>
+                  <strong>{can.canSeePrices ? money(order.total) : "—"}</strong>
                   <span className={`status ${statusClass(order.status)}`}>{order.status}</span>
                 </div>
               </button>

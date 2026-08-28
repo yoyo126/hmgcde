@@ -9,7 +9,20 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { ROLE_LABELS } from "@/lib/permissions";
+import type { SessionUser } from "@/lib/types";
 import { CRM_VERSION } from "@/lib/version";
+import { usePermissions } from "./permissions-context";
+import { HmLogo } from "./HmLogo";
+
+/** Initiales du compte connecté. */
+const initials = (user: SessionUser) =>
+  (user.name || user.email)
+    .split(/[\s.@_-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("") || "?";
 export const navItems = [
   { id: "dashboard", label: "Tableau de bord", icon: BarChart3 },
   { id: "new-order", label: "Nouvelle commande", icon: PackagePlus },
@@ -26,18 +39,27 @@ export type ScreenId =
   | (typeof navItems)[number]["id"]
   | (typeof settingsItems)[number]["id"];
 export function Sidebar({
+  user,
   active,
   onChange,
   open,
   onClose,
   requestNotifications = 0,
 }: {
+  user: SessionUser;
   active: ScreenId;
   onChange: (id: ScreenId) => void;
   open: boolean;
   onClose: () => void;
   requestNotifications?: number;
 }) {
+  const can = usePermissions();
+  const visibleNav = navItems.filter(({ id }) => {
+    if (id === "settings") return can.canSeeSettings;
+    if (id === "new-order") return can.canManagePurchasing;
+    if (id === "purchase-requests") return can.canRequest || can.canManagePurchasing;
+    return true;
+  });
   return (
     <>
       <div
@@ -46,7 +68,7 @@ export function Sidebar({
       />
       <aside className={"sidebar " + (open ? "open" : "")}>
         <div className="brand">
-          <div className="brand-mark">HM</div>
+          <HmLogo className="brand-logo" />
           <div>
             <strong>HM GROUP</strong>
             <small>Achats filiales</small>
@@ -57,7 +79,7 @@ export function Sidebar({
         </div>
         <nav>
           <p className="nav-eyebrow">GESTION</p>
-          {navItems.map(({ id, label, icon: Icon }) => (
+          {visibleNav.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               className={
@@ -81,10 +103,10 @@ export function Sidebar({
           ))}
         </nav>
         <div className="sidebar-user">
-          <div className="avatar">YD</div>
+          <div className="avatar">{initials(user)}</div>
           <div>
-            <strong>Administrateur HM</strong>
-            <small>Administrateur</small>
+            <strong>{user.name || user.email}</strong>
+            <small>{ROLE_LABELS[user.role]}</small>
           </div>
           <span className="online-dot" />
           <small className="crm-version">Version {CRM_VERSION}</small>
@@ -102,9 +124,16 @@ export function MobileNav({
   onChange: (id: ScreenId) => void;
   requestNotifications?: number;
 }) {
+  const can = usePermissions();
+  const visibleNav = navItems.filter(({ id }) => {
+    if (id === "settings") return can.canSeeSettings;
+    if (id === "new-order") return can.canManagePurchasing;
+    if (id === "purchase-requests") return can.canRequest || can.canManagePurchasing;
+    return true;
+  });
   return (
     <nav className="mobile-nav">
-      {navItems.map(({ id, label, icon: Icon }) => (
+      {visibleNav.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
           className={

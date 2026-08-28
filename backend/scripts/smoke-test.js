@@ -163,7 +163,63 @@ const run = async () => {
   check("l'objet de l'e-mail est conservé", settings.payload?.settings?.mailSubject === "COMMANDE HM — test");
   check("le nombre d'équipes est conservé", settings.payload?.settings?.defaultTeams?.pose === 6);
 
-  // 11. Déconnexion.
+  // 11. Profil « demandeur » : saisit ses demandes, ne voit pas les prix.
+  const created = await call("POST", "/users", {
+    email: "demandeur@hmgroup.fr",
+    name: "Chef d'équipe",
+    password: "demande-hm-2026",
+    role: "demandeur",
+  });
+  check("compte demandeur créé", created.status === 200 || created.status === 201,
+    JSON.stringify(created.payload));
+
+  await call("POST", "/auth/logout");
+  const asRequester = await call("POST", "/auth/login", {
+    email: "demandeur@hmgroup.fr",
+    password: "demande-hm-2026",
+  });
+  check("connexion du demandeur", asRequester.status === 200, JSON.stringify(asRequester.payload));
+
+  if (asRequester.status === 200) {
+    const view = await call("GET", "/bootstrap");
+    const seenProducts = view.payload?.products || [];
+    check(
+      "le demandeur ne reçoit aucun prix produit",
+      seenProducts.every((item) => item.offers.every((offer) => offer.price === 0)),
+    );
+    check(
+      "le demandeur ne reçoit aucun total de commande",
+      (view.payload?.orders || []).every((item) => item.total === 0),
+    );
+    check("le demandeur ne reçoit pas l'historique des prix",
+      (view.payload?.priceHistory || []).length === 0);
+
+    const { payload: code } = await call("GET", "/purchase-requests/next-code");
+    const own = await call("PUT", "/purchase-requests", {
+      request: {
+        id: code.code,
+        requester: "Chef d'équipe",
+        date: "12 août 2026",
+        status: "À commander",
+        seen: false,
+        lines: [{ productId: product.id, name: product.name, unit: product.unit, quantity: 2 }],
+      },
+    });
+    check("le demandeur peut créer une demande d'achat", own.status === 200,
+      JSON.stringify(own.payload));
+
+    const refusedOrder = await call("PUT", "/orders", { order });
+    check("le demandeur ne peut pas passer commande", refusedOrder.status === 403,
+      `statut ${refusedOrder.status}`);
+    const refusedSettings = await call("PUT", "/settings", { settings: data.settings });
+    check("le demandeur ne peut pas toucher aux paramètres", refusedSettings.status === 403,
+      `statut ${refusedSettings.status}`);
+    const refusedUsers = await call("GET", "/users");
+    check("le demandeur ne voit pas les comptes", refusedUsers.status === 403,
+      `statut ${refusedUsers.status}`);
+  }
+
+  // 12. Déconnexion.
   const logout = await call("POST", "/auth/logout");
   check("déconnexion", logout.status === 200);
   const afterLogout = await call("GET", "/bootstrap");
