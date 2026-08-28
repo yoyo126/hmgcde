@@ -5016,3 +5016,87 @@ body {
   top: -2px;
   right: 4px;
 }
+
+/* ------------------------------------------------------------------ */
+/* Téléphone et tablette : confort de saisie sur le terrain            */
+/* ------------------------------------------------------------------ */
+
+/* Le dépliage des prix n'a de sens que sur petit écran : sur ordinateur,
+   le tableau comparatif reste affiché en entier. */
+.supplier-toggle {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .supplier-toggle {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 13px;
+    border: 0;
+    border-bottom: 1px solid #edf0f4;
+    background: #fff;
+    color: var(--blue);
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+  }
+  .supplier-toggle span {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .supplier-toggle small {
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  .supplier-toggle svg {
+    flex: none;
+    transition: transform 0.18s;
+  }
+  .prices-open .supplier-toggle svg {
+    transform: rotate(180deg);
+  }
+  /* Fiche repliée : le comparatif des fournisseurs est masqué. */
+  .prices-closed .price-cell {
+    display: none;
+  }
+
+  /* Cibles tactiles : viser au doigt, pas à la souris. */
+  .more-btn,
+  .component-delete-btn {
+    min-width: 40px;
+    min-height: 40px;
+    display: inline-grid;
+    place-items: center;
+  }
+  .back-link {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .catalog-search input,
+  .product-search input,
+  .request-search input {
+    min-height: 46px;
+    font-size: 16px; /* en dessous de 16px, iOS zoome à la saisie */
+  }
+  main input[type="text"],
+  main input[type="number"],
+  main input[type="search"],
+  main input:not([type]),
+  main select {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  main input[type="checkbox"] {
+    min-width: 22px;
+    min-height: 22px;
+  }
+}

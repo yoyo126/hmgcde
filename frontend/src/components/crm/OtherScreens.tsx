@@ -354,6 +354,15 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
     (supplier) => supplier.name,
   );
   const can = usePermissions();
+  // Sur téléphone, une fiche affichant les 7 fournisseurs mesure près d'un
+  // mètre de haut : les prix sont repliés, et se déplient d'une frappe.
+  const [openedPrices, setOpenedPrices] = useState<number[]>([]);
+  const togglePrices = (productId: number) =>
+    setOpenedPrices((current) =>
+      current.includes(productId)
+        ? current.filter((id) => id !== productId)
+        : [...current, productId],
+    );
   // Un profil sans droit d'écriture consulte le catalogue, sans jamais
   // basculer en modification — le serveur refuserait de toute façon.
   const editingCatalog = editing && can.canManagePurchasing;
@@ -777,7 +786,12 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                         : 0;
                       return (
                         <article
-                          className="product-list-item"
+                          className={
+                            "product-list-item " +
+                            (editingPrices || openedPrices.includes(p.id)
+                              ? "prices-open"
+                              : "prices-closed")
+                          }
                           key={`${p.id}-${priceRevision}`}
                         >
                           <div className="product-list-row">
@@ -876,6 +890,23 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                   : `Commande par ${p.unit.toLowerCase()}`}
                               </small>
                             </span>
+                            {!editingPrices && (
+                              <button
+                                className="supplier-toggle"
+                                aria-expanded={openedPrices.includes(p.id)}
+                                onClick={() => togglePrices(p.id)}
+                              >
+                                <span>
+                                  {can.canSeePrices && bestPrice
+                                    ? `Meilleur prix ${money(bestPrice)}`
+                                    : "Prix à saisir"}
+                                  <small>
+                                    {supplierPrices.length} fournisseurs
+                                  </small>
+                                </span>
+                                <ChevronDown size={18} />
+                              </button>
+                            )}
                             <span
                               className="packaging-cell"
                               data-label="Conditionnement"
