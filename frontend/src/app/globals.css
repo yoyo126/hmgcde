@@ -5341,3 +5341,30 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 760px) {
+  /* Détail d'une demande d'achat : c'est là qu'on affecte les fournisseurs
+     ligne par ligne. Les cases à cocher (22 px), les boutons de quantité
+     (29 px) et les liens d'action (21 px) étaient trop fins pour le doigt. */
+  .number-control.compact button {
+    min-width: 38px;
+    min-height: 38px;
+  }
+  .text-btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+  main input[type="checkbox"] {
+    min-width: 26px;
+    min-height: 26px;
+  }
+  /* La case et son intitulé forment une seule zone tactile confortable. */
+  .request-line label,
+  .product-delete-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+  }
+}
