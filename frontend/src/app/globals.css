@@ -5370,3 +5370,17 @@ body {
     min-height: 42px;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Tablette : barres d'outils à colonnes fixes                         */
+/*                                                                     */
+/* « Nouvelle commande » réclamait 670 px de colonnes (150+150+150+220)*/
+/* dans un conteneur de 490 px : la page débordait à 974 px pour 768   */
+/* disponibles, et le champ de recherche sortait de l'écran.           */
+/* ------------------------------------------------------------------ */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .product-toolbar,
+  .request-toolbar {
+    grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  }
+}
