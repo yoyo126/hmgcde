@@ -5100,3 +5100,20 @@ body {
     min-height: 22px;
   }
 }
+
+@media (max-width: 760px) {
+  /* « ← Paramètres » et le sur-titre se touchaient, faute de retour à la
+     ligne sur petit écran. */
+  .back-link {
+    display: flex;
+    width: 100%;
+    margin-bottom: 6px;
+  }
+  /* Lien « voir la composition » d'un coffret : trop fin pour le doigt. */
+  .composition-link,
+  .composition-toggle {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
