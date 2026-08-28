@@ -5160,3 +5160,87 @@ body {
     padding-right: 20px;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Parcours de commande sur téléphone                                  */
+/*                                                                     */
+/* Mesuré sur un écran de 375 px : le premier produit commençait à     */
+/* 743 px, sous la ligne de flottaison — on ouvrait l'écran sans voir  */
+/* un seul article. Les filtres pesaient 294 px et chaque produit      */
+/* 207 px, soit 5 079 px pour une catégorie de 20 articles.            */
+/* ------------------------------------------------------------------ */
+@media (max-width: 760px) {
+  /* Les filtres restent accessibles pendant le défilement, mais tiennent
+     sur deux rangs au lieu de trois pleines largeurs. */
+  .product-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 12;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
+    padding: 10px 0;
+    margin-bottom: 4px;
+    background: #fff;
+  }
+  .product-toolbar label {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+  }
+  .product-toolbar label:first-child {
+    grid-column: 1 / -1;
+  }
+  .product-toolbar select {
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  /* Une ligne par produit : intitulé à gauche, compteur à droite. */
+  .select-product {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+  .select-product .product-check {
+    display: none;
+  }
+  .select-product .product-copy {
+    grid-column: 1;
+    min-width: 0;
+  }
+  .select-product .product-copy strong {
+    display: block;
+    font-size: 15px;
+    line-height: 1.3;
+  }
+  .select-product .product-copy span,
+  .select-product .product-copy small {
+    font-size: 11.5px;
+  }
+  /* Le prix rejoint le bloc de texte au lieu d'occuper sa propre ligne. */
+  .select-product .unit-price {
+    display: none;
+  }
+  .select-product .number-control {
+    grid-column: 2;
+    grid-row: 1;
+    margin-top: 0;
+    justify-self: end;
+  }
+
+  /* On gagne de la hauteur avant la liste. */
+  .wizard-heading {
+    margin-bottom: 10px;
+  }
+  .wizard-heading p {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .page-title h1 {
+    font-size: 24px;
+  }
+}
