@@ -68,11 +68,12 @@ export function Sidebar({
       />
       <aside className={"sidebar " + (open ? "open" : "")}>
         <div className="brand">
-          <HmLogo className="brand-logo" />
-          <div>
-            <strong>HM GROUP</strong>
-            <small>Achats filiales</small>
+          {/* Le logo porte déjà le nom du groupe : inutile de le répéter à côté,
+              autant lui laisser toute la largeur pour rester lisible. */}
+          <div className="brand-plate">
+            <HmLogo className="brand-logo" />
           </div>
+          <small className="brand-caption">Achats filiales</small>
           <button className="close-sidebar" onClick={onClose}>
             <X size={20} />
           </button>
