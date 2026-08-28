@@ -5346,9 +5346,11 @@ body {
   /* Détail d'une demande d'achat : c'est là qu'on affecte les fournisseurs
      ligne par ligne. Les cases à cocher (22 px), les boutons de quantité
      (29 px) et les liens d'action (21 px) étaient trop fins pour le doigt. */
+  /* Les boutons de quantité sont les plus sollicités de tout le parcours :
+     44 px, la taille recommandée pour une frappe au doigt. */
   .number-control.compact button {
-    min-width: 38px;
-    min-height: 38px;
+    min-width: 44px;
+    min-height: 44px;
   }
   .text-btn {
     min-height: 40px;
