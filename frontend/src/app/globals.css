@@ -5276,3 +5276,68 @@ body {
     font-size: 17px;
   }
 }
+
+@media (max-width: 760px) {
+  /* Détail d'une commande : les lignes étaient figées à 720 px de large
+     (règle posée plus bas dans la feuille que la version mobile), ce qui
+     obligeait à faire défiler latéralement pour lire quantités et prix. */
+  .order-lines-view {
+    overflow-x: visible;
+  }
+  .order-lines-head {
+    display: none;
+  }
+  .order-line-view {
+    min-width: 0;
+    grid-template-columns: auto 1fr;
+    gap: 4px 10px;
+    padding: 12px 13px;
+  }
+  /* Intitulé du produit sur toute la largeur. */
+  .order-line-view > strong:first-child {
+    grid-column: 1 / -1;
+    font-size: 15px;
+  }
+  /* Conditionnement en dessous, en gris. */
+  .order-line-view > span:not(.price-column) {
+    grid-column: 1 / -1;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+  /* Quantité mise en avant, puis prix unitaire et total sur la même ligne. */
+  .order-line-view > b {
+    grid-column: 1;
+    font-size: 15px;
+  }
+  .order-line-view > b:before {
+    content: "Qté ";
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .order-line-view > .price-column {
+    grid-column: 2;
+    justify-self: end;
+    font-size: 13px;
+  }
+  .order-line-view > span.price-column:before {
+    content: "PU ";
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .order-line-view > strong.price-column {
+    grid-row: 3;
+    font-size: 15px;
+  }
+  .order-line-view > strong.price-column:before {
+    content: "Total ";
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  /* Le bas du détail (total et aperçu de l'e-mail) passe en pleine largeur. */
+  .order-detail-bottom {
+    grid-template-columns: 1fr;
+  }
+}
