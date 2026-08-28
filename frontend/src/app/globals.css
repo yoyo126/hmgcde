@@ -5117,3 +5117,46 @@ body {
     align-items: center;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Tablette en portrait (iPad : 768 px)                                */
+/* La barre latérale de 248 px ne laissait que 520 px de contenu, et   */
+/* la barre du haut débordait de 15 px — le bouton de déconnexion      */
+/* sortait de l'écran. On resserre plutôt que de basculer en mobile :  */
+/* à cette taille, le menu latéral reste confortable.                  */
+/* ------------------------------------------------------------------ */
+@media (min-width: 761px) and (max-width: 900px) {
+  .sidebar {
+    width: 196px;
+  }
+  .main-shell {
+    margin-left: 196px;
+  }
+  .brand-logo {
+    max-width: 122px;
+  }
+  .topbar {
+    padding: 0 16px;
+    gap: 10px;
+  }
+  .top-search {
+    min-width: 0;
+    flex: 1 1 auto;
+    max-width: 210px;
+  }
+  .top-search kbd {
+    display: none;
+  }
+  .top-user strong,
+  .top-user small {
+    max-width: 118px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .screen,
+  main {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
