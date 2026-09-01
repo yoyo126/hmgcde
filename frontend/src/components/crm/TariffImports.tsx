@@ -140,6 +140,19 @@ async function readExcel(file: File): Promise<RawLine[]> {
 
 type Fragment = { x: number; xFin: number; texte: string };
 
+/**
+ * Un élément de texte positionné. pdf.js mélange dans `items` du texte et des
+ * marqueurs de structure ; seuls les premiers portent des coordonnées.
+ */
+type ElementTexte = { str: string; transform: number[]; width?: number };
+
+const estElementTexte = (item: unknown): item is ElementTexte =>
+  typeof item === "object" &&
+  item !== null &&
+  "str" in item &&
+  "transform" in item &&
+  Array.isArray((item as ElementTexte).transform);
+
 /** Regroupe les fragments d'une page en lignes, par ordonnée. */
 const groupeEnLignes = (fragments: { x: number; y: number; xFin: number; texte: string }[]) => {
   const lignes = new Map<number, Fragment[]>();
@@ -219,11 +232,12 @@ async function readPdf(file: File): Promise<RawLine[]> {
     const page = await document.getPage(numero);
     const contenu = await page.getTextContent();
     const fragments = contenu.items
-      .filter((item): item is typeof item & { str: string } => "str" in item && Boolean(item.str.trim()))
+      .filter(estElementTexte)
+      .filter((item) => item.str.trim())
       .map((item) => ({
-        x: item.transform[4] as number,
-        y: item.transform[5] as number,
-        xFin: (item.transform[4] as number) + ((item.width as number) || 0),
+        x: item.transform[4],
+        y: item.transform[5],
+        xFin: item.transform[4] + (item.width || 0),
         texte: item.str.trim(),
       }));
 
