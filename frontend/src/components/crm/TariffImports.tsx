@@ -146,12 +146,16 @@ type Fragment = { x: number; xFin: number; texte: string };
  */
 type ElementTexte = { str: string; transform: number[]; width?: number };
 
-const estElementTexte = (item: unknown): item is ElementTexte =>
-  typeof item === "object" &&
-  item !== null &&
-  "str" in item &&
-  "transform" in item &&
-  Array.isArray((item as ElementTexte).transform);
+/**
+ * pdf.js déclare `items` comme une union (texte | marqueur de structure) dont
+ * seule la première branche porte `str` et `transform`. Le typage fourni ne se
+ * laisse pas restreindre par un simple prédicat : on convertit donc une fois,
+ * explicitement, puis on écarte les éléments sans texte.
+ */
+const elementsTexte = (items: unknown[]): ElementTexte[] =>
+  (items as ElementTexte[]).filter(
+    (item) => typeof item?.str === "string" && Array.isArray(item.transform),
+  );
 
 /** Regroupe les fragments d'une page en lignes, par ordonnée. */
 const groupeEnLignes = (fragments: { x: number; y: number; xFin: number; texte: string }[]) => {
@@ -231,8 +235,7 @@ async function readPdf(file: File): Promise<RawLine[]> {
   for (let numero = 1; numero <= document.numPages; numero += 1) {
     const page = await document.getPage(numero);
     const contenu = await page.getTextContent();
-    const fragments = contenu.items
-      .filter(estElementTexte)
+    const fragments = elementsTexte(contenu.items)
       .filter((item) => item.str.trim())
       .map((item) => ({
         x: item.transform[4],
