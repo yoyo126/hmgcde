@@ -20,6 +20,7 @@ import {
   getImportHistory,
   getManualPriceHistory,
   priceKey,
+  saveCatalogProducts,
   saveTariffImport,
   type ImportHistoryItem,
   type ManualPriceChange,
@@ -28,7 +29,13 @@ import {
 import { useCatalogProducts } from "@/lib/use-catalog-products";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
 
-type RawLine = { name: string; reference: string; price: number };
+type RawLine = {
+  name: string;
+  reference: string;
+  price: number;
+  /** Unité de vente du fournisseur, ex. « 100 Mètr » — affichée pour contrôle. */
+  unit?: string;
+};
 type ReviewLine = RawLine & {
   id: string;
   product?: Product;
@@ -118,48 +125,157 @@ async function readExcel(file: File): Promise<RawLine[]> {
   });
 }
 
+/**
+ * Lecture d'un tarif ou d'un devis PDF.
+ *
+ * L'ancienne version cherchait « un prix en fin de ligne » : sur un devis
+ * fournisseur, la dernière colonne est le *montant* de la ligne, pas le prix
+ * unitaire, et le premier mot est la *quantité*, pas la référence. Résultat :
+ * des prix faux, des références absurdes, et zéro correspondance.
+ *
+ * On lit donc le tableau comme un tableau : on repère la ligne d'en-tête,
+ * on retient l'abscisse de chaque colonne, puis on range chaque fragment de
+ * texte dans la colonne dont il est le plus proche.
+ */
+
+type Fragment = { x: number; xFin: number; texte: string };
+
+/** Regroupe les fragments d'une page en lignes, par ordonnée. */
+const groupeEnLignes = (fragments: { x: number; y: number; xFin: number; texte: string }[]) => {
+  const lignes = new Map<number, Fragment[]>();
+  for (const f of fragments) {
+    // Tolérance de 2 points : sur ces devis, le « NET » d'une remise est
+    // parfois posé un point plus bas que le reste de sa ligne.
+    const cle = [...lignes.keys()].find((y) => Math.abs(y - f.y) <= 2);
+    const liste = cle === undefined ? [] : lignes.get(cle)!;
+    liste.push({ x: f.x, xFin: f.xFin, texte: f.texte });
+    lignes.set(cle === undefined ? f.y : cle, liste);
+  }
+  return [...lignes.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([, cellules]) => cellules.sort((a, b) => a.x - b.x));
+};
+
+const EN_TETES = {
+  quantite: ["qte", "qté", "quantite", "quantité"],
+  reference: ["article", "reference", "référence", "ref", "code"],
+  designation: ["designation", "désignation", "libelle", "libellé", "produit"],
+  prixNet: ["prix net", "prixnet", "net", "prix unitaire", "pu ht", "p.u."],
+  prixBrut: ["prix brut", "prixbrut", "brut", "tarif"],
+  unite: ["uvte", "u.vte", "unite", "unité", "cond", "conditionnement"],
+  montant: ["montant", "total"],
+};
+
+const estNombre = (texte: string) => /^-?\d{1,3}(?:[ .]\d{3})*(?:[.,]\d{1,4})?$/.test(texte.trim());
+
+/** Repère la ligne d'en-tête et l'abscisse de chaque colonne utile. */
+const trouveColonnes = (lignes: Fragment[][]) => {
+  for (let i = 0; i < lignes.length; i += 1) {
+    const cellules = lignes[i];
+    const colonnes: Record<string, number> = {};
+    for (const cellule of cellules) {
+      const texte = normalize(cellule.texte);
+      for (const [nom, motifs] of Object.entries(EN_TETES)) {
+        if (colonnes[nom] === undefined && motifs.some((motif) => texte === normalize(motif))) {
+          colonnes[nom] = cellule.x;
+        }
+      }
+    }
+    // Un en-tête crédible nomme au moins une désignation et un prix.
+    if (colonnes.designation !== undefined && (colonnes.prixNet !== undefined || colonnes.prixBrut !== undefined)) {
+      return { index: i, colonnes };
+    }
+  }
+  return null;
+};
+
+/** Range les cellules d'une ligne dans les colonnes repérées. */
+const rangeParColonne = (cellules: Fragment[], colonnes: Record<string, number>) => {
+  const resultat: Record<string, string[]> = {};
+  const noms = Object.keys(colonnes);
+  for (const cellule of cellules) {
+    let meilleur = noms[0];
+    let ecart = Infinity;
+    for (const nom of noms) {
+      const d = Math.abs(colonnes[nom] - cellule.x);
+      if (d < ecart) {
+        ecart = d;
+        meilleur = nom;
+      }
+    }
+    (resultat[meilleur] ||= []).push(cellule.texte);
+  }
+  return resultat;
+};
+
 async function readPdf(file: File): Promise<RawLine[]> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.js");
   pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
-  const document = await pdfjs.getDocument({ data: await readFileAsArrayBuffer(file) })
-    .promise;
-  const lines: string[] = [];
-  for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
-    const page = await document.getPage(pageNumber);
-    const content = await page.getTextContent();
-    const byLine: Record<string, { x: number; text: string }[]> = {};
-    for (let itemIndex = 0; itemIndex < content.items.length; itemIndex += 1) {
-      const item = content.items[itemIndex];
-      if (!("str" in item) || !item.str.trim()) continue;
-      const y = Math.round(item.transform[5] / 3) * 3;
-      const entries = byLine[String(y)] ?? [];
-      entries.push({ x: item.transform[4], text: item.str.trim() });
-      byLine[String(y)] = entries;
+  const document = await pdfjs.getDocument({ data: await readFileAsArrayBuffer(file) }).promise;
+
+  const resultats: RawLine[] = [];
+
+  for (let numero = 1; numero <= document.numPages; numero += 1) {
+    const page = await document.getPage(numero);
+    const contenu = await page.getTextContent();
+    const fragments = contenu.items
+      .filter((item): item is typeof item & { str: string } => "str" in item && Boolean(item.str.trim()))
+      .map((item) => ({
+        x: item.transform[4] as number,
+        y: item.transform[5] as number,
+        xFin: (item.transform[4] as number) + ((item.width as number) || 0),
+        texte: item.str.trim(),
+      }));
+
+    const lignes = groupeEnLignes(fragments);
+    const entete = trouveColonnes(lignes);
+
+    if (!entete) {
+      // En-tête non reconnu (autre fournisseur, autre mise en page) : plutôt
+      // que de ne rien remonter, on retient toute ligne comportant un libellé
+      // et au moins un prix. Mieux vaut une liste à vérifier qu'un écran vide.
+      for (const cellules of lignes) {
+        const textes = cellules.map((c) => c.texte);
+        const prixCandidats = textes.filter((t) => /\d[.,]\d{2}$/.test(t.trim()));
+        if (!prixCandidats.length) continue;
+        const libelle = textes
+          .filter((t) => !estNombre(t) && t.length > 3 && !/^\d/.test(t))
+          .join(" ")
+          .trim();
+        if (libelle.length < 4) continue;
+        const reference = textes.find((t) => /^[A-Z0-9][A-Z0-9./_-]{3,}$/i.test(t) && /[-.]/.test(t)) || "";
+        // Sans en-tête, le prix le plus bas est le plus souvent le prix
+        // unitaire, le plus haut le montant total.
+        const prix = Math.min(...prixCandidats.map((t) => parsePrice(t)).filter((n) => n > 0));
+        if (!(prix > 0)) continue;
+        resultats.push({ name: libelle, reference, price: prix });
+      }
+      continue;
     }
-    Object.entries(byLine)
-      .sort((a, b) => Number(b[0]) - Number(a[0]))
-      .forEach(([, entries]) =>
-        lines.push(
-          entries
-            .sort((a, b) => a.x - b.x)
-            .map((item) => item.text)
-            .join(" "),
-        ),
-      );
+
+    for (const cellules of lignes.slice(entete.index + 1)) {
+      const par = rangeParColonne(cellules, entete.colonnes);
+      const designation = (par.designation || []).join(" ").trim();
+      const reference = (par.reference || []).find((t) => !estNombre(t) || t.includes("-")) || "";
+      const nombreNet = (par.prixNet || []).find(estNombre);
+      const nombreBrut = (par.prixBrut || []).find(estNombre);
+      const prix = parsePrice(nombreNet ?? nombreBrut);
+      if (!designation || designation.length < 3 || !(prix > 0)) continue;
+
+      const unite = [...(par.quantite || []).filter(estNombre).slice(0, 1), ...(par.unite || [])]
+        .join(" ")
+        .trim();
+
+      resultats.push({
+        name: designation,
+        reference: reference.trim(),
+        price: prix,
+        ...(unite ? { unit: unite } : {}),
+      });
+    }
   }
-  return lines.flatMap((line) => {
-    const priceMatch = line.match(/(\d{1,5}(?:[\s.]\d{3})*[,.]\d{2})\s*€?\s*$/);
-    if (!priceMatch) return [];
-    const price = parsePrice(priceMatch[1]);
-    const beforePrice = line.slice(0, priceMatch.index).trim();
-    const referenceMatch = beforePrice.match(
-      /^([A-Z0-9][A-Z0-9./_-]{2,})\s+(.+)/i,
-    );
-    const name = (referenceMatch?.[2] || beforePrice).trim();
-    return name.length > 3 && price > 0
-      ? [{ name, reference: referenceMatch?.[1] || "", price }]
-      : [];
-  });
+
+  return resultats;
 }
 
 const similarity = (source: RawLine, product: Product) => {
@@ -180,11 +296,33 @@ const similarity = (source: RawLine, product: Product) => {
   return common / Math.max(sourceTokens.length, targetTokens.length, 1);
 };
 
-const findProduct = (line: RawLine, catalog: Product[]) => {
+/**
+ * Rapprochement d'une ligne de tarif avec le catalogue.
+ *
+ * La référence fournisseur d'abord : c'est la seule clé fiable. « BASIC
+ * diam,25 gris ATF » chez YESSS ne ressemblera jamais à « Gaine ICT diamètre
+ * 25 » chez nous, aucun réglage de similarité ne rattrapera cela. Le nom ne
+ * sert que de suggestion, quand aucune référence n'est encore connue.
+ */
+const findProduct = (line: RawLine, catalog: Product[], supplier: string) => {
+  const reference = normalize(line.reference);
+  if (reference) {
+    const parReference = catalog.find((product) =>
+      product.offers.some(
+        (offer) =>
+          offer.supplier === supplier &&
+          offer.reference &&
+          normalize(offer.reference) === reference,
+      ),
+    );
+    if (parReference) return { product: parReference, byReference: true };
+  }
   const candidates = catalog
     .map((product) => ({ product, score: similarity(line, product) }))
     .sort((a, b) => b.score - a.score);
-  return candidates[0]?.score >= 0.42 ? candidates[0].product : undefined;
+  return candidates[0]?.score >= 0.42
+    ? { product: candidates[0].product, byReference: false }
+    : { product: undefined, byReference: false };
 };
 
 const supplierFamily = (supplier: string): Product["family"] =>
@@ -258,7 +396,7 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
       );
       setLines(
         uniqueRows.map((line, index) => {
-          const product = findProduct(line, catalogProducts);
+          const { product } = findProduct(line, catalogProducts, supplier);
           const offer = product?.offers.find(
             (item) => item.supplier === supplier,
           );
@@ -321,9 +459,28 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
     const overrides: PriceOverride = {};
     const newProducts: Product[] = [];
     const priceChanges: ManualPriceChange[] = [];
+    // Produits dont il faut mémoriser la référence fournisseur : c'est ce qui
+    // rend les imports suivants automatiques. Sans cela, il faudrait refaire
+    // les mêmes associations à chaque tarif reçu.
+    const referencesApprises: Product[] = [];
+
     selected.forEach((line, index) => {
       if (line.product) {
         overrides[priceKey(line.product.id, supplier)] = line.price;
+        const offreConnue = line.product.offers.find((offer) => offer.supplier === supplier);
+        const referenceInconnue =
+          line.reference &&
+          normalize(offreConnue?.reference || "") !== normalize(line.reference);
+        if (referenceInconnue) {
+          referencesApprises.push({
+            ...line.product,
+            offers: line.product.offers.map((offer) =>
+              offer.supplier === supplier
+                ? { ...offer, reference: line.reference, supplierName: line.name }
+                : offer,
+            ),
+          });
+        }
         if (line.oldPrice !== line.price) {
           priceChanges.push({
             product: line.product.name,
@@ -375,6 +532,11 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
       ignored: lines.length - selected.length,
     };
     saveTariffImport({ overrides, newProducts, history: item, changes: priceChanges });
+    // Les références apprises rejoignent le catalogue : au prochain tarif de
+    // ce fournisseur, ces lignes seront reconnues toutes seules.
+    if (referencesApprises.length) {
+      saveCatalogProducts(referencesApprises);
+    }
     setHistory(getImportHistory());
     setPriceHistory(getManualPriceHistory());
     setSaved(true);
@@ -552,7 +714,12 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
                   />
                   <span data-label="Produit">
                     <strong>{line.name}</strong>
-                    <small>{line.reference || "Sans référence"}</small>
+                    <small>
+                      {line.reference || "Sans référence"}
+                      {/* Unité de vente du fournisseur : « 100 Mètr » signifie
+                          que le prix porte sur 100 mètres, pas sur un mètre. */}
+                      {line.unit ? ` · vendu par ${line.unit}` : ""}
+                    </small>
                   </span>
                   <span data-label="Concordance">
                     <i className={`match-status ${line.status}`}>
