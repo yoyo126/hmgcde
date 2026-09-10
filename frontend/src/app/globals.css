@@ -5693,3 +5693,55 @@ textarea:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Corrections d'après relecture à l'écran                             */
+/* ------------------------------------------------------------------ */
+
+/* 1. Double cadre sur la recherche : la boîte porte déjà une bordure,
+      le halo de sélection s'ajoutait au champ qu'elle contient. Le halo
+      passe donc sur la boîte, et le champ n'en porte plus. */
+.search-box input:focus-visible,
+.top-search input:focus-visible,
+.number-control-input:focus-visible {
+  border-color: transparent;
+  box-shadow: none;
+}
+.search-box:focus-within,
+.top-search:focus-within {
+  border-color: var(--brand-400);
+  box-shadow: var(--ring);
+}
+
+/* 2. « Un tableau dans une fenêtre » : la liste des produits était un
+      cadre arrondi posé dans le panneau blanc, lui-même posé dans la
+      page — trois cadres emboîtés. La liste devient une simple suite de
+      lignes, bord à bord dans le panneau, séparées par un filet. */
+.wizard-content .select-products {
+  border: 0;
+  border-radius: 0;
+  margin: 4px -28px 0;
+  border-top: 1px solid var(--line-soft);
+}
+.wizard-content .select-product {
+  padding-left: 28px;
+  padding-right: 28px;
+  border-bottom: 1px solid #f0f3f8;
+}
+.wizard-content .select-product:last-child {
+  border-bottom: 0;
+}
+.wizard-content .select-product.chosen {
+  box-shadow: inset 4px 0 0 var(--brand-500);
+}
+
+@media (max-width: 760px) {
+  .wizard-content .select-products {
+    margin-left: -12px;
+    margin-right: -12px;
+  }
+  .wizard-content .select-product {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
