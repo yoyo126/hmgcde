@@ -5679,3 +5679,17 @@ textarea:focus-visible {
   backdrop-filter: saturate(180%) blur(8px);
   border-bottom: 1px solid var(--line-soft);
 }
+
+/* La barre ne contient plus que le fournisseur et la recherche : cette
+   dernière prend toute la largeur restante, puisqu'elle est devenue l'outil
+   principal de l'écran. Une ancienne règle la comprimait à 220 px, héritage
+   du temps où la barre portait quatre menus. */
+.product-toolbar {
+  grid-template-columns: 240px minmax(0, 1fr);
+  align-items: end;
+}
+@media (max-width: 760px) {
+  .product-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
