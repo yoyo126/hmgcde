@@ -5,7 +5,6 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardPlus,
-  Minus,
   PackageOpen,
   Plus,
   Search,
