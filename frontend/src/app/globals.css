@@ -5745,3 +5745,23 @@ textarea:focus-visible {
     padding-right: 12px;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Principe : un cadre doit porter un sens                             */
+/*                                                                     */
+/* Le bloc « bon de commande » garde le sien : il représente le        */
+/* document que recevra le fournisseur. Mais le tableau posé dedans    */
+/* n'apportait qu'un troisième contour, et l'encadré des équipes un    */
+/* quatrième. Ils deviennent des zones, pas des boîtes.                */
+/* ------------------------------------------------------------------ */
+.supplier-document .doc-table,
+.panel .dispatch-table {
+  border: 0;
+  border-radius: 0;
+}
+.panel .default-team-summary {
+  border: 0;
+  box-shadow: none;
+  border-radius: 12px;
+  background: var(--brand-050);
+}
