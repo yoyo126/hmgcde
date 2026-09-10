@@ -4,9 +4,7 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
-  Minus,
   Package,
-  Plus,
   Search,
   Send,
   Users,
@@ -31,6 +29,7 @@ import {
 import type { ScreenId } from "./Sidebar";
 import { getPurchasingSettings } from "@/lib/settings-storage";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
+import { NumberControl } from "./NumberControl";
 type Teams = Record<CompanyKey, number>;
 type Selected = Record<number, number>;
 type Dispatches = Record<number, Record<CompanyKey, number>>;
@@ -314,8 +313,10 @@ export function NewOrder({
                   </div>
                   <NumberControl
                     value={teams[c.key]}
+                    label={`Équipes ${c.name}`}
                     onMinus={() => team(c.key, teams[c.key] - 1)}
                     onPlus={() => team(c.key, teams[c.key] + 1)}
+                    onSet={(valeur) => team(c.key, valeur)}
                   />
                 </div>
               ))}
@@ -443,8 +444,10 @@ export function NewOrder({
                     <NumberControl
                       compact
                       value={n}
+                      label={`Quantité ${p.name}`}
                       onMinus={() => qty(p.id, n - 1)}
                       onPlus={() => qty(p.id, n + 1)}
+                      onSet={(valeur) => qty(p.id, valeur)}
                     />
                   </div>
                 );
@@ -484,6 +487,7 @@ export function NewOrder({
                           value={n}
                           onMinus={() => qty(Number(id), n - 1)}
                           onPlus={() => qty(Number(id), n + 1)}
+                          onSet={(valeur) => qty(Number(id), valeur)}
                         />
                       </span>
                       {shares.map((v, i) => (
@@ -552,6 +556,8 @@ export function NewOrder({
                       </div>
                       <NumberControl
                         value={teams[company.key]}
+                        label={`Équipes ${company.name}`}
+                        onSet={(valeur) => team(company.key, valeur)}
                         onMinus={() =>
                           team(company.key, teams[company.key] - 1)
                         }
@@ -768,29 +774,6 @@ function Info({
         <strong>{title}</strong>
         <small>{text}</small>
       </span>
-    </div>
-  );
-}
-function NumberControl({
-  value,
-  onMinus,
-  onPlus,
-  compact,
-}: {
-  value: number;
-  onMinus: () => void;
-  onPlus: () => void;
-  compact?: boolean;
-}) {
-  return (
-    <div className={"number-control " + (compact ? "compact" : "")}>
-      <button onClick={onMinus}>
-        <Minus size={16} />
-      </button>
-      <strong>{value}</strong>
-      <button onClick={onPlus}>
-        <Plus size={16} />
-      </button>
     </div>
   );
 }

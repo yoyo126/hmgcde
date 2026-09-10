@@ -5384,3 +5384,40 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Quantité saisissable au clavier                                     */
+/* Régler 120 mètres de câble à coups de « + » n'a pas de sens : la    */
+/* valeur se tape autant qu'elle se règle.                             */
+/* ------------------------------------------------------------------ */
+.number-control-input {
+  width: 54px;
+  min-width: 0;
+  height: 33px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.number-control-input::-webkit-outer-spin-button,
+.number-control-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.number-control:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(50, 103, 227, 0.14);
+}
+@media (max-width: 760px) {
+  .number-control-input {
+    width: 62px;
+    height: 44px;
+    font-size: 16px; /* en dessous, iOS zoome à la saisie */
+  }
+}

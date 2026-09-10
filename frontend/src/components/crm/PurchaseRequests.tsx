@@ -14,6 +14,7 @@ import {
 import { money, productSection } from "@/lib/crm-data";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
+import { NumberControl } from "./NumberControl";
 import {
   createOrdersFromRequest,
   getStoredRequests,
@@ -393,21 +394,15 @@ export function PurchaseRequests({
                         {line.ordered ? (
                           <span>{line.quantity} {line.unit.toLowerCase()}</span>
                         ) : (
-                          <div className="number-control compact request-line-quantity">
-                            <button
-                              aria-label={`Retirer une unité de ${line.name}`}
-                              onClick={() => changeStoredQuantity(request.id, line.productId, line.quantity - 1)}
-                            >
-                              <Minus size={15} />
-                            </button>
-                            <strong>{line.quantity}</strong>
-                            <button
-                              aria-label={`Ajouter une unité de ${line.name}`}
-                              onClick={() => changeStoredQuantity(request.id, line.productId, line.quantity + 1)}
-                            >
-                              <Plus size={15} />
-                            </button>
-                          </div>
+                          <NumberControl
+                            compact
+                            className="request-line-quantity"
+                            label={`Quantité de ${line.name}`}
+                            value={line.quantity}
+                            onMinus={() => changeStoredQuantity(request.id, line.productId, line.quantity - 1)}
+                            onPlus={() => changeStoredQuantity(request.id, line.productId, line.quantity + 1)}
+                            onSet={(valeur) => changeStoredQuantity(request.id, line.productId, valeur)}
+                          />
                         )}
                         {line.ordered ? (
                           <b>{line.supplier}</b>
@@ -591,21 +586,14 @@ export function PurchaseRequests({
                       </div>
                     )}
                   </div>
-                  <div className="number-control compact">
-                    <button
-                      aria-label="Retirer"
-                      onClick={() => change(product.id, quantity - 1)}
-                    >
-                      <Minus size={15} />
-                    </button>
-                    <strong>{quantity}</strong>
-                    <button
-                      aria-label="Ajouter"
-                      onClick={() => change(product.id, quantity + 1)}
-                    >
-                      <Plus size={15} />
-                    </button>
-                  </div>
+                  <NumberControl
+                    compact
+                    label={`Quantité de ${product.name}`}
+                    value={quantity}
+                    onMinus={() => change(product.id, quantity - 1)}
+                    onPlus={() => change(product.id, quantity + 1)}
+                    onSet={(valeur) => change(product.id, valeur)}
+                  />
                 </article>
               );
             })}
