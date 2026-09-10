@@ -104,6 +104,20 @@ export function NewOrder({
         (p.code || "").toLowerCase().includes(recherche) ||
         p.offers.some((o) => (o.reference || "").toLowerCase().includes(recherche))),
   );
+  // Le catalogue est présenté par groupes plutôt qu'en une liste continue :
+  // 75 lignes d'affilée se lisent mal, surtout au doigt.
+  const sections = useMemo(() => {
+    const paquets = new Map<string, typeof filtered>();
+    for (const produit of filtered) {
+      const titre =
+        produit.family === "Électricité"
+          ? `Électricité · ${productSection(produit)}`
+          : produit.family;
+      paquets.set(titre, [...(paquets.get(titre) || []), produit]);
+    }
+    return [...paquets.entries()].map(([titre, produits]) => ({ titre, produits }));
+  }, [filtered]);
+
   const total = useMemo(
     () =>
       Object.entries(selected).reduce((sum, [id, qty]) => {
@@ -419,7 +433,13 @@ export function NewOrder({
               </div>
             )}
             <div className="select-products">
-              {filtered.map((p) => {
+              {sections.map(({ titre, produits }) => (
+                <div className="catalog-section" key={titre}>
+                  <div className="catalog-section-head">
+                    <span>{titre}</span>
+                    <b>{produits.length}</b>
+                  </div>
+                  {produits.map((p) => {
                 const o = p.offers.find((x) => x.supplier === supplier)!,
                   n = selected[p.id] || 0;
                 return (
@@ -471,6 +491,13 @@ export function NewOrder({
                   </div>
                 );
               })}
+                </div>
+              ))}
+              {!filtered.length && (
+                <p className="catalog-empty">
+                  Aucun produit ne correspond à cette recherche.
+                </p>
+              )}
             </div>
           </div>
         )}

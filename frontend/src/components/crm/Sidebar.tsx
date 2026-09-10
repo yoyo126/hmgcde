@@ -14,6 +14,7 @@ import type { SessionUser } from "@/lib/types";
 import { CRM_VERSION } from "@/lib/version";
 import { usePermissions } from "./permissions-context";
 import { HmLogo } from "./HmLogo";
+import { IS_DEMO } from "@/lib/demo-mode";
 
 /** Initiales du compte connecté. */
 const initials = (user: SessionUser) =>
@@ -110,7 +111,10 @@ export function Sidebar({
             <small>{ROLE_LABELS[user.role]}</small>
           </div>
           <span className="online-dot" />
-          <small className="crm-version">Version {CRM_VERSION}</small>
+          <small className="crm-version">
+            Version {CRM_VERSION}
+            {IS_DEMO && " · démonstration"}
+          </small>
         </div>
       </aside>
     </>

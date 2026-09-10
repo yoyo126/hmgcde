@@ -5765,3 +5765,88 @@ textarea:focus-visible {
   border-radius: 12px;
   background: var(--brand-050);
 }
+
+/* ------------------------------------------------------------------ */
+/* La validation reste sous les yeux                                   */
+/*                                                                     */
+/* Le pied du parcours se trouvait à la fin du panneau : avec 75       */
+/* produits, il fallait tout faire défiler pour atteindre « Continuer ».*/
+/* Il colle désormais au bas de l'écran, avec le décompte de ce qui a  */
+/* été choisi.                                                         */
+/* ------------------------------------------------------------------ */
+.wizard-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: saturate(180%) blur(8px);
+  border-top: 1px solid var(--line-soft);
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 -6px 18px rgba(20, 28, 46, 0.06);
+  padding: 13px 20px;
+  gap: 12px;
+}
+.footer-summary > span {
+  font-size: 13.5px;
+  color: var(--ink-500);
+}
+.footer-summary > span strong {
+  color: var(--ink-900);
+}
+
+@media (max-width: 760px) {
+  /* Au-dessus de la barre de navigation du téléphone, jamais dessous. */
+  .wizard-footer {
+    bottom: 72px;
+    border-radius: 0;
+    padding: 11px 14px;
+  }
+  .wizard-footer .primary-btn {
+    flex: 1;
+  }
+}
+
+/* Sections du catalogue : l'intitulé reste visible pendant le défilement,
+   de sorte qu'on sache toujours dans quelle famille on se trouve. */
+.catalog-section-head {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 28px;
+  background: #f4f7fc;
+  border-bottom: 1px solid var(--line-soft);
+  border-top: 1px solid var(--line-soft);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+}
+.catalog-section-head b {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--brand-600);
+  background: var(--brand-100);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.catalog-section:first-child .catalog-section-head {
+  border-top: 0;
+}
+.catalog-empty {
+  padding: 26px 28px;
+  color: var(--ink-400);
+  font-size: 14px;
+}
+@media (max-width: 760px) {
+  .catalog-section-head {
+    padding: 8px 14px;
+  }
+  .catalog-empty {
+    padding: 20px 14px;
+  }
+}

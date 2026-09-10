@@ -109,12 +109,6 @@ export function AppRoot() {
 
   return (
     <>
-      {IS_DEMO && (
-        <div className="app-demo-banner">
-          Aperçu de démonstration — les données restent dans ce navigateur et ne
-          sont partagées avec personne.
-        </div>
-      )}
       {notice && (
         <div className="app-notice" role="alert">
           <AlertTriangle size={17} />
