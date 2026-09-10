@@ -5523,3 +5523,159 @@ body {
     min-width: 0;
   }
 }
+
+/* ================================================================== */
+/*  Finition visuelle — couche commune à tous les écrans               */
+/*                                                                     */
+/*  Reprise des fondations plutôt que d'un écran en particulier :      */
+/*  couleurs, surfaces, boutons, champs et titres. Aucune structure    */
+/*  n'est déplacée, seule l'allure change — donc rien ne casse.        */
+/* ================================================================== */
+
+:root {
+  /* Bleu repris du logo HM Group, décliné pour l'interface. */
+  --brand-600: #2f5fd8;
+  --brand-500: #3267e3;
+  --brand-400: #5b87ec;
+  --brand-100: #e8effd;
+  --brand-050: #f3f7ff;
+
+  --ink-900: #141c2e;
+  --ink-700: #2c3852;
+  --ink-500: #5b6880;
+  --ink-400: #78859b;
+
+  --line-soft: #e6eaf2;
+  --surface: #ffffff;
+
+  /* Ombres en couches : plus douces qu'un trait de bordure marqué. */
+  --lift-1: 0 1px 2px rgba(20, 28, 46, 0.05), 0 1px 3px rgba(20, 28, 46, 0.04);
+  --lift-2: 0 2px 4px rgba(20, 28, 46, 0.05), 0 8px 20px rgba(20, 28, 46, 0.06);
+  --lift-3: 0 10px 34px rgba(20, 28, 46, 0.11);
+  --ring: 0 0 0 3px rgba(50, 103, 227, 0.16);
+}
+
+/* Un fond légèrement dégradé, moins plat que l'aplat gris d'origine. */
+body {
+  background: linear-gradient(180deg, #f7f9fd 0%, #f1f4fa 100%);
+  background-attachment: fixed;
+  color: var(--ink-700);
+}
+
+/* --- Surfaces ----------------------------------------------------- */
+.panel,
+.settings-form-card,
+.login-card,
+.success-card {
+  border-radius: 16px;
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--lift-2);
+  background: var(--surface);
+}
+
+/* --- Titres ------------------------------------------------------- */
+.page-title h1,
+.welcome-row h1 {
+  color: var(--ink-900);
+  letter-spacing: -0.025em;
+}
+.eyebrow {
+  color: var(--brand-600);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+}
+
+/* --- Boutons ------------------------------------------------------ */
+.primary-btn,
+.secondary-btn,
+.filter-btn {
+  height: 44px;
+  border-radius: 12px;
+  font-size: 14px;
+  transition: transform 0.12s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+.primary-btn {
+  background: linear-gradient(180deg, var(--brand-500) 0%, var(--brand-600) 100%);
+  box-shadow: 0 1px 2px rgba(20, 28, 46, 0.14), 0 6px 16px rgba(50, 103, 227, 0.26);
+}
+.primary-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(20, 28, 46, 0.16), 0 10px 22px rgba(50, 103, 227, 0.32);
+}
+.primary-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.secondary-btn,
+.filter-btn {
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  color: var(--ink-700);
+  box-shadow: var(--lift-1);
+}
+.secondary-btn:hover,
+.filter-btn:hover {
+  border-color: #ccd6e8;
+  background: #fbfcfe;
+}
+
+/* --- Champs de saisie --------------------------------------------- */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input:not([type]),
+select,
+textarea {
+  border-radius: 11px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: var(--brand-400);
+  box-shadow: var(--ring);
+}
+
+/* --- Barre latérale ----------------------------------------------- */
+.sidebar nav button {
+  border-radius: 11px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.sidebar nav button.active {
+  background: linear-gradient(180deg, var(--brand-500) 0%, var(--brand-600) 100%);
+  box-shadow: 0 6px 16px rgba(50, 103, 227, 0.3);
+}
+
+/* --- Pastilles d'état --------------------------------------------- */
+.status,
+.draft-tag,
+.match-status {
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* --- Listes et cartes cliquables ---------------------------------- */
+.select-product,
+.catalog-card,
+.request-product,
+.order-line-view {
+  transition: background 0.14s ease;
+}
+.select-product:hover,
+.catalog-card:hover {
+  background: var(--brand-050);
+}
+.select-product.chosen {
+  background: var(--brand-100);
+  box-shadow: inset 3px 0 0 var(--brand-500);
+}
+
+/* --- Barre du haut ------------------------------------------------ */
+.topbar {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(180%) blur(8px);
+  border-bottom: 1px solid var(--line-soft);
+}
