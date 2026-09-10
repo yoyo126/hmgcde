@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Package,
   Search,
+  X,
   Send,
   Users,
 } from "lucide-react";
@@ -86,16 +87,23 @@ export function NewOrder({
     1,
     Object.values(teams).reduce((a, b) => a + b, 0),
   );
-  const searching = Boolean(query.trim());
-  const catalogReady = searching || Boolean(family && group);
-  const filtered = catalogReady
-    ? products.filter(
-        (p) =>
-          p.offers.some((o) => o.supplier === supplier) &&
-          (searching || (p.family === family && productSection(p) === group)) &&
-          p.name.toLowerCase().includes(query.toLowerCase()),
-      )
-    : [];
+  // Le catalogue est visible dès l'ouverture : les filtres restreignent, ils
+  // ne conditionnent plus l'affichage.
+  const chezCeFournisseur = products.filter((p) =>
+    p.offers.some((o) => o.supplier === supplier),
+  );
+  const countFor = (nomFamille: string) =>
+    chezCeFournisseur.filter((p) => !nomFamille || p.family === nomFamille).length;
+  const recherche = query.trim().toLowerCase();
+  const filtered = chezCeFournisseur.filter(
+    (p) =>
+      (!family || p.family === family) &&
+      (!group || productSection(p) === group) &&
+      (!recherche ||
+        p.name.toLowerCase().includes(recherche) ||
+        (p.code || "").toLowerCase().includes(recherche) ||
+        p.offers.some((o) => (o.reference || "").toLowerCase().includes(recherche))),
+  );
   const total = useMemo(
     () =>
       Object.entries(selected).reduce((sum, [id, qty]) => {
@@ -335,8 +343,11 @@ export function NewOrder({
               title="Sélection des produits"
               text="Les quantités sont saisies en ensembles, cartons ou pièces."
             />
+            {/* Recherche d'abord, filtres ensuite. L'ancienne version
+                imposait de choisir une catégorie PUIS un groupe avant
+                d'afficher le moindre produit : trois clics pour commencer. */}
             <div className="product-toolbar">
-              <label>
+              <label className="toolbar-supplier">
                 FOURNISSEUR
                 <select
                   value={supplier}
@@ -347,54 +358,62 @@ export function NewOrder({
                   ))}
                 </select>
               </label>
-              <label>
-                CATÉGORIE
-                <select
-                  value={family}
-                  onChange={(event) => {
-                    setFamily(event.target.value);
-                    setGroup("");
-                  }}
-                >
-                  <option value="">Choisir une catégorie</option>
-                  {families.map((name) => <option key={name}>{name}</option>)}
-                </select>
-              </label>
-              <label>
-                GROUPE
-                <select value={group} onChange={(event) => setGroup(event.target.value)}>
-                  <option value="">Choisir un groupe</option>
-                  {groups.map((name) => <option key={name}>{name}</option>)}
-                </select>
-              </label>
               <div className="search-box">
                 <Search size={18} />
                 <input
-                  placeholder="Rechercher un produit…"
+                  autoFocus
+                  placeholder="Rechercher un produit, une référence…"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
+                {query && (
+                  <button
+                    className="search-clear"
+                    aria-label="Effacer la recherche"
+                    onClick={() => setQuery("")}
+                  >
+                    <X size={15} />
+                  </button>
+                )}
               </div>
             </div>
-            {!searching && !family && (
-              <div className="catalog-navigation-cards">
-                {families.map((name) => (
-                  <button key={name} onClick={() => setFamily(name)}>
-                    <strong>{name}</strong>
-                    <small>Afficher les groupes</small>
-                  </button>
-                ))}
-              </div>
-            )}
-            {!searching && family && !group && (
-              <div className="catalog-navigation-cards group-cards">
-                <button className="navigation-back-card" onClick={() => setFamily("")}>
-                  <strong>← Catégories</strong>
+            <div className="family-chips">
+              <button
+                className={family ? "" : "active"}
+                onClick={() => {
+                  setFamily("");
+                  setGroup("");
+                }}
+              >
+                Tous
+                <b>{countFor("")}</b>
+              </button>
+              {families.map((name) => (
+                <button
+                  key={name}
+                  className={family === name ? "active" : ""}
+                  onClick={() => {
+                    setFamily(family === name ? "" : name);
+                    setGroup("");
+                  }}
+                >
+                  {name}
+                  <b>{countFor(name)}</b>
+                </button>
+              ))}
+            </div>
+            {family && groups.length > 1 && (
+              <div className="family-chips group-chips">
+                <button className={group ? "" : "active"} onClick={() => setGroup("")}>
+                  Tout {family.toLowerCase()}
                 </button>
                 {groups.map((name) => (
-                  <button key={name} onClick={() => setGroup(name)}>
-                    <strong>{name}</strong>
-                    <small>Voir les produits</small>
+                  <button
+                    key={name}
+                    className={group === name ? "active" : ""}
+                    onClick={() => setGroup(group === name ? "" : name)}
+                  >
+                    {name}
                   </button>
                 ))}
               </div>

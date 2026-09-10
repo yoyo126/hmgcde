@@ -5421,3 +5421,105 @@ body {
     font-size: 16px; /* en dessous, iOS zoome à la saisie */
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Sélection des produits : chercher d'abord, filtrer ensuite          */
+/* ------------------------------------------------------------------ */
+.product-toolbar .toolbar-supplier {
+  min-width: 210px;
+}
+.product-toolbar .search-box {
+  position: relative;
+  flex: 1 1 260px;
+}
+.product-toolbar .search-box input {
+  width: 100%;
+  height: 46px;
+  padding-right: 38px;
+  font-size: 15px;
+}
+.search-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: #eef1f6;
+  color: #64748b;
+  cursor: pointer;
+}
+.search-clear:hover {
+  background: #e2e7ef;
+}
+
+/* Filtres par catégorie : visibles d'un coup d'œil, sans menu à dérouler. */
+.family-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.family-chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.family-chips button:hover {
+  border-color: #c3cddd;
+}
+.family-chips button.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.family-chips button b {
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #eef2fb;
+  color: #4a5c7a;
+}
+.family-chips button.active b {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+.family-chips.group-chips button {
+  min-height: 36px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .family-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -14px 12px;
+    padding: 0 14px 2px;
+  }
+  .family-chips::-webkit-scrollbar {
+    display: none;
+  }
+  .family-chips button {
+    flex: none;
+  }
+  .product-toolbar .toolbar-supplier {
+    min-width: 0;
+  }
+}
