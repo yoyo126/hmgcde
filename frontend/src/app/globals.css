@@ -5850,3 +5850,44 @@ textarea:focus-visible {
     padding: 20px 14px;
   }
 }
+
+/* Choix du fournisseur, à la validation de la commande. */
+.order-supplier-pick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: var(--brand-050);
+  border: 1px solid var(--brand-100);
+}
+.order-supplier-pick strong {
+  display: block;
+  font-size: 15px;
+  color: var(--ink-900);
+}
+.order-supplier-pick small {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--ink-500);
+}
+.order-supplier-pick select {
+  min-width: 240px;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 0 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 11px;
+  background: #fff;
+}
+@media (max-width: 760px) {
+  .order-supplier-pick select {
+    width: 100%;
+    min-width: 0;
+  }
+}

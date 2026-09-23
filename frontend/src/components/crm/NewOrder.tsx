@@ -90,11 +90,22 @@ export function NewOrder({
   );
   // Le catalogue est visible dès l'ouverture : les filtres restreignent, ils
   // ne conditionnent plus l'affichage.
-  const chezCeFournisseur = products.filter((p) =>
-    p.offers.some((o) => o.supplier === supplier),
-  );
+  // Le fournisseur se choisit à la validation : on compose d'abord sa
+  // commande, on désigne ensuite chez qui on la passe. Le catalogue entier
+  // est donc proposé, sans dépendre d'un fournisseur.
+  const chezCeFournisseur = products;
   const countFor = (nomFamille: string) =>
     chezCeFournisseur.filter((p) => !nomFamille || p.family === nomFamille).length;
+
+  /** Offre de référence : celle du fournisseur retenu, sinon la première. */
+  const offreDe = (produit: Product) =>
+    produit.offers.find((o) => o.supplier === supplier) || produit.offers[0];
+
+  /** Prix le plus bas connu, tous fournisseurs confondus. */
+  const meilleurPrix = (produit: Product) => {
+    const prix = produit.offers.map((o) => o.price).filter((v) => v > 0);
+    return prix.length ? Math.min(...prix) : 0;
+  };
   const recherche = query.trim().toLowerCase();
   const filtered = chezCeFournisseur.filter(
     (p) =>
@@ -358,17 +369,6 @@ export function NewOrder({
                 imposait de choisir une catégorie PUIS un groupe avant
                 d'afficher le moindre produit : trois clics pour commencer. */}
             <div className="product-toolbar">
-              <label className="toolbar-supplier">
-                FOURNISSEUR
-                <select
-                  value={supplier}
-                  onChange={(e) => setSupplier(e.target.value)}
-                >
-                  {settings.suppliers.map(({ name }) => (
-                    <option key={name}>{name}</option>
-                  ))}
-                </select>
-              </label>
               <div className="search-box">
                 <Search size={18} />
                 <input
@@ -437,7 +437,7 @@ export function NewOrder({
                     <b>{produits.length}</b>
                   </div>
                   {produits.map((p) => {
-                const o = p.offers.find((x) => x.supplier === supplier)!,
+                const o = offreDe(p),
                   n = selected[p.id] || 0;
                 return (
                   <div
@@ -474,7 +474,7 @@ export function NewOrder({
                       )}
                     </div>
                     <strong className="unit-price">
-                      {o.price ? money(o.price) : "Prix à saisir"}
+                      {meilleurPrix(p) ? money(meilleurPrix(p)) : "Prix à saisir"}
                       <small>/ {p.unit.toLowerCase()}</small>
                     </strong>
                     <NumberControl
@@ -565,6 +565,27 @@ export function NewOrder({
                 {editingRecap ? "Terminer les modifications" : "Modifier le récapitulatif"}
               </button>
             </div>
+            {/* C'est ici que la commande prend son fournisseur : les prix,
+                le document et l'e-mail en découlent. Pour commander les mêmes
+                produits ailleurs, on refait une commande avec un autre
+                fournisseur. */}
+            <div className="order-supplier-pick">
+              <div>
+                <strong>Fournisseur de cette commande</strong>
+                <small>
+                  Les prix, le bon de commande et l'e-mail seront les siens.
+                </small>
+              </div>
+              <select
+                aria-label="Fournisseur de la commande"
+                value={supplier}
+                onChange={(event) => setSupplier(event.target.value)}
+              >
+                {settings.suppliers.map(({ name }) => (
+                  <option key={name}>{name}</option>
+                ))}
+              </select>
+            </div>
             <div className="default-team-summary">
               <div>
                 <strong>Équipes appliquées automatiquement</strong>
@@ -646,7 +667,7 @@ export function NewOrder({
                   .filter(([, q]) => q > 0)
                   .map(([id, n]) => {
                     const p = products.find((x) => x.id === Number(id))!,
-                      o = p.offers.find((x) => x.supplier === supplier)!,
+                      o = offreDe(p),
                       dispatch = dispatchFor(Number(id), n),
                       dispatchTotal = Object.values(dispatch).reduce(
                         (sum, value) => sum + value,
