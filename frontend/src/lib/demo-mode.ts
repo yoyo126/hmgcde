@@ -24,6 +24,17 @@ export const IS_DEMO = import.meta.env.VITE_DEMO === "1";
 
 const DEMO_KEY = "hmgcde-demo-state";
 
+/**
+ * Version du catalogue de démonstration.
+ *
+ * L'aperçu mémorise ses données dans le navigateur. Sans ce repère, une
+ * correction du catalogue restait invisible pour qui avait déjà ouvert
+ * l'application : le navigateur resservait l'ancienne version. C'est ce qui
+ * faisait croire que certains fournisseurs ne proposaient rien hors de leur
+ * famille d'origine. À chaque changement de règle, on incrémente.
+ */
+const VERSION_CATALOGUE = "2026-09-23-tous-fournisseurs";
+
 export const DEMO_USER: SessionUser = {
   id: 0,
   email: "demo@hmgroup.fr",
@@ -104,6 +115,8 @@ const buildSettings = (): PurchasingSettings => ({
 });
 
 export type DemoState = {
+  /** Repère de fraîcheur du catalogue mémorisé dans le navigateur. */
+  version?: string;
   companies: Company[];
   settings: PurchasingSettings;
   products: Product[];
@@ -114,27 +127,47 @@ export type DemoState = {
 };
 
 /** État de départ, ou celui laissé par la visite précédente. */
+const etatNeuf = (): DemoState => ({
+  version: VERSION_CATALOGUE,
+  companies: COMPANIES,
+  settings: buildSettings(),
+  products: buildProducts(),
+  orders: [],
+  requests: [],
+  priceHistory: [],
+  importHistory: [],
+});
+
 export const loadDemoState = (): DemoState => {
   try {
     const saved = localStorage.getItem(DEMO_KEY);
-    if (saved) return JSON.parse(saved) as DemoState;
+    if (!saved) return etatNeuf();
+    const etat = JSON.parse(saved) as DemoState;
+    if (etat.version === VERSION_CATALOGUE) return etat;
+    // Catalogue périmé : on le reconstruit, mais on garde les commandes et
+    // les demandes déjà saisies — les perdre serait inutilement brutal.
+    return {
+      ...etat,
+      version: VERSION_CATALOGUE,
+      companies: COMPANIES,
+      settings: { ...buildSettings(), ...(etat.settings || {}) },
+      products: buildProducts(),
+    };
   } catch {
     /* données illisibles : on repart du catalogue de départ */
   }
-  return {
-    companies: COMPANIES,
-    settings: buildSettings(),
-    products: buildProducts(),
-    orders: [],
-    requests: [],
-    priceHistory: [],
-    importHistory: [],
-  };
+  return etatNeuf();
 };
 
 export const saveDemoState = (state: DemoState) => {
   try {
-    localStorage.setItem(DEMO_KEY, JSON.stringify(state));
+    // La version est apposée à l'écriture : si l'appelant l'omet, l'état ne
+    // doit pas passer pour périmé au prochain chargement — sinon le catalogue
+    // serait reconstruit à chaque visite, effaçant les prix saisis.
+    localStorage.setItem(
+      DEMO_KEY,
+      JSON.stringify({ ...state, version: VERSION_CATALOGUE }),
+    );
   } catch {
     /* quota dépassé : la démo continue, sans mémoriser */
   }
