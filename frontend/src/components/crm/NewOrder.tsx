@@ -29,6 +29,7 @@ import {
 } from "@/lib/order-storage";
 import type { ScreenId } from "./Sidebar";
 import { getPurchasingSettings } from "@/lib/settings-storage";
+import { repartir } from "@/lib/dispatch";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
 import { NumberControl } from "./NumberControl";
 type Teams = Record<CompanyKey, number>;
@@ -132,22 +133,18 @@ export function NewOrder({
       setTeams((t) => ({ ...t, [key]: Math.max(0, value) })),
     qty = (id: number, value: number) =>
       setSelected((s) => ({ ...s, [id]: Math.max(0, value) }));
-  const sharesFor = (n: number) => {
-    let used = 0;
-    return companies.map((c, i) => {
-      const value =
-        i === companies.length - 1
-          ? Math.max(0, n - used)
-          : Math.min(n - used, Math.round((n * teams[c.key]) / totalTeams));
-      used += value;
-      return value;
-    });
+  // Le calcul vit dans @/lib/dispatch et est vérifié automatiquement.
+  const sharesFor = (n: number) =>
+    repartir(n, companies.map((c) => teams[c.key] || 0));
+
+  const dispatchFor = (productId: number, quantity: number) => {
+    const existant = dispatchOverrides[productId];
+    if (existant) return existant;
+    const parts = sharesFor(quantity);
+    return Object.fromEntries(
+      companies.map((company, index) => [company.key, parts[index]]),
+    ) as Record<CompanyKey, number>;
   };
-  const dispatchFor = (productId: number, quantity: number) =>
-    dispatchOverrides[productId] ||
-    (Object.fromEntries(
-      companies.map((company, index) => [company.key, sharesFor(quantity)[index]]),
-    ) as Record<CompanyKey, number>);
   const updateDispatch = (
     productId: number,
     quantity: number,

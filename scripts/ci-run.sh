@@ -32,6 +32,11 @@ npm --prefix frontend install --no-audit --no-fund || fail "installation interfa
 step "Contrôle des types TypeScript"
 npm --prefix frontend run typecheck || fail "types TypeScript"
 
+step "Répartition entre les sociétés"
+# Ce calcul décide quelle filiale est servie, donc quelle filiale paie.
+node --experimental-strip-types --test frontend/tests/dispatch.test.ts \
+  || fail "répartition entre les sociétés"
+
 step "Compilation de l'interface"
 npm --prefix frontend run build || fail "compilation interface"
 
