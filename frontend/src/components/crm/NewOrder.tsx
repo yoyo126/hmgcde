@@ -16,6 +16,7 @@ import {
   type CompanyKey,
   money,
   productSection,
+  type Product,
 } from "@/lib/crm-data";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
 import {
