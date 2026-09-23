@@ -303,8 +303,12 @@ export function PurchaseRequests({
                 <div className="request-processing">
                   <div className="request-processing-head">
                     <div>
-                      <h3>Répartir les achats par fournisseur</h3>
-                      <p>Le choix se fait produit par produit.</p>
+                      <h3>Commander ces produits</h3>
+                      <p>
+                        Cochez les lignes, désignez leur fournisseur, créez la
+                        commande. Les lignes laissées de côté restent en
+                        attente : vous les commanderez ailleurs, plus tard.
+                      </p>
                     </div>
                     <i className="status sent">{request.status}</i>
                   </div>
@@ -326,7 +330,7 @@ export function PurchaseRequests({
                         ].map((name) => <option key={name}>{name}</option>)}
                       </select>
                       <button className="secondary-btn" onClick={() => selectAssignmentGroup(request)} disabled={!assignmentGroup}>
-                        Sélectionner le groupe
+                        Cocher ce groupe
                       </button>
                       <select
                         value={bulkSupplier}
@@ -342,17 +346,17 @@ export function PurchaseRequests({
                         onClick={() => applySupplierToSelection(request)}
                         disabled={!bulkSupplier || !selectedAssignmentProducts.length}
                       >
-                        Affecter la sélection
+                        Commander chez ce fournisseur
                       </button>
                       <button
                         className="secondary-btn"
                         onClick={() => applyBestPrices(request)}
                         disabled={!selectedAssignmentProducts.length}
                       >
-                        Meilleur prix pour la sélection
+                        Choisir le moins cher
                       </button>
                       <button className="text-btn" onClick={() => setSelectedAssignmentProducts([])}>
-                        Tout désélectionner
+                        Tout décocher
                       </button>
                     </div>
                   )}
@@ -441,16 +445,34 @@ export function PurchaseRequests({
                   })}
                   {request.status !== "Commandée" && (
                     <div className="request-processing-footer">
-                      <small>
-                        Vous pouvez commander seulement une partie maintenant
-                        et terminer plus tard.
-                      </small>
+                      {(() => {
+                        const aCommander = request.lines.filter(
+                          (line) => !line.ordered && assignments[line.productId],
+                        );
+                        const fournisseurs = [
+                          ...new Set(aCommander.map((line) => assignments[line.productId])),
+                        ];
+                        const enAttente = request.lines.filter(
+                          (line) => !line.ordered && !assignments[line.productId],
+                        ).length;
+                        return (
+                          <small>
+                            {aCommander.length
+                              ? `${aCommander.length} ligne(s) chez ${fournisseurs.join(", ")}`
+                              : "Aucune ligne prête : cochez des produits et désignez leur fournisseur."}
+                            {aCommander.length && enAttente
+                              ? ` · ${enAttente} ligne(s) resteront en attente`
+                              : ""}
+                          </small>
+                        );
+                      })()}
                       <button
                         className="primary-btn"
                         disabled={!Object.values(assignments).some(Boolean)}
                         onClick={() => placeAssignedOrders(request)}
                       >
-                        <ShoppingCart size={17} /> Valider et finaliser
+                        <ShoppingCart size={17} />
+                        Créer la commande
                       </button>
                     </div>
                   )}
