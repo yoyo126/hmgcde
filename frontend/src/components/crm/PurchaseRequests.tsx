@@ -248,14 +248,10 @@ export function PurchaseRequests({
                   setOpenRequest(
                     openRequest === request.id ? null : request.id,
                   );
-                  setAssignments(
-                    Object.fromEntries(
-                      request.lines
-                        .filter((line) => line.supplier && !line.ordered)
-                        .map((line) => [line.productId, line.supplier!]),
-                    ),
-                  );
+                  // À l'ouverture, rien n'est présélectionné : ni lignes,
+                  // ni fournisseur. Le choix doit rester un geste conscient.
                   setSelectedAssignmentProducts([]);
+                  setBulkSupplier("");
                   setAssignmentGroup("");
                 }}
               >
