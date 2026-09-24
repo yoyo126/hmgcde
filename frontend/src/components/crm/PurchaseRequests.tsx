@@ -43,7 +43,6 @@ export function PurchaseRequests({
     [quantities, setQuantities] = useState<Quantities>({}),
     [openProduct, setOpenProduct] = useState<number | null>(null),
     [openRequest, setOpenRequest] = useState<string | null>(null),
-    [assignments, setAssignments] = useState<Record<number, string>>({}),
     [requests, setRequests] = useState<StoredPurchaseRequest[]>(() =>
       getStoredRequests(),
     );
@@ -124,10 +123,28 @@ export function PurchaseRequests({
     setSentId(id);
   };
 
+  /**
+   * Crée la commande des lignes cochées chez le fournisseur désigné.
+   *
+   * Même geste que pour une commande directe : on compose, on désigne, on
+   * crée. Il n'y a plus d'étape « affecter » intermédiaire, ni de choix
+   * ligne par ligne : pour un autre fournisseur, on recommence — ce qui
+   * laisse la demande en « partiellement commandée » entre-temps.
+   */
   const placeAssignedOrders = (request: StoredPurchaseRequest) => {
-    const orders = createOrdersFromRequest(request, assignments);
+    if (!bulkSupplier || !selectedAssignmentProducts.length) return;
+    const affectation = Object.fromEntries(
+      request.lines
+        .filter(
+          (line) =>
+            !line.ordered && selectedAssignmentProducts.includes(line.productId),
+        )
+        .map((line) => [line.productId, bulkSupplier]),
+    );
+    const orders = createOrdersFromRequest(request, affectation);
     setRequests(getStoredRequests());
-    setAssignments({});
+    setSelectedAssignmentProducts([]);
+    setBulkSupplier("");
     if (orders.length) onFinalize(orders);
   };
 
@@ -140,42 +157,7 @@ export function PurchaseRequests({
     setRequests(getStoredRequests());
   };
 
-  const applySupplierToSelection = (request: StoredPurchaseRequest) => {
-    if (!bulkSupplier || !selectedAssignmentProducts.length) return;
-    setAssignments((current) => ({
-      ...current,
-      ...Object.fromEntries(
-        request.lines
-          .filter(
-            (line) =>
-              !line.ordered && selectedAssignmentProducts.includes(line.productId),
-          )
-          .map((line) => [line.productId, bulkSupplier]),
-      ),
-    }));
-  };
 
-  const applyBestPrices = (request: StoredPurchaseRequest) => {
-    setAssignments((current) => ({
-      ...current,
-      ...Object.fromEntries(
-        request.lines
-          .filter(
-            (line) =>
-              !line.ordered && selectedAssignmentProducts.includes(line.productId),
-          )
-          .map((line) => {
-            const product = products.find((item) => item.id === line.productId);
-            const pricedOffers = product?.offers.filter((offer) => offer.price > 0) || [];
-            const best = pricedOffers.sort((a, b) => a.price - b.price)[0];
-            return [
-              line.productId,
-              best?.supplier || settings.suppliers[0]?.name || "",
-            ];
-          }),
-      ),
-    }));
-  };
 
   const selectAssignmentGroup = (request: StoredPurchaseRequest) => {
     if (!assignmentGroup) return;
@@ -332,29 +314,6 @@ export function PurchaseRequests({
                       <button className="secondary-btn" onClick={() => selectAssignmentGroup(request)} disabled={!assignmentGroup}>
                         Cocher ce groupe
                       </button>
-                      <select
-                        value={bulkSupplier}
-                        onChange={(event) => setBulkSupplier(event.target.value)}
-                      >
-                        <option value="">Choisir un fournisseur</option>
-                        {settings.suppliers.map((supplier) => (
-                          <option key={supplier.name}>{supplier.name}</option>
-                        ))}
-                      </select>
-                      <button
-                        className="secondary-btn"
-                        onClick={() => applySupplierToSelection(request)}
-                        disabled={!bulkSupplier || !selectedAssignmentProducts.length}
-                      >
-                        Commander chez ce fournisseur
-                      </button>
-                      <button
-                        className="secondary-btn"
-                        onClick={() => applyBestPrices(request)}
-                        disabled={!selectedAssignmentProducts.length}
-                      >
-                        Choisir le moins cher
-                      </button>
                       <button className="text-btn" onClick={() => setSelectedAssignmentProducts([])}>
                         Tout décocher
                       </button>
@@ -410,28 +369,17 @@ export function PurchaseRequests({
                         {line.ordered ? (
                           <b>{line.supplier}</b>
                         ) : (
-                          <select
-                            aria-label={`Fournisseur pour ${line.name}`}
-                            value={assignments[line.productId] || ""}
-                            onChange={(event) =>
-                              setAssignments((current) => ({
-                                ...current,
-                                [line.productId]: event.target.value,
-                              }))
-                            }
-                          >
-                            <option value="">À choisir</option>
-                            {settings.suppliers.map(({ name }) => {
-                              const offer = product?.offers.find(
-                                (item) => item.supplier === name,
-                              );
-                              return (
-                              <option key={name} value={name}>
-                                {name}{offer?.price ? ` — ${money(offer.price)}` : " — prix à renseigner"}
-                              </option>
-                              );
-                            })}
-                          </select>
+                          <span className="line-supplier-hint">
+                            {/* Prix le plus bas connu, à titre indicatif : le
+                                fournisseur se désigne en bas, pour toute la
+                                commande. */}
+                            {(() => {
+                              const chiffrees = (product?.offers || []).filter((o) => o.price > 0);
+                              if (!chiffrees.length) return "Prix à renseigner";
+                              const meilleure = [...chiffrees].sort((a, b) => a.price - b.price)[0];
+                              return `dès ${money(meilleure.price)} · ${meilleure.supplier}`;
+                            })()}
+                          </span>
                         )}
                         <span
                           className={
@@ -445,35 +393,47 @@ export function PurchaseRequests({
                   })}
                   {request.status !== "Commandée" && (
                     <div className="request-processing-footer">
-                      {(() => {
-                        const aCommander = request.lines.filter(
-                          (line) => !line.ordered && assignments[line.productId],
-                        );
-                        const fournisseurs = [
-                          ...new Set(aCommander.map((line) => assignments[line.productId])),
-                        ];
-                        const enAttente = request.lines.filter(
-                          (line) => !line.ordered && !assignments[line.productId],
-                        ).length;
-                        return (
+                      {/* Même encadré que la validation d'une commande
+                          directe : on compose, on désigne, on crée. */}
+                      <div className="order-supplier-pick">
+                        <div>
+                          <strong>Fournisseur de cette commande</strong>
                           <small>
-                            {aCommander.length
-                              ? `${aCommander.length} ligne(s) chez ${fournisseurs.join(", ")}`
-                              : "Aucune ligne prête : cochez des produits et désignez leur fournisseur."}
-                            {aCommander.length && enAttente
-                              ? ` · ${enAttente} ligne(s) resteront en attente`
-                              : ""}
+                            {selectedAssignmentProducts.length
+                              ? `${selectedAssignmentProducts.length} ligne(s) cochée(s)` +
+                                (request.lines.filter(
+                                  (line) =>
+                                    !line.ordered &&
+                                    !selectedAssignmentProducts.includes(line.productId),
+                                ).length
+                                  ? ` · ${request.lines.filter(
+                                      (line) =>
+                                        !line.ordered &&
+                                        !selectedAssignmentProducts.includes(line.productId),
+                                    ).length} resteront en attente`
+                                  : "")
+                              : "Cochez d'abord les lignes à commander."}
                           </small>
-                        );
-                      })()}
-                      <button
-                        className="primary-btn"
-                        disabled={!Object.values(assignments).some(Boolean)}
-                        onClick={() => placeAssignedOrders(request)}
-                      >
-                        <ShoppingCart size={17} />
-                        Créer la commande
-                      </button>
+                        </div>
+                        <select
+                          aria-label="Fournisseur de la commande"
+                          value={bulkSupplier}
+                          onChange={(event) => setBulkSupplier(event.target.value)}
+                        >
+                          <option value="">Choisir un fournisseur…</option>
+                          {settings.suppliers.map(({ name }) => (
+                            <option key={name}>{name}</option>
+                          ))}
+                        </select>
+                        <button
+                          className="primary-btn"
+                          disabled={!bulkSupplier || !selectedAssignmentProducts.length}
+                          onClick={() => placeAssignedOrders(request)}
+                        >
+                          <ShoppingCart size={17} />
+                          Créer la commande
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

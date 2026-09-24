@@ -52,9 +52,9 @@ export function NewOrder({
     [teams, setTeams] = useState<Teams>(
       () => getPurchasingSettings().defaultTeams,
     ),
-    [supplier, setSupplier] = useState(
-      initialOrder?.supplier || settings.suppliers[0]?.name || "",
-    ),
+    // Volontairement vide : présélectionner un fournisseur, c'est risquer
+    // d'envoyer la commande au mauvais sans s'en apercevoir.
+    [supplier, setSupplier] = useState(initialOrder?.supplier || ""),
     [selected, setSelected] = useState<Selected>(() =>
       Object.fromEntries(
         initialOrder?.lines.map((line) => [line.productId, line.quantity]) || [],
@@ -582,6 +582,7 @@ export function NewOrder({
                 value={supplier}
                 onChange={(event) => setSupplier(event.target.value)}
               >
+                <option value="">Choisir un fournisseur…</option>
                 {settings.suppliers.map(({ name }) => (
                   <option key={name}>{name}</option>
                 ))}
@@ -793,9 +794,17 @@ export function NewOrder({
                 Continuer <ArrowRight size={17} />
               </button>
             ) : (
-              <button className="primary-btn" onClick={createOrder} disabled={!dispatchValid}>
+              <button
+                className="primary-btn"
+                onClick={createOrder}
+                disabled={!dispatchValid || !supplier}
+              >
                 <Check size={17} />
-                {dispatchValid ? "Créer la commande" : "Corriger la répartition"}
+                {!supplier
+                  ? "Choisir un fournisseur"
+                  : dispatchValid
+                    ? "Créer la commande"
+                    : "Corriger la répartition"}
               </button>
             )}
           </div>
