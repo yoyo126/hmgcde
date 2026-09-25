@@ -6029,6 +6029,9 @@ textarea:focus-visible {
 @media (min-width: 761px) {
   .prices-closed .product-list-name {
     display: flex;
+    /* Sans cette direction, la règle de base garde l'empilement vertical :
+       le nom et l'unité restaient sur deux lignes malgré le reste. */
+    flex-direction: row;
     align-items: baseline;
     gap: 8px;
     min-width: 0;
