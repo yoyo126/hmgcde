@@ -9,6 +9,7 @@ import {
   Plus,
   Search,
   ShoppingCart,
+  X,
 } from "lucide-react";
 import { money, productSection } from "@/lib/crm-data";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
@@ -75,25 +76,47 @@ export function PurchaseRequests({
     [family, products],
   );
 
-  const filtered = useMemo(() => {
-    const searching = Boolean(query.trim());
-    if (!searching && (!family || !group)) return [];
-    return products
+  // Même logique que la nouvelle commande : le catalogue s'affiche dès
+  // l'ouverture, les filtres ne font que restreindre.
+  const recherche = query.trim().toLowerCase();
+  const filtered = useMemo(
+    () =>
+      products
         .filter(
           (product) =>
-            (searching ||
-              (product.family === family && productSection(product) === group)) &&
-            `${product.name} ${product.offers[0].reference}`
-              .toLowerCase()
-              .includes(query.toLowerCase()),
+            (!family || product.family === family) &&
+            (!group || productSection(product) === group) &&
+            (!recherche ||
+              product.name.toLowerCase().includes(recherche) ||
+              (product.code || "").toLowerCase().includes(recherche) ||
+              product.offers.some((offer) =>
+                (offer.reference || "").toLowerCase().includes(recherche),
+              )),
         )
         .sort((a, b) =>
           `${a.family} ${productSection(a)} ${a.name}`.localeCompare(
             `${b.family} ${productSection(b)} ${b.name}`,
             "fr",
           ),
-        );
-  }, [family, group, products, query]);
+        ),
+    [products, family, group, recherche],
+  );
+
+  const countFor = (nomFamille: string) =>
+    products.filter((p) => !nomFamille || p.family === nomFamille).length;
+
+  // Présentation par sections, comme pour une commande.
+  const sections = useMemo(() => {
+    const paquets = new Map<string, typeof filtered>();
+    for (const produit of filtered) {
+      const titre =
+        produit.family === "Électricité"
+          ? `Électricité · ${productSection(produit)}`
+          : produit.family;
+      paquets.set(titre, [...(paquets.get(titre) || []), produit]);
+    }
+    return [...paquets.entries()].map(([titre, produits]) => ({ titre, produits }));
+  }, [filtered]);
   const selected = products.filter(
     (product) => (quantities[product.id] || 0) > 0,
   );
@@ -461,55 +484,71 @@ export function PurchaseRequests({
             <div className="search-box">
               <Search size={18} />
               <input
+                autoFocus
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Produit ou référence…"
+                placeholder="Rechercher un produit, une référence…"
               />
+              {query && (
+                <button
+                  className="search-clear"
+                  aria-label="Effacer la recherche"
+                  onClick={() => setQuery("")}
+                >
+                  <X size={15} />
+                </button>
+              )}
             </div>
-            <select
-              value={family}
-              onChange={(event) => {
-                setFamily(event.target.value);
+          </div>
+          <div className="family-chips">
+            <button
+              className={family ? "" : "active"}
+              onClick={() => {
+                setFamily("");
                 setGroup("");
               }}
             >
-              <option value="">Choisir une catégorie</option>
-              {families.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-            <select value={group} onChange={(event) => setGroup(event.target.value)}>
-              <option value="">Choisir un groupe</option>
-              {groups.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+              Tous
+              <b>{countFor("")}</b>
+            </button>
+            {families.map((name) => (
+              <button
+                key={name}
+                className={family === name ? "active" : ""}
+                onClick={() => {
+                  setFamily(family === name ? "" : name);
+                  setGroup("");
+                }}
+              >
+                {name}
+                <b>{countFor(name)}</b>
+              </button>
+            ))}
           </div>
-          {!query.trim() && !family && (
-            <div className="catalog-navigation-cards request-navigation-cards">
-              {families.map((name) => (
-                <button key={name} onClick={() => setFamily(name)}>
-                  <strong>{name}</strong>
-                  <small>Afficher les groupes</small>
-                </button>
-              ))}
-            </div>
-          )}
-          {!query.trim() && family && !group && (
-            <div className="catalog-navigation-cards request-navigation-cards group-cards">
-              <button className="navigation-back-card" onClick={() => setFamily("")}>
-                <strong>← Catégories</strong>
+          {family && groups.length > 1 && (
+            <div className="family-chips group-chips">
+              <button className={group ? "" : "active"} onClick={() => setGroup("")}>
+                Tout {family.toLowerCase()}
               </button>
               {groups.map((name) => (
-                <button key={name} onClick={() => setGroup(name)}>
-                  <strong>{name}</strong>
-                  <small>Voir les produits</small>
+                <button
+                  key={name}
+                  className={group === name ? "active" : ""}
+                  onClick={() => setGroup(group === name ? "" : name)}
+                >
+                  {name}
                 </button>
               ))}
             </div>
           )}
           <div className="request-products">
-            {filtered.map((product) => {
+            {sections.map(({ titre, produits }) => (
+              <div className="catalog-section" key={titre}>
+                <div className="catalog-section-head">
+                  <span>{titre}</span>
+                  <b>{produits.length}</b>
+                </div>
+                {produits.map((product) => {
               const quantity = quantities[product.id] || 0;
               return (
                 <article
@@ -573,7 +612,14 @@ export function PurchaseRequests({
                   />
                 </article>
               );
-            })}
+                })}
+              </div>
+            ))}
+            {!filtered.length && (
+              <p className="catalog-empty">
+                Aucun produit ne correspond à cette recherche.
+              </p>
+            )}
           </div>
         </section>
         <aside className="panel request-summary">
