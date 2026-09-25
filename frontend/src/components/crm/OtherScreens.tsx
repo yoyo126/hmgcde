@@ -1092,7 +1092,10 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                   )}
                                 </>
                               ) : (
-                                <strong>{p.name}</strong>
+                                // Le nom peut être tronqué en vue compacte :
+                                // l'infobulle en donne toujours la version
+                                // complète.
+                                <strong title={p.name}>{p.name}</strong>
                               )}
                               <small>
                                 {p.kind === "ensemble"

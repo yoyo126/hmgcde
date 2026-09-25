@@ -6017,3 +6017,44 @@ textarea:focus-visible {
     font-size: 14px;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Densité maximale en consultation                                    */
+/*                                                                     */
+/* La hauteur n'était plus dictée par les prix mais par le bloc de     */
+/* gauche : nom sur une ligne, unité sur la suivante. Les deux se      */
+/* rejoignent, et un nom trop long est tronqué — son intitulé complet  */
+/* reste disponible en infobulle.                                      */
+/* ------------------------------------------------------------------ */
+@media (min-width: 761px) {
+  .prices-closed .product-list-name {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+  .prices-closed .product-list-name strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .prices-closed .product-list-name small {
+    flex: none;
+    color: var(--ink-400);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .prices-closed .product-list-row > span {
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+  .prices-closed .packaging-cell,
+  .prices-closed .price-cell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
