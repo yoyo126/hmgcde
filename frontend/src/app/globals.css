@@ -2780,7 +2780,11 @@ main {
   border-radius: 10px;
 }
 .product-list {
-  min-width: 1320px;
+  /* 1 320 px imposés alors que le conteneur n'en offre que 1 088 : les sept
+     fournisseurs ne tenaient jamais à l'écran, il fallait défiler sur le
+     côté pour atteindre le dernier. Le plancher correspond maintenant à la
+     somme réelle des colonnes : 310 + 108 + 7 × 80 + 76 = 1 054. */
+  min-width: 1054px;
 }
 .product-list-head,
 .product-list-row {
@@ -3035,7 +3039,7 @@ main {
     padding: 10px;
   }
   .product-list {
-    min-width: 1260px;
+    min-width: 1026px;
   }
   .product-list-head,
   .product-list-row {
