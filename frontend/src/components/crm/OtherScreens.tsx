@@ -7,7 +7,6 @@ import {
   FileUp,
   History,
   Mail,
-  MoreHorizontal,
   Pencil,
   Plus,
   Printer,
@@ -1274,9 +1273,6 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                   {open === p.id ? "Fermer" : editingCatalog ? "Modifier" : "Détail"}
                                 </button>
                               )}
-                              <button className="more-btn" aria-label="Options">
-                                <MoreHorizontal size={20} />
-                              </button>
                             </span>
                           </div>
                           {open === p.id && (

@@ -5989,3 +5989,31 @@ textarea:focus-visible {
     flex-basis: 100%;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Écran Produits compacté                                             */
+/*                                                                     */
+/* Mesuré sur 1440 px : 88 px par produit, 8 276 px de page, parce que */
+/* chaque cellule empilait le prix, la référence et la marque — cette  */
+/* dernière affichant presque toujours « À renseigner ».               */
+/*                                                                     */
+/* En consultation, seule la valeur qui sert à comparer reste : le     */
+/* prix. Le détail revient en modification, où l'on en a besoin.       */
+/* ------------------------------------------------------------------ */
+@media (min-width: 761px) {
+  .prices-closed .price-cell small,
+  .prices-closed .packaging-cell small {
+    display: none;
+  }
+  .prices-closed .product-list-row > span {
+    min-height: 0;
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+  .prices-closed .product-list-name small {
+    font-size: 12.5px;
+  }
+  .prices-closed .price-cell b {
+    font-size: 14px;
+  }
+}
