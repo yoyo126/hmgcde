@@ -1,17 +1,17 @@
 /**
- * Logo HM Group.
+ * Logo HM Group Achat Filiale.
  *
- * Le fichier fourni était un JPEG sur fond noir : il a été détouré en PNG
- * transparent (`frontend/public/logo-hm-group.png`) pour se poser aussi bien
- * sur la barre latérale sombre que sur l'écran de connexion clair. Le
- * dégradé bleu d'origine est conservé tel quel.
+ * Logo propre à cette application, fourni détouré : il se pose aussi bien
+ * sur la barre latérale sombre que sur l'écran de connexion clair. Comme il
+ * porte déjà la mention « ACHAT FILIALE », le sous-titre qui l'accompagnait
+ * a été retiré.
  *
- * Pour remplacer le logo un jour, il suffit de déposer un nouveau fichier
- * sous ce nom dans `frontend/public/`.
+ * Pour le remplacer un jour, il suffit de déposer un nouveau fichier sous ce
+ * nom dans `frontend/public/`.
  */
 export function HmLogo({ className = "" }: { className?: string }) {
   // `import.meta.env.BASE_URL` : le site est publié sous /hmgcde/ sur
   // l'aperçu GitHub Pages, et à la racine sur le serveur.
-  const src = `${import.meta.env.BASE_URL}logo-hm-group.png`;
-  return <img src={src} alt="HM Group" className={`hm-logo ${className}`} />;
+  const src = `${import.meta.env.BASE_URL}logo-achat-filiale.png`;
+  return <img src={src} alt="HM Group Achat Filiale" className={`hm-logo ${className}`} />;
 }

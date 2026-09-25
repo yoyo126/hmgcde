@@ -2785,9 +2785,13 @@ main {
 .product-list-head,
 .product-list-row {
   display: grid;
+  /* Le nom passe de 230 à 340 px : quatorze produits étaient tronqués,
+     « Attache tube Diam32 embase + collier » en tête. La place est prise
+     sur le conditionnement et sur les colonnes de prix, qui n'affichent
+     plus qu'une valeur courte en consultation. */
   grid-template-columns:
-    minmax(230px, 1.8fr) 135px repeat(7, minmax(105px, 1fr))
-    90px;
+    minmax(340px, 2.4fr) 120px repeat(7, minmax(92px, 1fr))
+    80px;
   align-items: stretch;
 }
 .product-list-head {
@@ -3032,7 +3036,7 @@ main {
   }
   .product-list-head,
   .product-list-row {
-    grid-template-columns: 220px 125px repeat(7, 105px) 80px;
+    grid-template-columns: 300px 115px repeat(7, 100px) 70px;
   }
   .product-list-head > span {
     font-size: 13.5px;
@@ -4967,13 +4971,14 @@ body {
    sur le fond marine de la barre latérale. */
 .brand-plate {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 11px 16px;
+  border-radius: 14px;
+  padding: 12px 14px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
 }
+/* Logo presque carré (1414 × 1112) : on le cadre sur la largeur. */
 .brand-logo {
   width: 100%;
-  max-width: 156px;
+  max-width: 132px;
   height: auto;
   margin: 0 auto;
 }
@@ -4987,9 +4992,9 @@ body {
 }
 .login-logo {
   width: 100%;
-  max-width: 186px;
+  max-width: 158px;
   height: auto;
-  margin: 0 auto 12px;
+  margin: 0 auto 10px;
 }
 .login-company {
   margin: -4px 0 14px;

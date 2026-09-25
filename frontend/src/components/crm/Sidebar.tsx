@@ -74,7 +74,8 @@ export function Sidebar({
           <div className="brand-plate">
             <HmLogo className="brand-logo" />
           </div>
-          <small className="brand-caption">Achats filiales</small>
+          {/* Le logo porte déjà « ACHAT FILIALE » : le répéter en dessous
+              n'apportait rien. */}
           <button className="close-sidebar" onClick={onClose}>
             <X size={20} />
           </button>
