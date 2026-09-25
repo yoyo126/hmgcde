@@ -359,6 +359,16 @@ const bundlePriceFor = (
 const isComputedBundle = (product: Product) =>
   Boolean(product.contents?.length);
 
+/** Champs demandés à la création d'un produit. */
+const BROUILLON_VIDE = {
+  nom: "",
+  famille: "",
+  groupe: "Consommables",
+  type: "simple" as "simple" | "ensemble",
+  unite: "",
+  conditionnement: "",
+};
+
 export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
   const [query, setQuery] = useState(""),
     [family, setFamily] = useState("Tous"),
@@ -384,6 +394,8 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
   // mètre de haut : les prix sont repliés, et se déplient d'une frappe.
   const [openedPrices, setOpenedPrices] = useState<number[]>([]);
   const [nouveauProduit, setNouveauProduit] = useState<number | null>(null);
+  const [formulaireOuvert, setFormulaireOuvert] = useState(false);
+  const [brouillonProduit, setBrouillonProduit] = useState(BROUILLON_VIDE);
 
   // Amène le produit créé sous les yeux et place le curseur dans son nom :
   // on enchaîne directement sur la saisie.
@@ -419,36 +431,49 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
       current.map((product) => (product.id === productId ? update(product) : product)),
     );
 
-  const addProduct = (kind: Product["kind"]) => {
+  /**
+   * Création d'un produit.
+   *
+   * Auparavant, le clic créait une fiche « Nouveau produit » rangée d'office
+   * en Électricité et perdue dans la liste. On demande maintenant l'essentiel
+   * — nom, catégorie, groupe, type — pour que la fiche naisse à sa place.
+   */
+  const creerProduit = () => {
+    const nom = brouillonProduit.nom.trim();
+    if (!nom || !brouillonProduit.famille) return;
     const id = Date.now();
-    // Une recherche en cours masquerait le nouveau produit : on l'efface.
-    setQuery("");
-    const productFamily = family === "Tous" ? "Électricité" : family;
-    const product: Product = {
+    const estEnsemble = brouillonProduit.type === "ensemble";
+    const famille = brouillonProduit.famille;
+    const produit: Product = {
       id,
-      name: kind === "ensemble" ? "Nouvel ensemble" : "Nouveau produit",
-      family: productFamily,
+      name: nom,
+      family: famille,
       subfamily:
-        productFamily === "Électricité" ? "Consommables" : productFamily,
-      unit: kind === "ensemble" ? "Ensemble" : "Pièce",
-      kind,
-      bundleLabel: kind === "ensemble" ? "Ensemble" : undefined,
-      contents: kind === "ensemble" ? [] : undefined,
+        famille === "Électricité" ? brouillonProduit.groupe || "Consommables" : famille,
+      unit: brouillonProduit.unite.trim() || (estEnsemble ? "Ensemble" : "Pièce"),
+      kind: estEnsemble ? "ensemble" : "simple",
+      bundleLabel: estEnsemble ? brouillonProduit.unite.trim() || "Ensemble" : undefined,
+      contents: estEnsemble ? [] : undefined,
       offers: configuredSupplierNames.map((supplier) => ({
         supplier,
-        supplierName: kind === "ensemble" ? "Nouvel ensemble" : "Nouveau produit",
+        supplierName: nom,
         reference: "À renseigner",
         brand: "À renseigner",
         price: 0,
-        packaging: kind === "ensemble" ? "Ensemble complet" : "Pièce",
+        packaging: brouillonProduit.conditionnement.trim() || "À renseigner",
         packagingType: "fixed",
       })),
     };
-    setCatalog((current) => [product, ...current]);
-    setOpen(kind === "ensemble" ? id : null);
-    // Sans ce repère, le produit était rangé par ordre alphabétique au milieu
-    // d'une page de plus de cent mille pixels : on croyait le clic sans effet.
+    setCatalog((current) => [produit, ...current]);
+    // On se place dans la catégorie du produit créé, sinon un filtre actif
+    // le masquerait aussitôt.
+    setQuery("");
+    setFamily(famille);
+    setEditing(true);
+    setOpen(estEnsemble ? id : null);
     setNouveauProduit(id);
+    setFormulaireOuvert(false);
+    setBrouillonProduit(BROUILLON_VIDE);
   };
 
   const addComponent = (productId: number) =>
@@ -636,14 +661,18 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
           </p>
         </div>
         <div className="price-edit-actions">
+          {/* Toujours accessible : ajouter un produit ne devrait pas obliger
+              à passer d'abord en modification. */}
+          {can.canManagePurchasing && (
+            <button
+              className={formulaireOuvert ? "primary-btn" : "secondary-btn"}
+              onClick={() => setFormulaireOuvert((ouvert) => !ouvert)}
+            >
+              <Plus size={18} /> Ajouter un produit
+            </button>
+          )}
           {editing ? (
             <>
-              <button className="secondary-btn" onClick={() => addProduct("simple")}>
-                <Plus size={18} /> Produit
-              </button>
-              <button className="secondary-btn" onClick={() => addProduct("ensemble")}>
-                <Plus size={18} /> Ensemble
-              </button>
               <button className="secondary-btn" onClick={cancelEditing}>
                 <X size={18} /> Annuler
               </button>
@@ -789,6 +818,121 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
             </button>
           ))}
         </div>
+        {formulaireOuvert && (
+          <div className="nouveau-produit-form">
+            <div className="nouveau-produit-grille">
+              <label>
+                NOM DU PRODUIT
+                <input
+                  autoFocus
+                  className="catalog-text-input"
+                  placeholder="Ex. Gaine ICT diamètre 25"
+                  value={brouillonProduit.nom}
+                  onChange={(event) =>
+                    setBrouillonProduit((b) => ({ ...b, nom: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                CATÉGORIE
+                <select
+                  value={brouillonProduit.famille}
+                  onChange={(event) =>
+                    setBrouillonProduit((b) => ({ ...b, famille: event.target.value }))
+                  }
+                >
+                  <option value="">À choisir…</option>
+                  {productFamiliesFrom(catalog)
+                    .filter((item) => item !== "Tous")
+                    .map((item) => (
+                      <option key={item}>{item}</option>
+                    ))}
+                </select>
+              </label>
+              {brouillonProduit.famille === "Électricité" && (
+                <label>
+                  GROUPE
+                  <select
+                    value={brouillonProduit.groupe}
+                    onChange={(event) =>
+                      setBrouillonProduit((b) => ({ ...b, groupe: event.target.value }))
+                    }
+                  >
+                    <option value="Câbles">Câbles</option>
+                    <option value="Consommables">Consommables</option>
+                  </select>
+                </label>
+              )}
+              <label>
+                TYPE
+                <select
+                  value={brouillonProduit.type}
+                  onChange={(event) =>
+                    setBrouillonProduit((b) => ({
+                      ...b,
+                      type: event.target.value as "simple" | "ensemble",
+                    }))
+                  }
+                >
+                  <option value="simple">Produit simple</option>
+                  <option value="ensemble">Ensemble (coffret, carton, kit)</option>
+                </select>
+              </label>
+              <label>
+                UNITÉ
+                <input
+                  className="catalog-text-input"
+                  placeholder={brouillonProduit.type === "ensemble" ? "Coffret" : "Pièce"}
+                  value={brouillonProduit.unite}
+                  onChange={(event) =>
+                    setBrouillonProduit((b) => ({ ...b, unite: event.target.value }))
+                  }
+                />
+              </label>
+              <label>
+                CONDITIONNEMENT
+                <input
+                  className="catalog-text-input"
+                  placeholder="Ex. Couronne de 100 m"
+                  value={brouillonProduit.conditionnement}
+                  onChange={(event) =>
+                    setBrouillonProduit((b) => ({
+                      ...b,
+                      conditionnement: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+            </div>
+            <div className="nouveau-produit-actions">
+              <small>
+                Le produit sera créé chez les {configuredSupplierNames.length}{" "}
+                fournisseurs, prix à renseigner.
+              </small>
+              <button
+                className="secondary-btn"
+                onClick={() => {
+                  setFormulaireOuvert(false);
+                  setBrouillonProduit(BROUILLON_VIDE);
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                className="primary-btn"
+                disabled={!brouillonProduit.nom.trim() || !brouillonProduit.famille}
+                onClick={creerProduit}
+              >
+                <Plus size={17} />
+                {!brouillonProduit.nom.trim()
+                  ? "Indiquez un nom"
+                  : !brouillonProduit.famille
+                    ? "Choisissez une catégorie"
+                    : "Créer le produit"}
+              </button>
+            </div>
+          </div>
+        )}
         <div className="supplier-legend">
           <strong>Comparatif des prix HT</strong>
           <span>Le prix le plus bas sera automatiquement mis en évidence.</span>
