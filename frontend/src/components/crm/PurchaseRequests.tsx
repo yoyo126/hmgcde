@@ -92,13 +92,10 @@ export function PurchaseRequests({
               product.offers.some((offer) =>
                 (offer.reference || "").toLowerCase().includes(recherche),
               )),
-        )
-        .sort((a, b) =>
-          `${a.family} ${productSection(a)} ${a.name}`.localeCompare(
-            `${b.family} ${productSection(b)} ${b.name}`,
-            "fr",
-          ),
         ),
+    // Pas de tri alphabétique : on suit l'ordre du catalogue, comme la
+    // nouvelle commande, pour que les sections se présentent dans le même
+    // ordre que les pastilles sur les deux écrans.
     [products, family, group, recherche],
   );
 
