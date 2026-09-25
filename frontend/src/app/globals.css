@@ -5902,3 +5902,25 @@ textarea:focus-visible {
     padding: 0 14px 12px;
   }
 }
+
+/* Produit qui vient d'être créé : il se signale le temps qu'on le voie. */
+.product-list-item.produit-nouveau {
+  animation: produit-apparait 4s ease-out;
+}
+@keyframes produit-apparait {
+  0%,
+  60% {
+    background: #fff7e3;
+    box-shadow: inset 4px 0 0 #f0a92a;
+  }
+  100% {
+    background: transparent;
+    box-shadow: inset 4px 0 0 transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-list-item.produit-nouveau {
+    animation: none;
+    box-shadow: inset 4px 0 0 #f0a92a;
+  }
+}

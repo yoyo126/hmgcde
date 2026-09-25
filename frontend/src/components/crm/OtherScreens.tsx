@@ -383,6 +383,25 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
   // Sur téléphone, une fiche affichant les 7 fournisseurs mesure près d'un
   // mètre de haut : les prix sont repliés, et se déplient d'une frappe.
   const [openedPrices, setOpenedPrices] = useState<number[]>([]);
+  const [nouveauProduit, setNouveauProduit] = useState<number | null>(null);
+
+  // Amène le produit créé sous les yeux et place le curseur dans son nom :
+  // on enchaîne directement sur la saisie.
+  useEffect(() => {
+    if (!nouveauProduit) return;
+    const minuteur = setTimeout(() => {
+      const ligne = document.querySelector<HTMLElement>(
+        `[data-produit="${nouveauProduit}"]`,
+      );
+      ligne?.scrollIntoView({ block: "center", behavior: "smooth" });
+      ligne?.querySelector<HTMLInputElement>(".catalog-text-input")?.focus();
+    }, 60);
+    const effacement = setTimeout(() => setNouveauProduit(null), 4000);
+    return () => {
+      clearTimeout(minuteur);
+      clearTimeout(effacement);
+    };
+  }, [nouveauProduit]);
   const togglePrices = (productId: number) =>
     setOpenedPrices((current) =>
       current.includes(productId)
@@ -402,6 +421,8 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
 
   const addProduct = (kind: Product["kind"]) => {
     const id = Date.now();
+    // Une recherche en cours masquerait le nouveau produit : on l'efface.
+    setQuery("");
     const productFamily = family === "Tous" ? "Électricité" : family;
     const product: Product = {
       id,
@@ -425,6 +446,9 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
     };
     setCatalog((current) => [product, ...current]);
     setOpen(kind === "ensemble" ? id : null);
+    // Sans ce repère, le produit était rangé par ordre alphabétique au milieu
+    // d'une page de plus de cent mille pixels : on croyait le clic sans effet.
+    setNouveauProduit(id);
   };
 
   const addComponent = (productId: number) =>
@@ -827,11 +851,13 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                         : 0;
                       return (
                         <article
+                          data-produit={p.id}
                           className={
                             "product-list-item " +
                             (editingPrices || openedPrices.includes(p.id)
                               ? "prices-open"
-                              : "prices-closed")
+                              : "prices-closed") +
+                            (nouveauProduit === p.id ? " produit-nouveau" : "")
                           }
                           key={`${p.id}-${priceRevision}`}
                         >
