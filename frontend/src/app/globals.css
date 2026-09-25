@@ -6044,11 +6044,11 @@ textarea:focus-visible {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  /* « Commande par pièce » volait la place du nom, au point de tronquer
+     « Angle apparent 120 ». L'unité figure déjà dans la colonne
+     Conditionnement : le nom récupère toute la largeur. */
   .prices-closed .product-list-name small {
-    flex: none;
-    color: var(--ink-400);
-    font-size: 12px;
-    white-space: nowrap;
+    display: none;
   }
   .prices-closed .product-list-row > span {
     padding-top: 7px;
