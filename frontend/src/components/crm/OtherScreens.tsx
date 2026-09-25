@@ -14,7 +14,6 @@ import {
   Save,
   Search,
   ShieldCheck,
-  SlidersHorizontal,
   Trash2,
   Truck,
   Users,
@@ -71,13 +70,16 @@ export function OrdersScreen({
   initialOpenOrder?: string | null;
 }) {
   const [query, setQuery] = useState(""),
+    [statusFilter, setStatusFilter] = useState(""),
     [openOrder, setOpenOrder] = useState<string | null>(initialOpenOrder || null),
     [orders, setOrders] = useState<StoredOrder[]>(() => getStoredOrders());
   const orderCatalog = useCatalogProducts();
-  const filteredOrders = orders.filter((order) =>
-    `${order.id} ${order.supplier} ${order.status}`
-      .toLowerCase()
-      .includes(query.toLowerCase()),
+  const filteredOrders = orders.filter(
+    (order) =>
+      (!statusFilter || order.status === statusFilter) &&
+      `${order.id} ${order.reference} ${order.supplier} ${order.status}`
+        .toLowerCase()
+        .includes(query.toLowerCase()),
   );
   const openMail = async (order: StoredOrder) => {
     const email = createMailPreview(order);
@@ -118,15 +120,39 @@ export function OrdersScreen({
           <div className="search-box">
             <Search size={18} />
             <input
-              placeholder="Rechercher une commande…"
+              placeholder="Rechercher une commande, un fournisseur…"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
+            {query && (
+              <button
+                className="search-clear"
+                aria-label="Effacer la recherche"
+                onClick={() => setQuery("")}
+              >
+                <X size={15} />
+              </button>
+            )}
           </div>
-          <button className="filter-btn">
-            <SlidersHorizontal size={17} />
-            Filtres
-          </button>
+        </div>
+        {/* Mêmes pastilles que le catalogue. Elles remplacent un bouton
+            « Filtres » qui n'avait jamais eu d'action. */}
+        <div className="family-chips table-chips">
+          {[
+            { cle: "", libelle: "Toutes" },
+            { cle: "Brouillon", libelle: "Brouillons" },
+            { cle: "Envoyée", libelle: "Envoyées" },
+            { cle: "Reçue", libelle: "Reçues" },
+          ].map(({ cle, libelle }) => (
+            <button
+              key={libelle}
+              className={statusFilter === cle ? "active" : ""}
+              onClick={() => setStatusFilter(statusFilter === cle ? "" : cle)}
+            >
+              {libelle}
+              <b>{orders.filter((o) => !cle || o.status === cle).length}</b>
+            </button>
+          ))}
         </div>
         <div className="data-table">
           <div className="table-head">
@@ -713,16 +739,31 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Rechercher un produit, une référence…"
             />
+            {query && (
+              <button
+                className="search-clear"
+                aria-label="Effacer la recherche"
+                onClick={() => setQuery("")}
+              >
+                <X size={15} />
+              </button>
+            )}
           </div>
-          <select
-            className="family-select"
-            value={family}
-            onChange={(event) => setFamily(event.target.value)}
-          >
-            {productFamiliesFrom(catalog).map((item) => (
-              <option key={item}>{item}</option>
-            ))}
-          </select>
+        </div>
+        {/* Mêmes pastilles que les deux autres écrans, avec le décompte. */}
+        <div className="family-chips table-chips">
+          {productFamiliesFrom(catalog).map((item) => (
+            <button
+              key={item}
+              className={family === item ? "active" : ""}
+              onClick={() => setFamily(item)}
+            >
+              {item}
+              <b>
+                {catalog.filter((p) => item === "Tous" || p.family === item).length}
+              </b>
+            </button>
+          ))}
         </div>
         <div className="supplier-legend">
           <strong>Comparatif des prix HT</strong>

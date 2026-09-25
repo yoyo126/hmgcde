@@ -5891,3 +5891,14 @@ textarea:focus-visible {
     min-width: 0;
   }
 }
+
+/* Pastilles de filtre dans les écrans en tableau (Commandes, Produits). */
+.family-chips.table-chips {
+  padding: 0 18px 14px;
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .family-chips.table-chips {
+    padding: 0 14px 12px;
+  }
+}
