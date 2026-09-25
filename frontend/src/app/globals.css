@@ -2789,9 +2789,12 @@ main {
      « Attache tube Diam32 embase + collier » en tête. La place est prise
      sur le conditionnement et sur les colonnes de prix, qui n'affichent
      plus qu'une valeur courte en consultation. */
+  /* Largeur totale tenue sous les 1 088 px disponibles :
+     310 + 108 + 7 × 80 + 76 = 1 054. Élargir le nom à 340 faisait déborder
+     le tableau et rejetait DAST SOLUTION hors de l'écran. */
   grid-template-columns:
-    minmax(340px, 2.4fr) 120px repeat(7, minmax(92px, 1fr))
-    80px;
+    minmax(310px, 2.2fr) 108px repeat(7, minmax(80px, 1fr))
+    76px;
   align-items: stretch;
 }
 .product-list-head {
@@ -3036,7 +3039,7 @@ main {
   }
   .product-list-head,
   .product-list-row {
-    grid-template-columns: 300px 115px repeat(7, 100px) 70px;
+    grid-template-columns: 270px 104px repeat(7, 84px) 64px;
   }
   .product-list-head > span {
     font-size: 13.5px;
@@ -4972,13 +4975,13 @@ body {
 .brand-plate {
   background: #ffffff;
   border-radius: 14px;
-  padding: 12px 14px;
+  padding: 12px 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
 }
 /* Logo presque carré (1414 × 1112) : on le cadre sur la largeur. */
 .brand-logo {
   width: 100%;
-  max-width: 132px;
+  max-width: 164px;
   height: auto;
   margin: 0 auto;
 }
