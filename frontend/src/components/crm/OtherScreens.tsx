@@ -1987,6 +1987,7 @@ export function SettingsScreen({
       )}
       {(section === "suppliers" || section === "teams" || section === "order") && (
       <div className={`purchasing-settings-grid settings-view-${section}`}>
+        {section === "suppliers" && (
         <section className="panel settings-form-card supplier-settings-card">
           <div className="settings-form-head">
             <Truck size={21} />
@@ -2071,7 +2072,10 @@ export function SettingsScreen({
               </div>
             ))}
           </div>
-          <div className="default-teams-settings">
+        </section>
+        )}
+        {section === "teams" && (
+          <section className="panel settings-form-card default-teams-settings">
             <div className="settings-form-head">
               <ShieldCheck size={21} />
               <div>
@@ -2101,8 +2105,9 @@ export function SettingsScreen({
                 </label>
               ))}
             </div>
-          </div>
-        </section>
+          </section>
+        )}
+        {section === "order" && (
         <section className="panel settings-form-card mail-settings-card">
           <div className="settings-form-head">
             <Mail size={21} />
@@ -2163,6 +2168,7 @@ export function SettingsScreen({
             <pre>{`${draft.greeting}\n\n${draft.deliveryMessage}\n\nCommande S35 du 27/08/2026\n\n2 × Vis à bois 5 × 70 — Boîte de 200\nDispatch : CPTE Conseil 1 | HM Pose 1 | HM Instal 0 | HM PAC 0\n\n${draft.closing}`}</pre>
           </div>
         </section>
+        )}
       </div>
       )}
     </div>

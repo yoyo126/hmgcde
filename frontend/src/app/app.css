@@ -3687,3 +3687,71 @@ tr.ligne-depliee .order-detail-panel {
 .catalog-navigation-cards > button > small {
   font-size: 15px;
 }
+
+/* --- 26. Rubriques de réglages : occuper la largeur ------------------ */
+/* Les titres de section partaient à droite et leur icône à gauche :
+   « space-between » avec deux enfants les envoyait chacun à un bout. */
+.settings-form-head {
+  justify-content: flex-start;
+}
+.settings-form-head > div {
+  flex: 1;
+  min-width: 0;
+}
+.settings-form-head > button {
+  flex: none;
+}
+.purchasing-settings-grid,
+.settings-view-suppliers,
+.settings-view-teams,
+.settings-view-order {
+  display: block;
+}
+/* Les champs s'étalent au lieu de rester tassés à gauche : le fournisseur
+   prend un tiers, ses destinataires le reste. */
+.supplier-setting-row {
+  grid-template-columns: minmax(200px, 1fr) minmax(320px, 2.2fr) 44px;
+  gap: 16px;
+  align-items: end;
+}
+.supplier-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 0;
+}
+.supplier-field input,
+.supplier-field select {
+  width: 100%;
+  max-width: none;
+}
+.default-teams-settings .default-teams-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  max-width: 62rem;
+}
+.default-teams-settings label,
+.mail-settings-card label,
+.settings-form-card > label {
+  display: block;
+  padding: 0 var(--gouttiere) 14px;
+}
+.default-teams-settings label > span,
+.mail-settings-card label > span,
+.settings-form-card > label > span {
+  display: block;
+  margin-bottom: 5px;
+}
+.mail-settings-card input,
+.mail-settings-card textarea,
+.settings-form-card > label input,
+.settings-form-card > label textarea {
+  width: 100%;
+  max-width: 70rem;
+}
+.mail-template-preview,
+.compact-mail-preview {
+  margin: 0 var(--gouttiere) 16px;
+  max-width: 70rem;
+}
