@@ -550,7 +550,11 @@ export function NewOrder({
                             : produit.unit}
                         </small>
                       </span>
-                      <b>{prix ? money(prix * quantite) : "—"}</b>
+                      {prix ? (
+                        <b>{money(prix * quantite)}</b>
+                      ) : (
+                        <b className="panier-attente">à saisir</b>
+                      )}
                       <button
                         aria-label={`Retirer ${produit.name}`}
                         onClick={() => qty(Number(id), 0)}
@@ -567,7 +571,11 @@ export function NewOrder({
             {selectedLines.length > 0 && (
               <div className="panier-total">
                 <span>Total estimé</span>
-                <strong>{money(total)}</strong>
+                {total > 0 ? (
+                  <strong>{money(total)}</strong>
+                ) : (
+                  <strong className="panier-attente">prix à saisir</strong>
+                )}
               </div>
             )}
             <p className="panier-note">
@@ -861,7 +869,11 @@ export function NewOrder({
           <div className="footer-summary">
             <span>
               {Object.values(selected).filter((q) => q > 0).length} produit(s) ·{" "}
-              <strong>{money(total)}</strong>
+              {total > 0 ? (
+                <strong>{money(total)}</strong>
+              ) : (
+                <strong className="panier-attente">prix à saisir</strong>
+              )}
             </span>
             {step === 2 ? (
               <button

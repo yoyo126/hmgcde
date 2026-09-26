@@ -1137,3 +1137,91 @@ tr.comptoir-section td b {
   margin: 10px;
   justify-content: center;
 }
+
+/* Le fil d'étapes : deux pastilles centrées qui flottaient au-dessus du
+   tableau. Il devient une barre d'onglets alignée à gauche, comme les
+   familles, pour ne plus faire pièce rapportée. */
+.stepper,
+.stepper.two-steps {
+  display: flex;
+  grid-template-columns: none;
+  max-width: none;
+  margin: 0 20px 0;
+  padding: 0;
+  gap: 0;
+  border-bottom: 1px solid var(--c-filet);
+  background: #fff;
+}
+.stepper::before {
+  display: none;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px 9px 0;
+  margin-right: 18px;
+  border: 0;
+  background: transparent;
+  color: var(--c-encre-3);
+  box-shadow: none;
+}
+.step > span {
+  width: 21px;
+  height: 21px;
+  min-width: 21px;
+  border-radius: 50%;
+  background: var(--c-filet-2);
+  color: var(--c-encre-3);
+  border: 0;
+  box-shadow: none;
+  font-family: var(--police-chiffres);
+  font-size: 11.5px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.step > div small {
+  display: none;
+}
+.step > div strong {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.step.active {
+  color: var(--c-encre);
+  box-shadow: inset 0 -2px 0 var(--c-bleu);
+}
+.step.active > span {
+  background: var(--c-bleu);
+  color: #fff;
+}
+.step.done > span {
+  background: var(--c-vert-pale);
+  color: var(--c-vert);
+}
+
+/* Prix pas encore connu : on le dit, plutôt qu'un tiret muet. */
+.panier-attente {
+  font-family: var(--police);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-encre-3);
+  white-space: nowrap;
+}
+.panier-total strong.panier-attente {
+  font-size: 13px;
+}
+
+/* En dessous de 1080 px le panier passe AU-DESSUS du tableau : placé
+   dessous, il se retrouvait à 3 700 px de haut, donc inatteignable. */
+@media (max-width: 1080px) {
+  .comptoir-panier {
+    order: -1;
+    margin-bottom: 4px;
+  }
+  .panier-lignes {
+    max-height: 30vh;
+    overflow-y: auto;
+  }
+}
