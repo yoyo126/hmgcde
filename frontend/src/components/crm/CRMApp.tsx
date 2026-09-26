@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, LogOut, Menu, Search } from "lucide-react";
+import { Bell, LogOut, Menu } from "lucide-react";
 import { Dashboard } from "./Dashboard";
 import { NewOrder } from "./NewOrder";
 import { MobileNav, Sidebar, type ScreenId } from "./Sidebar";
@@ -115,11 +115,6 @@ export function CRMApp({
           <button className="menu-btn" onClick={() => setMenu(true)}>
             <Menu size={21} />
           </button>
-          <div className="top-search">
-            <Search size={17} />
-            <input placeholder="Rechercher dans HM Group…" />
-            <kbd>⌘ K</kbd>
-          </div>
           <div className="top-actions">
             <button
               aria-label={`${requestNotifications} nouvelle(s) demande(s) d’achat`}

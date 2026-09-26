@@ -382,6 +382,7 @@ export function NewOrder({
              L'ancienne version empilait nom, famille et conditionnement dans
              des blocs de 78 px de haut, sans en-tête de colonnes : aucune
              feuille de style ne pouvait en faire un tableau compact. */
+          <div className="comptoir-avec-panier">
           <div className="comptoir">
             <div className="comptoir-outils">
               <div className="comptoir-recherche">
@@ -524,6 +525,56 @@ export function NewOrder({
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* Panier : rétabli à la demande, dans la langue du comptoir. */}
+          <aside className="comptoir-panier">
+            <div className="panier-tete">
+              <span>Votre commande</span>
+              <b>{selectedLines.length} réf.</b>
+            </div>
+            <div className="panier-lignes">
+              {selectedLines.length ? (
+                selectedLines.map(([id, quantite]) => {
+                  const produit = products.find((item) => item.id === Number(id));
+                  if (!produit) return null;
+                  const prix = meilleurPrix(produit);
+                  return (
+                    <div className="panier-ligne" key={id}>
+                      <span>
+                        <strong>{produit.name}</strong>
+                        <small>
+                          {quantite} × {offreDe(produit)?.packaging &&
+                          offreDe(produit)?.packaging !== "À renseigner"
+                            ? offreDe(produit)?.packaging
+                            : produit.unit}
+                        </small>
+                      </span>
+                      <b>{prix ? money(prix * quantite) : "—"}</b>
+                      <button
+                        aria-label={`Retirer ${produit.name}`}
+                        onClick={() => qty(Number(id), 0)}
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="panier-vide">Ajoutez les produits à commander.</p>
+              )}
+            </div>
+            {selectedLines.length > 0 && (
+              <div className="panier-total">
+                <span>Total estimé</span>
+                <strong>{money(total)}</strong>
+              </div>
+            )}
+            <p className="panier-note">
+              Fournisseur choisi à l'étape suivante. Les prix affichés sont les plus
+              bas connus, tous fournisseurs confondus.
+            </p>
+          </aside>
           </div>
         )}
         {step === 3 && (
