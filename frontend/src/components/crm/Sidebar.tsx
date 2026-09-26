@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  LogOut,
   Box,
   ClipboardList,
   ClipboardPlus,
@@ -45,6 +46,7 @@ export function Sidebar({
   onChange,
   open,
   onClose,
+  onSignOut,
   requestNotifications = 0,
 }: {
   user: SessionUser;
@@ -52,6 +54,7 @@ export function Sidebar({
   onChange: (id: ScreenId) => void;
   open: boolean;
   onClose: () => void;
+  onSignOut: () => void;
   requestNotifications?: number;
 }) {
   const can = usePermissions();
@@ -109,7 +112,14 @@ export function Sidebar({
             <strong>{user.name || user.email}</strong>
             <small>{ROLE_LABELS[user.role]}</small>
           </div>
-          <span className="online-dot" />
+          <button
+            className="sidebar-signout"
+            aria-label="Se déconnecter"
+            title="Se déconnecter"
+            onClick={onSignOut}
+          >
+            <LogOut size={17} />
+          </button>
           <small className="crm-version">
             Version {CRM_VERSION}
             {IS_DEMO && " · démonstration"}

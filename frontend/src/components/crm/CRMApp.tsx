@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell, LogOut, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Dashboard } from "./Dashboard";
 import { NewOrder } from "./NewOrder";
 import { MobileNav, Sidebar, type ScreenId } from "./Sidebar";
@@ -98,28 +98,17 @@ export function CRMApp({
         onChange={navigate}
         open={menu}
         onClose={() => setMenu(false)}
+        onSignOut={onSignOut}
         requestNotifications={requestNotifications}
       />
       <div className="main-shell">
-        <header className="topbar">
-          <button className="menu-btn" onClick={() => setMenu(true)}>
-            <Menu size={21} />
-          </button>
-          <div className="top-actions">
-            <button
-              aria-label={`${requestNotifications} nouvelle(s) demande(s) d’achat`}
-              onClick={() => navigate("purchase-requests")}
-            >
-              <Bell size={19} />
-              {requestNotifications > 0 && (
-                <b className="top-notification">{requestNotifications}</b>
-              )}
-            </button>
-            <button aria-label="Se déconnecter" title="Se déconnecter" onClick={onSignOut}>
-              <LogOut size={18} />
-            </button>
-          </div>
-        </header>
+        <button
+          className="menu-btn"
+          aria-label="Ouvrir le menu"
+          onClick={() => setMenu(true)}
+        >
+          <Menu size={21} />
+        </button>
         <main>{content}</main>
       </div>
       <MobileNav
