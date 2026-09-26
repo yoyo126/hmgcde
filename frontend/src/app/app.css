@@ -115,6 +115,30 @@ table {
 .version-number {
   font-variant-numeric: tabular-nums;
 }
+.chiffre {
+  text-align: right;
+}
+/* Les colonnes de chiffres et de conditionnement se serrent sur leur
+   contenu ; toute la place restante va au nom du produit. Sans cela,
+   la colonne Qté s'étalait et laissait 79 px de blanc mort à droite. */
+.comptoir-table .chiffre,
+.comptoir-table .comptoir-cond {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* Les champs numériques affichaient les flèches de réglage du
+   navigateur — le « 0 ⌄ » à côté de chaque quantité. */
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
 
 /* --- 3. Le cadre : colonne et haut de page -------------------------- */
 /* Un seul bloc marine, sans couture entre la colonne et la barre. */
