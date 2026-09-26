@@ -27,6 +27,10 @@ export function CRMApp({
 }) {
   const can = usePermissions();
   const [screen, setScreen] = useState<ScreenId>("dashboard"),
+    // Recliquer sur l'entrée déjà active remet l'écran à son point de
+    // départ : sans cela, on restait bloqué dans une sous-rubrique des
+    // paramètres, le menu ne répondant plus.
+    [visite, setVisite] = useState(0),
     [menu, setMenu] = useState(false),
     [draftOrders, setDraftOrders] = useState<StoredOrder[]>([]),
     [orderToOpen, setOrderToOpen] = useState<string | null>(null),
@@ -56,7 +60,9 @@ export function CRMApp({
     if (!allowed(next)) return;
     setDraftOrders([]);
     if (next !== "orders") setOrderToOpen(null);
+    if (next === screen) setVisite((n) => n + 1);
     setScreen(next);
+    setMenu(false);
   };
   const openOrder = (orderId: string) => {
     setOrderToOpen(orderId);
@@ -109,7 +115,7 @@ export function CRMApp({
         >
           <Menu size={21} />
         </button>
-        <main>{content}</main>
+        <main key={`${screen}-${visite}`}>{content}</main>
       </div>
       <MobileNav
         active={screen}
