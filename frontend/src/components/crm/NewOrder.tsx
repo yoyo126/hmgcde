@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -387,243 +387,152 @@ export function NewOrder({
           </div>
         )}
         {step === 2 && (
-          <div className="wizard-content order-layout">
-            <div className="order-catalog">
-            <Heading
-              icon={<Package />}
-              title="Sélection des produits"
-              text="Les quantités sont saisies en ensembles, cartons ou pièces."
-            />
-            {/* Recherche d'abord, filtres ensuite. L'ancienne version
-                imposait de choisir une catégorie PUIS un groupe avant
-                d'afficher le moindre produit : trois clics pour commencer. */}
-            <div className="product-toolbar">
-              <div className="search-box">
-                <Search size={18} />
+          /* Étape Produits : un vrai tableau, comme la maquette validée.
+             L'ancienne version empilait nom, famille et conditionnement dans
+             des blocs de 78 px de haut, sans en-tête de colonnes : aucune
+             feuille de style ne pouvait en faire un tableau compact. */
+          <div className="comptoir">
+            <div className="comptoir-outils">
+              <div className="comptoir-recherche">
+                <Search size={16} />
                 <input
                   autoFocus
                   placeholder="Rechercher un produit, une référence…"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(event) => setQuery(event.target.value)}
                 />
                 {query && (
-                  <button
-                    className="search-clear"
-                    aria-label="Effacer la recherche"
-                    onClick={() => setQuery("")}
-                  >
-                    <X size={15} />
+                  <button aria-label="Effacer la recherche" onClick={() => setQuery("")}>
+                    <X size={14} />
                   </button>
                 )}
               </div>
+              <div className="comptoir-bascule" role="group" aria-label="Affichage des prix">
+                <button aria-pressed={!comparatif} onClick={() => setComparatif(false)}>
+                  Meilleur prix
+                </button>
+                <button aria-pressed={comparatif} onClick={() => setComparatif(true)}>
+                  Tous les fournisseurs
+                </button>
+              </div>
             </div>
-            <div className="barre-filtres">
-            <div className="family-chips">
+
+            <div className="comptoir-familles">
               <button
-                className={family ? "" : "active"}
+                className={family ? "" : "actif"}
                 onClick={() => {
                   setFamily("");
                   setGroup("");
                 }}
               >
-                Tous
-                <b>{countFor("")}</b>
+                Tous <b>{countFor("")}</b>
               </button>
               {families.map((name) => (
                 <button
                   key={name}
-                  className={family === name ? "active" : ""}
+                  className={family === name ? "actif" : ""}
                   onClick={() => {
                     setFamily(family === name ? "" : name);
                     setGroup("");
                   }}
                 >
-                  {name}
-                  <b>{countFor(name)}</b>
+                  {name} <b>{countFor(name)}</b>
                 </button>
               ))}
             </div>
-            <div className="bascule-comparatif" role="group" aria-label="Affichage des prix">
-              <button
-                aria-pressed={!comparatif}
-                onClick={() => setComparatif(false)}
-              >
-                Meilleur prix
-              </button>
-              <button
-                aria-pressed={comparatif}
-                onClick={() => setComparatif(true)}
-              >
-                Tous les fournisseurs
-              </button>
-            </div>
-            </div>
-            {family && groups.length > 1 && (
-              <div className="family-chips group-chips">
-                <button className={group ? "" : "active"} onClick={() => setGroup("")}>
-                  Tout {family.toLowerCase()}
-                </button>
-                {groups.map((name) => (
-                  <button
-                    key={name}
-                    className={group === name ? "active" : ""}
-                    onClick={() => setGroup(group === name ? "" : name)}
-                  >
-                    {name}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className={"select-products" + (comparatif ? " avec-comparatif" : "")}>
-              {sections.map(({ titre, produits }) => (
-                <div className="catalog-section" key={titre}>
-                  <div className="catalog-section-head">
-                    <span>{titre}</span>
-                    <b>{produits.length}</b>
-                  </div>
-                  {produits.map((p) => {
-                const o = offreDe(p),
-                  n = selected[p.id] || 0;
-                return (
-                  <div
-                    className={"select-product " + (n ? "chosen" : "")}
-                    key={p.id}
-                  >
-                    <div className="product-check">
-                      {n ? <Check size={15} /> : null}
-                    </div>
-                    <div className="product-copy">
-                      <strong>{p.name}</strong>
-                      <span>
-                        {p.family === "Électricité"
-                          ? `Électricité · ${productSection(p)}`
-                          : p.family}
-                      </span>
-                      <small>
-                        {o.packaging}
-                        {p.kind === "ensemble" ? " · Ensemble complet" : ""}
-                      </small>
-                      {p.contents && (
-                        <div className="order-components">
-                          {p.contents.map((item) => (
-                            <span key={item.name}>
-                              {item.quantity} × {item.name} —{" "}
-                              <b>
-                                {componentPrice(item, supplier)
-                                  ? `${money(componentPrice(item, supplier))} / unité`
-                                  : "Prix à saisir"}
-                              </b>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+
+            <div className="comptoir-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Produit</th>
+                    <th>Conditionnement</th>
                     {comparatif ? (
-                      <span className="prix-fournisseurs">
-                        {settings.suppliers.map(({ name }) => {
-                          const offre = p.offers.find((o) => o.supplier === name);
-                          const prix = offre?.price || 0;
-                          const estMeilleur = prix > 0 && prix === meilleurPrix(p);
-                          return (
-                            <span
-                              key={name}
-                              className={estMeilleur ? "prix-cellule meilleur" : "prix-cellule"}
-                              title={name}
-                            >
-                              <small>{name.split(" ")[0]}</small>
-                              {prix ? money(prix) : "—"}
-                            </span>
-                          );
-                        })}
-                      </span>
+                      settings.suppliers.map(({ name }) => (
+                        <th key={name} className="chiffre">
+                          {name.split(" ")[0]}
+                        </th>
+                      ))
                     ) : (
-                      <strong className="unit-price">
-                        {meilleurPrix(p) ? money(meilleurPrix(p)) : "Prix à saisir"}
-                        <small>/ {p.unit.toLowerCase()}</small>
-                      </strong>
+                      <th className="chiffre">Meilleur prix</th>
                     )}
-                    <NumberControl
-                      compact
-                      value={n}
-                      label={`Quantité ${p.name}`}
-                      onMinus={() => qty(p.id, n - 1)}
-                      onPlus={() => qty(p.id, n + 1)}
-                      onSet={(valeur) => qty(p.id, valeur)}
-                    />
-                  </div>
-                );
-              })}
-                </div>
-              ))}
-  
-              {!filtered.length && (
-                <p className="catalog-empty">
-                  Aucun produit ne correspond à cette recherche.
-                </p>
-              )}
-              </div>
+                    <th className="chiffre">Qté</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sections.map(({ titre, produits }) => (
+                    <Fragment key={titre}>
+                      <tr className="comptoir-section">
+                        <td colSpan={comparatif ? settings.suppliers.length + 3 : 4}>
+                          {titre} — {produits.length} produit(s)
+                        </td>
+                      </tr>
+                      {produits.map((p) => {
+                        const offre = offreDe(p);
+                        const n = selected[p.id] || 0;
+                        const meilleur = meilleurPrix(p);
+                        return (
+                          <tr key={p.id} className={n ? "retenue" : ""}>
+                            <td>
+                              <strong>{p.name}</strong>
+                              {p.code && <span className="comptoir-ref">{p.code}</span>}
+                            </td>
+                            <td className="comptoir-cond">
+                              {offre?.packaging && offre.packaging !== "À renseigner"
+                                ? offre.packaging
+                                : p.unit}
+                            </td>
+                            {comparatif ? (
+                              settings.suppliers.map(({ name }) => {
+                                const prix =
+                                  p.offers.find((o) => o.supplier === name)?.price || 0;
+                                return (
+                                  <td
+                                    key={name}
+                                    className={
+                                      prix > 0 && prix === meilleur
+                                        ? "chiffre comptoir-meilleur"
+                                        : "chiffre comptoir-autre"
+                                    }
+                                  >
+                                    {prix ? money(prix) : "—"}
+                                  </td>
+                                );
+                              })
+                            ) : (
+                              <td className="chiffre">
+                                {meilleur ? (
+                                  <span className="comptoir-meilleur">{money(meilleur)}</span>
+                                ) : (
+                                  <span className="comptoir-autre">à saisir</span>
+                                )}
+                              </td>
+                            )}
+                            <td className="chiffre">
+                              <NumberControl
+                                compact
+                                value={n}
+                                label={`Quantité ${p.name}`}
+                                onMinus={() => qty(p.id, n - 1)}
+                                onPlus={() => qty(p.id, n + 1)}
+                                onSet={(valeur) => qty(p.id, valeur)}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </Fragment>
+                  ))}
+                  {!filtered.length && (
+                    <tr>
+                      <td colSpan={comparatif ? settings.suppliers.length + 3 : 4} className="comptoir-vide">
+                        Aucun produit ne correspond à cette recherche.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-            {/* Panier : ce qu'on a mis dans la commande reste sous les yeux,
-                comme sur la demande d'achat. */}
-            <aside className="order-basket">
-              <div className="summary-head">
-                <span>
-                  <ShoppingCart size={18} />
-                </span>
-                <div>
-                  <h2>Votre commande</h2>
-                  <p>{selectedLines.length} référence(s)</p>
-                </div>
-              </div>
-              <div className="summary-lines">
-                {selectedLines.length ? (
-                  selectedLines.map(([id, quantite]) => {
-                    const produit = products.find((item) => item.id === Number(id));
-                    if (!produit) return null;
-                    const prix = meilleurPrix(produit);
-                    return (
-                      <div key={id}>
-                        <span>
-                          <strong>{produit.name}</strong>
-                          <small>
-                            {quantite} × {offreDe(produit)?.packaging || produit.unit}
-                          </small>
-                        </span>
-                        <b>{prix ? money(prix * quantite) : "—"}</b>
-                        <button
-                          className="basket-remove"
-                          aria-label={`Retirer ${produit.name}`}
-                          onClick={() => qty(Number(id), 0)}
-                        >
-                          <X size={15} />
-                        </button>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="empty-summary">
-                    <Package size={25} />
-                    <p>Ajoutez les produits à commander.</p>
-                  </div>
-                )}
-              </div>
-              {selectedLines.length > 0 && (
-                <div className="basket-total">
-                  <span>Total estimé</span>
-                  <strong>{money(total)}</strong>
-                </div>
-              )}
-              <div className="global-note">
-                <Check size={16} />
-                <span>
-                  <strong>Fournisseur à l'étape suivante</strong>
-                  <small>
-                    Les prix affichés sont les plus bas connus, tous
-                    fournisseurs confondus.
-                  </small>
-                </span>
-              </div>
-            </aside>
           </div>
         )}
         {step === 3 && (

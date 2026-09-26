@@ -658,3 +658,248 @@ textarea:focus-visible,
     min-height: 42px;
   }
 }
+
+/* ==================================================================== */
+/*  ÉCRAN COMPTOIR — structure reconstruite, pas réhabillée              */
+/*                                                                      */
+/*  Classes neuves, sans héritage : l'ancienne mise en page empilait    */
+/*  nom, famille et conditionnement dans des blocs de 78 px sans        */
+/*  en-tête de colonnes. Ici, un tableau, des colonnes alignées, des    */
+/*  lignes de 30 px — comme la maquette.                                */
+/* ==================================================================== */
+.comptoir {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.comptoir-outils {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  flex-wrap: wrap;
+}
+.comptoir-recherche {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 280px;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--c-filet);
+  border-radius: 4px;
+  color: var(--c-encre-3);
+  background: #fff;
+}
+.comptoir-recherche:focus-within {
+  border-color: var(--c-bleu);
+  box-shadow: 0 0 0 2px rgba(20, 102, 198, 0.15);
+}
+.comptoir-recherche input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 13.5px;
+  color: var(--c-encre);
+  box-shadow: none;
+}
+.comptoir-recherche > button {
+  border: 0;
+  background: transparent;
+  color: var(--c-encre-3);
+  cursor: pointer;
+  padding: 2px;
+  height: auto;
+}
+
+.comptoir-bascule {
+  display: inline-flex;
+  border: 1px solid var(--c-filet);
+  border-radius: 4px;
+  overflow: hidden;
+  flex: none;
+}
+.comptoir-bascule button {
+  border: 0;
+  background: #fff;
+  color: var(--c-encre-3);
+  padding: 0 12px;
+  height: 32px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.comptoir-bascule button[aria-pressed="true"] {
+  background: var(--c-bandeau);
+  color: #fff;
+}
+
+.comptoir-familles {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--c-filet);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.comptoir-familles::-webkit-scrollbar {
+  display: none;
+}
+.comptoir-familles button {
+  flex: none;
+  border: 0;
+  background: transparent;
+  color: var(--c-encre-3);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 12px;
+  height: auto;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.comptoir-familles button b {
+  font-weight: 600;
+  color: var(--c-encre-3);
+  opacity: 0.75;
+}
+.comptoir-familles button.actif {
+  color: var(--c-encre);
+  box-shadow: inset 0 -2px 0 var(--c-bleu);
+}
+.comptoir-familles button.actif b {
+  color: var(--c-bleu);
+  opacity: 1;
+}
+
+.comptoir-table {
+  overflow-x: auto;
+}
+.comptoir-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.comptoir-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--c-entete);
+  color: #dbe6f6;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+.comptoir-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--c-filet-2);
+  font-size: 12.5px;
+  vertical-align: middle;
+}
+.comptoir-table tbody tr:nth-of-type(even):not(.comptoir-section) {
+  background: #f8fafd;
+}
+.comptoir-table tbody tr:hover:not(.comptoir-section) {
+  background: var(--c-bleu-pale);
+}
+.comptoir-table tr.retenue {
+  background: var(--c-bleu-pale) !important;
+  box-shadow: inset 2px 0 0 var(--c-bleu);
+}
+.comptoir-table td strong {
+  font-weight: 600;
+  font-size: 13px;
+}
+.comptoir-ref {
+  display: inline-block;
+  margin-left: 8px;
+  font-family: var(--police-chiffres);
+  font-size: 10.5px;
+  color: var(--c-encre-3);
+}
+.comptoir-cond {
+  color: var(--c-encre-2);
+  white-space: nowrap;
+}
+.chiffre {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.comptoir-meilleur {
+  background: var(--c-vert-pale);
+  color: var(--c-vert);
+  font-weight: 700;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-family: var(--police-chiffres);
+  font-size: 12px;
+}
+.comptoir-autre {
+  color: var(--c-encre-3);
+  font-family: var(--police-chiffres);
+  font-size: 12px;
+}
+tr.comptoir-section td {
+  background: var(--c-bleu-pale);
+  color: var(--c-bleu);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+}
+.comptoir-vide {
+  padding: 22px 10px;
+  color: var(--c-encre-3);
+}
+.comptoir-table .number-control {
+  border-color: var(--c-filet);
+  border-radius: 4px;
+}
+.comptoir-table .number-control button {
+  width: 26px;
+  height: 26px;
+  min-width: 0;
+  min-height: 0;
+}
+.comptoir-table .number-control-input {
+  width: 42px;
+  height: 26px;
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .comptoir-outils {
+    padding: 10px 0 8px;
+  }
+  .comptoir-bascule {
+    width: 100%;
+  }
+  .comptoir-bascule button {
+    flex: 1;
+    height: 42px;
+  }
+  .comptoir-familles button {
+    padding: 11px 13px;
+    font-size: 13px;
+  }
+  .comptoir-table .number-control button {
+    width: 34px;
+    height: 34px;
+  }
+  .comptoir-table .number-control-input {
+    width: 46px;
+    height: 34px;
+    font-size: 16px;
+  }
+  .comptoir-table td {
+    padding: 7px 8px;
+  }
+}
