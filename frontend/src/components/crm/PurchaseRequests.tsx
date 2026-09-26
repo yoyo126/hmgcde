@@ -555,7 +555,13 @@ export function PurchaseRequests({
                     </tr>
                     {produits.map((product) => {
                       const quantite = quantities[product.id] || 0;
-                      const reference = product.offers.find((o) => o.reference)?.reference;
+                      // Le code interne d'abord : « à renseigner » n'est pas
+                      // une référence, c'est un trou dans le tarif.
+                      const reference =
+                        product.code ||
+                        product.offers.find(
+                          (o) => o.reference && o.reference !== "À renseigner",
+                        )?.reference;
                       return (
                         <Fragment key={product.id}>
                           <tr className={quantite ? "retenue" : ""}>

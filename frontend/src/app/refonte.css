@@ -70,7 +70,7 @@ body {
 
 /* --- Colonne de navigation ------------------------------------------ */
 .sidebar {
-  width: 218px;
+  width: 236px;
   background: var(--c-marine);
   border-right: 0;
   padding: 16px 10px;
@@ -148,7 +148,7 @@ body {
 /*  strates qui donnaient l'impression de deux écrans côte à côte. Tout   */
 /*  le haut est désormais du même marine que la colonne, sans filet.      */
 .main-shell {
-  margin-left: 218px;
+  margin-left: 236px;
 }
 .topbar {
   height: 40px;
