@@ -1,6 +1,19 @@
-export const CRM_VERSION = "3.0.0";
+export const CRM_VERSION = "3.1.0";
 
 export const CRM_VERSION_HISTORY = [
+  {
+    version: "3.1.0",
+    date: "26 septembre 2026",
+    title: "Refonte de l’interface et suivi des montants",
+    changes: [
+      "Une seule feuille de style : plus de cadres emboîtés ni de doubles filets",
+      "Les quatre listes parlent la même langue : produits, demandes, commandes, catalogue",
+      "Répartition entre sociétés corrigeable, avec contrôle de la somme",
+      "Filtres par période et par fournisseur, avec les montants commandés",
+      "Bon de commande imprimé remis au format A4, avec le logo HM Group",
+      "Écritures agrandies partout, saisie au doigt sur téléphone",
+    ],
+  },
   {
     version: "3.0.0",
     date: "16 août 2026",

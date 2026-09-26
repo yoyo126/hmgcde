@@ -183,7 +183,7 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 .nav-eyebrow {
   margin: 0 0 7px 10px;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -226,7 +226,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: var(--rouge);
   color: #fff;
   font-family: var(--chiffres);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 700;
   text-align: center;
   line-height: 21px;
@@ -249,7 +249,7 @@ input[type="number"]::-webkit-inner-spin-button {
   display: block;
   margin-top: 2px;
   color: var(--sur-marine-2);
-  font-size: 12.5px;
+  font-size: 14px;
 }
 .sidebar-user .avatar {
   background: var(--bleu);
@@ -257,7 +257,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .crm-version {
   width: 100%;
   margin-top: 6px;
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--sur-marine-2);
 }
 .online-dot {
@@ -275,7 +275,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: 4px;
   background: var(--bleu);
   color: #fff;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 700;
 }
 
@@ -363,7 +363,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border-radius: 4px;
   background: transparent;
   color: #cddaee;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 600;
 }
 .back-link:hover {
@@ -382,7 +382,7 @@ input[type="number"]::-webkit-inner-spin-button {
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 4px;
   color: #cddaee;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -550,7 +550,7 @@ main {
   color: var(--bleu);
 }
 .eyebrow {
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -639,7 +639,7 @@ main {
   border: 0;
   background: transparent;
   color: var(--bleu);
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 600;
 }
 .icon-danger-btn,
@@ -919,7 +919,7 @@ select:focus {
 .doc-table > div:first-child {
   background: var(--marine);
   color: #dbe6f6;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1017,7 +1017,7 @@ tr.comptoir-section td,
   display: inline-block;
   margin-left: 8px;
   font-family: var(--chiffres);
-  font-size: 13px;
+  font-size: 14.5px;
   color: var(--encre-3);
 }
 .comptoir-cond,
@@ -1052,7 +1052,7 @@ tr.comptoir-section td,
   padding: 8px 12px;
   background: var(--bleu-pale);
   color: var(--bleu);
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1071,7 +1071,7 @@ tr.comptoir-composition td,
 .saved-order-components {
   padding: 8px 12px 9px 24px;
   background: var(--fond-alt);
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--encre-2);
 }
 tr.comptoir-composition td span {
@@ -1245,7 +1245,7 @@ tr.comptoir-composition td span {
   display: inline-block;
   padding: 3px 9px;
   border-radius: 3px;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1352,7 +1352,7 @@ tr.comptoir-composition td span {
   padding: 10px 20px 10px 13px;
   background: var(--marine);
   color: #dbe6f6;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1360,7 +1360,7 @@ tr.comptoir-composition td span {
 .panier-tete b {
   color: #fff;
   font-family: var(--chiffres);
-  font-size: 13px;
+  font-size: 14.5px;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -1388,7 +1388,7 @@ tr.comptoir-composition td span {
 .panier-ligne small {
   display: block;
   margin-top: 2px;
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--encre-3);
 }
 .panier-ligne > b {
@@ -1433,7 +1433,7 @@ tr.comptoir-composition td span {
 .panier-note {
   padding: 10px 20px 10px 13px;
   border-top: 1px solid var(--filet-2);
-  font-size: 13.5px;
+  font-size: 15px;
   line-height: 1.45;
   color: var(--encre-3);
 }
@@ -1443,7 +1443,7 @@ tr.comptoir-composition td span {
 .footer-summary strong.panier-attente,
 .panier-ligne > b.panier-attente {
   font-family: var(--police);
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--encre-3);
   white-space: nowrap;
@@ -1472,7 +1472,7 @@ tr.comptoir-composition td span {
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 4px;
   color: #a9bcd8;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -1485,7 +1485,7 @@ tr.comptoir-composition td span {
   background: rgba(255, 255, 255, 0.14);
   color: #cddaee;
   font-family: var(--chiffres);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 700;
 }
 .etape.active {
@@ -1547,7 +1547,7 @@ tr.comptoir-composition td span {
   display: block;
   margin-top: 1px;
   color: var(--encre-3);
-  font-size: 13.5px;
+  font-size: 15px;
 }
 .dispatch-input,
 .dispatch-quantity-control {
@@ -1574,7 +1574,7 @@ tr.comptoir-composition td span {
 .dispatch-error {
   display: block;
   color: var(--rouge);
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 600;
 }
 .teams-grid,
@@ -1633,7 +1633,7 @@ tr.comptoir-composition td span {
   display: block;
   margin-top: 2px;
   color: var(--encre-2);
-  font-size: 13.5px;
+  font-size: 15px;
 }
 .order-supplier-pick select {
   min-width: 230px;
@@ -1866,7 +1866,7 @@ tr.comptoir-composition td span {
   display: block;
   margin-top: 2px;
   color: var(--encre-3);
-  font-size: 13.5px;
+  font-size: 15px;
 }
 .stats-grid {
   display: grid;
@@ -1924,7 +1924,7 @@ tr.comptoir-composition td span {
 }
 .supplier-field label,
 .supplier-email-list span {
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--encre-2);
 }
@@ -1989,7 +1989,7 @@ tr.comptoir-composition td span {
 }
 .history-file {
   font-family: var(--chiffres);
-  font-size: 13.5px;
+  font-size: 15px;
 }
 
 /* --- 13. Connexion, chargement, succès ------------------------------- */
@@ -2193,7 +2193,7 @@ tr.comptoir-composition td span {
     border: 0;
     background: transparent;
     color: var(--sur-marine);
-    font-size: 11.5px;
+    font-size: 13px;
     font-weight: 600;
   }
   .mobile-nav button.current {
@@ -2210,7 +2210,7 @@ tr.comptoir-composition td span {
     background: var(--rouge);
     color: #fff;
     font-family: var(--chiffres);
-    font-size: 10px;
+    font-size: 12px;
     line-height: 16px;
   }
   .wizard-footer {
@@ -2578,7 +2578,7 @@ span.dispatch-input:empty::before {
   grid-column: 2;
   margin-top: 2px;
   color: var(--encre-3);
-  font-size: 13.5px;
+  font-size: 15px;
   line-height: 1.4;
 }
 
@@ -2608,7 +2608,7 @@ span.dispatch-input:empty::before {
   align-items: end;
 }
 .product-list-head > span {
-  font-size: 11.5px;
+  font-size: 13px;
   letter-spacing: 0.03em;
   line-height: 1.2;
   white-space: normal;
@@ -2616,7 +2616,7 @@ span.dispatch-input:empty::before {
 }
 .product-list-head > span:first-child,
 .product-list-head > span:nth-child(2) {
-  font-size: 13px;
+  font-size: 14.5px;
   white-space: nowrap;
 }
 
@@ -2634,11 +2634,11 @@ span.dispatch-input:empty::before {
   gap: 8px;
 }
 .catalog-section-head span {
-  font-size: 11.5px;
+  font-size: 13px;
   opacity: 0.75;
 }
 .catalog-section-head h2 {
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2653,7 +2653,7 @@ button.supplier-toggle {
   border: 0;
   background: transparent;
   color: var(--bleu);
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 600;
 }
 button.supplier-toggle svg {
@@ -2724,7 +2724,7 @@ button.supplier-toggle svg {
 }
 .price-cell small {
   display: block;
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--encre-3);
 }
 
@@ -2775,7 +2775,7 @@ button.supplier-toggle {
   }
   button.supplier-toggle small {
     color: var(--encre-3);
-    font-size: 13px;
+    font-size: 14.5px;
     font-weight: 600;
   }
 }
@@ -2846,7 +2846,7 @@ button.supplier-toggle {
   .etape {
     flex: none;
     padding: 5px 10px 5px 7px;
-    font-size: 12.5px;
+    font-size: 14px;
   }
   .page-title,
   .welcome-row {
@@ -2920,7 +2920,7 @@ button.supplier-toggle {
     grid-column: 1;
     display: inline-block !important;
     margin-right: 12px;
-    font-size: 13.5px;
+    font-size: 15px;
     color: var(--encre-3);
   }
   tr:has(> td:nth-child(4)):not(:has(> td:nth-child(5))) td:nth-child(4) {
@@ -2933,7 +2933,7 @@ button.supplier-toggle {
   }
   tr:not(:has(> td:nth-child(4))) td:nth-child(2) {
     grid-area: 2 / 1;
-    font-size: 13.5px;
+    font-size: 15px;
     color: var(--encre-3);
   }
   tr:not(:has(> td:nth-child(4))) td:nth-child(3) {
@@ -3023,7 +3023,7 @@ button.supplier-toggle {
   border-radius: 3px;
   background: var(--rouge);
   color: #fff;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -3085,7 +3085,7 @@ tr.ligne-depliee .order-detail-panel {
   border-radius: 3px;
   background: var(--bleu);
   color: #fff;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -3123,7 +3123,7 @@ tr.ligne-depliee .order-detail-panel {
   background: transparent;
   padding: 7px 12px;
   border-radius: 0;
-  font-size: 13.5px;
+  font-size: 15px;
   text-transform: none;
   letter-spacing: 0;
   font-weight: 400;
@@ -3285,7 +3285,7 @@ tr.ligne-depliee .order-detail-panel {
   text-transform: none;
   letter-spacing: 0;
   font-weight: 400;
-  font-size: 13px;
+  font-size: 14.5px;
 }
 .import-summary .import-kpis > div:last-child {
   border-right: 0;
@@ -3301,7 +3301,7 @@ tr.ligne-depliee .order-detail-panel {
   display: block;
   margin-top: 2px;
   color: var(--encre-3);
-  font-size: 13px;
+  font-size: 14.5px;
 }
 .control-list {
   display: flex;
@@ -3416,7 +3416,7 @@ tr.ligne-depliee .order-detail-panel {
   min-width: 0;
 }
 .filtres-commandes label > span {
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--encre-3);
 }
@@ -3470,7 +3470,7 @@ tr.ligne-depliee .order-detail-panel {
 }
 .total-fournisseurs b {
   font-family: var(--police);
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--encre-3);
   text-transform: uppercase;
@@ -3478,7 +3478,7 @@ tr.ligne-depliee .order-detail-panel {
 }
 .total-fournisseurs small {
   font-family: var(--police);
-  font-size: 13px;
+  font-size: 14.5px;
   color: var(--encre-3);
 }
 
