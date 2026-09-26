@@ -582,54 +582,131 @@ export function NewOrder({
           </div>
         )}
         {step === 3 && (
+          /* La répartition affichait les chiffres sans permettre de les
+             corriger, alors que c'est tout l'objet de cette étape : le
+             calcul automatique propose, l'acheteur tranche. Même tableau
+             que les produits, avec une case par société. */
           <div className="wizard-content">
             <Heading
               icon={<Users />}
               title="Répartition par société"
-              text="Le dispatch est calculé selon le nombre d’équipes. Vous pourrez le corriger."
+              text="Calculée selon le nombre d’équipes. Corrigez les cases qui ne conviennent pas : la somme doit rester égale à la quantité."
             />
-            <div className="dispatch-table">
-              <div className="dispatch-head">
-                <span>Produit</span>
-                <span>Total</span>
-                {companies.map((c) => (
-                  <span key={c.key}>{c.short}</span>
-                ))}
-              </div>
-              {Object.entries(selected)
-                .filter(([, q]) => q > 0)
-                .map(([id, n]) => {
-                  const p = products.find((x) => x.id === Number(id))!,
-                    shares = sharesFor(n);
-                  return (
-                    <div className="dispatch-row" key={id}>
-                      <span>
-                        <strong>{p.name}</strong>
-                        <small>{p.unit}</small>
-                      </span>
-                      <span className="global-qty editable-order-qty">
-                        <NumberControl
-                          compact
-                          value={n}
-                          onMinus={() => qty(Number(id), n - 1)}
-                          onPlus={() => qty(Number(id), n + 1)}
-                          onSet={(valeur) => qty(Number(id), valeur)}
-                        />
-                      </span>
-                      {shares.map((v, i) => (
-                        <span className="dispatch-input" key={companies[i].key}>
-                          {v}
-                        </span>
+            <div className="comptoir-table dispatch-comptoir">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Produit</th>
+                    <th className="chiffre">Quantité</th>
+                    {companies.map((c) => (
+                      <th className="chiffre" key={c.key}>
+                        {c.short}
+                      </th>
+                    ))}
+                    <th className="chiffre">Contrôle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedLines.map(([id, n]) => {
+                    const produit = products.find((x) => x.id === Number(id))!;
+                    const parts = dispatchFor(Number(id), n);
+                    const somme = companies.reduce(
+                      (total, c) => total + (parts[c.key] || 0),
+                      0,
+                    );
+                    return (
+                      <tr key={id} className={somme === n ? "" : "ligne-fautive"}>
+                        <td>
+                          <strong>{produit.name}</strong>
+                          {produit.code && (
+                            <span className="comptoir-ref">{produit.code}</span>
+                          )}
+                        </td>
+                        <td className="chiffre">
+                          <NumberControl
+                            compact
+                            value={n}
+                            label={`Quantité ${produit.name}`}
+                            onMinus={() => qty(Number(id), n - 1)}
+                            onPlus={() => qty(Number(id), n + 1)}
+                            onSet={(valeur) => qty(Number(id), valeur)}
+                          />
+                        </td>
+                        {companies.map((company) => (
+                          <td className="chiffre" key={company.key}>
+                            <input
+                              className="part-societe"
+                              type="number"
+                              min="0"
+                              aria-label={`${company.name} — ${produit.name}`}
+                              value={parts[company.key]}
+                              onChange={(event) =>
+                                updateDispatch(
+                                  Number(id),
+                                  n,
+                                  company.key,
+                                  Number(event.target.value),
+                                )
+                              }
+                            />
+                          </td>
+                        ))}
+                        <td className="chiffre">
+                          {somme === n ? (
+                            <span className="controle-ok">
+                              <Check size={15} /> {somme}
+                            </span>
+                          ) : (
+                            <span className="controle-faux">
+                              {somme} au lieu de {n}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {!selectedLines.length && (
+                    <tr>
+                      <td colSpan={companies.length + 3} className="comptoir-vide">
+                        Aucun produit sélectionné à l’étape précédente.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+                {selectedLines.length > 0 && (
+                  <tfoot>
+                    <tr>
+                      <td>
+                        <strong>Total par société</strong>
+                      </td>
+                      <td className="chiffre">
+                        {selectedLines.reduce((t, [, q]) => t + q, 0)}
+                      </td>
+                      {companies.map((company) => (
+                        <td className="chiffre" key={company.key}>
+                          <strong>{companyTotals[company.key]}</strong>
+                        </td>
                       ))}
-                    </div>
-                  );
-                })}
+                      <td />
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
             </div>
-            <Info
-              icon={<CheckCircle2 />}
-              title="Contrôle automatique activé"
-              text="La somme des quatre filiales correspond toujours à la quantité globale."
-            />
+            <div className="info-strip">
+              <Users size={18} />
+              <span>
+                <strong>
+                  {companies
+                    .map((c) => `${c.short} : ${teams[c.key]} équipe(s)`)
+                    .join(" · ")}
+                </strong>
+                <small>
+                  C’est ce nombre d’équipes qui sert au calcul. Vos
+                  corrections priment dessus.
+                </small>
+              </span>
+            </div>
           </div>
         )}
         {step === 4 && (

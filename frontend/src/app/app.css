@@ -2770,3 +2770,72 @@ button.supplier-toggle {
     padding: 7px 2px;
   }
 }
+
+/* --- 20. Répartition par société : cases corrigeables ---------------- */
+/* Le calcul propose, l'acheteur tranche. Une case par société, et une
+   colonne de contrôle qui dit tout de suite si la somme retombe juste :
+   c'est cette répartition qui décide quelle filiale est servie, donc
+   quelle filiale paie. */
+.part-societe {
+  width: 70px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--filet);
+  border-radius: 4px;
+  background: #fff;
+  font-family: var(--chiffres);
+  font-size: 15.5px;
+  text-align: right;
+}
+.part-societe:focus {
+  border-color: var(--bleu);
+  box-shadow: 0 0 0 2px rgba(20, 102, 198, 0.15);
+}
+.dispatch-comptoir tr.ligne-fautive {
+  background: var(--rouge-pale) !important;
+  box-shadow: inset 2px 0 0 var(--rouge);
+}
+.dispatch-comptoir tr.ligne-fautive .part-societe {
+  border-color: var(--rouge);
+}
+.controle-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--vert-pale);
+  color: var(--vert);
+  font-family: var(--chiffres);
+  font-size: 14.5px;
+  font-weight: 700;
+}
+.controle-faux {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--rouge);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.dispatch-comptoir tfoot td {
+  padding: 10px 12px;
+  border-top: 2px solid var(--marine);
+  border-bottom: 0;
+  background: var(--fond-alt);
+  font-family: var(--chiffres);
+  font-size: 16.5px;
+}
+.dispatch-comptoir tfoot td:first-child {
+  padding-left: var(--gouttiere);
+  font-family: var(--police);
+}
+.dispatch-comptoir tfoot td:last-child {
+  padding-right: var(--gouttiere);
+}
+.dispatch-comptoir .chiffre {
+  width: 1%;
+  white-space: nowrap;
+}
