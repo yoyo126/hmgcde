@@ -84,6 +84,39 @@ export const markPurchaseRequestSeen = (requestId: string) => {
   savePurchaseRequest({ ...request, seen: true });
 };
 
+/**
+ * Refuse une demande, avec son motif. Rien n'est supprimé : la demande
+ * reste consultable, le demandeur doit pouvoir lire pourquoi on n'a pas
+ * donné suite. Une demande déjà commandée n'est jamais refusée.
+ */
+export const refusePurchaseRequest = (requestId: string, reason: string) => {
+  const request = store.requests.find((item) => item.id === requestId);
+  if (!request || request.status === "Commandée") return;
+  savePurchaseRequest({
+    ...request,
+    status: "Refusée",
+    refusalReason: reason.trim(),
+    refusedAt: new Intl.DateTimeFormat("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date()),
+  });
+};
+
+/** Annule un refus : la demande repart au traitement. */
+export const reopenPurchaseRequest = (requestId: string) => {
+  const request = store.requests.find((item) => item.id === requestId);
+  if (!request || request.status !== "Refusée") return;
+  const reste = request.lines.some((line) => !line.ordered);
+  savePurchaseRequest({
+    ...request,
+    status: reste ? "À commander" : "Commandée",
+    refusalReason: undefined,
+    refusedAt: undefined,
+  });
+};
+
 export const updatePurchaseRequestQuantity = (
   requestId: string,
   productId: number,

@@ -3810,3 +3810,68 @@ tr.ligne-depliee .order-detail-panel {
   padding-top: 10px;
   padding-bottom: 10px;
 }
+
+/* --- 27. Refus d'une demande d'achat --------------------------------- */
+.tete-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+/* Le motif reste affiché : le demandeur doit savoir pourquoi on n'a pas
+   donné suite, et l'acheteur pouvoir revenir sur sa décision. */
+.demande-refusee {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 var(--gouttiere) 14px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--rouge);
+  background: var(--rouge-pale);
+  color: var(--rouge);
+}
+.demande-refusee strong {
+  display: block;
+  font-size: 16px;
+}
+.demande-refusee small {
+  display: block;
+  margin-top: 3px;
+  color: var(--encre-2);
+  font-size: 15px;
+}
+.motif-refus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 0 var(--gouttiere) 14px;
+  padding: 14px;
+  border-left: 3px solid var(--rouge);
+  background: var(--rouge-pale);
+}
+.motif-refus label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1 1 26rem;
+  min-width: 0;
+}
+.motif-refus label > span {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--encre-2);
+}
+.motif-refus input {
+  width: 100%;
+  background: #fff;
+}
+.motif-actions {
+  display: flex;
+  gap: 10px;
+}
+.status.refusee,
+.request-status-refusée {
+  background: var(--rouge-pale);
+  color: var(--rouge);
+}

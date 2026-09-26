@@ -17,6 +17,8 @@ import {
   createOrdersFromRequest,
   getStoredRequests,
   markPurchaseRequestSeen,
+  refusePurchaseRequest,
+  reopenPurchaseRequest,
   nextRequestId,
   savePurchaseRequest,
   updatePurchaseRequestQuantity,
@@ -42,6 +44,8 @@ export function PurchaseRequests({
     [quantities, setQuantities] = useState<Quantities>({}),
     [openProduct, setOpenProduct] = useState<number | null>(null),
     [openRequest, setOpenRequest] = useState<string | null>(null),
+    [refusing, setRefusing] = useState<string | null>(null),
+    [refusalReason, setRefusalReason] = useState(""),
     [requests, setRequests] = useState<StoredPurchaseRequest[]>(() =>
       getStoredRequests(),
     );
@@ -164,6 +168,18 @@ export function PurchaseRequests({
     setSelectedAssignmentProducts([]);
     setBulkSupplier("");
     if (orders.length) onFinalize(orders);
+  };
+
+  /** Refuse une demande : rien n'est supprimé, le motif reste lisible. */
+  const refuse = (requestId: string) => {
+    refusePurchaseRequest(requestId, refusalReason);
+    setRequests(getStoredRequests());
+    setRefusing(null);
+    setRefusalReason("");
+  };
+  const reopen = (requestId: string) => {
+    reopenPurchaseRequest(requestId);
+    setRequests(getStoredRequests());
   };
 
   const changeStoredQuantity = (
@@ -330,9 +346,91 @@ export function PurchaseRequests({
                         attente : vous les commanderez ailleurs, plus tard.
                       </p>
                     </div>
-                    <i className="status sent">{request.status}</i>
+                    <div className="tete-actions">
+                      <i
+                        className={
+                          "status " +
+                          (request.status === "Refusée" ? "unavailable" : "sent")
+                        }
+                      >
+                        {request.status}
+                      </i>
+                      {request.status !== "Commandée" &&
+                        request.status !== "Refusée" && (
+                          <button
+                            className="danger-btn"
+                            onClick={() => {
+                              setRefusing(
+                                refusing === request.id ? null : request.id,
+                              );
+                              setRefusalReason("");
+                            }}
+                          >
+                            <X size={16} /> Refuser la demande
+                          </button>
+                        )}
+                      {request.status === "Refusée" && (
+                        <button
+                          className="secondary-btn"
+                          onClick={() => reopen(request.id)}
+                        >
+                          Annuler le refus
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  {request.status !== "Commandée" && (
+
+                  {/* Le motif reste affiché : le demandeur doit savoir
+                      pourquoi on n'a pas donné suite. */}
+                  {request.status === "Refusée" && (
+                    <div className="demande-refusee">
+                      <X size={18} />
+                      <span>
+                        <strong>
+                          Demande refusée{request.refusedAt ? ` le ${request.refusedAt}` : ""}
+                        </strong>
+                        <small>
+                          {request.refusalReason || "Aucun motif indiqué."}
+                        </small>
+                      </span>
+                    </div>
+                  )}
+
+                  {refusing === request.id && (
+                    <div className="motif-refus">
+                      <label>
+                        <span>Motif du refus</span>
+                        <input
+                          autoFocus
+                          value={refusalReason}
+                          placeholder="Stock suffisant, budget reporté, doublon…"
+                          onChange={(event) => setRefusalReason(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" && refusalReason.trim())
+                              refuse(request.id);
+                          }}
+                        />
+                      </label>
+                      <div className="motif-actions">
+                        <button
+                          className="secondary-btn"
+                          onClick={() => setRefusing(null)}
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          className="danger-btn"
+                          disabled={!refusalReason.trim()}
+                          onClick={() => refuse(request.id)}
+                        >
+                          <X size={16} /> Confirmer le refus
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {request.status !== "Commandée" &&
+                    request.status !== "Refusée" && (
                     <div className="bulk-supplier-tools">
                       <strong>{selectedAssignmentProducts.length} produit(s) sélectionné(s)</strong>
                       <select
@@ -430,7 +528,8 @@ export function PurchaseRequests({
                       </div>
                     );
                   })}
-                  {request.status !== "Commandée" && (
+                  {request.status !== "Commandée" &&
+                    request.status !== "Refusée" && (
                     <div className="request-processing-footer">
                       {/* Même encadré que la validation d'une commande
                           directe : on compose, on désigne, on crée. */}

@@ -76,7 +76,11 @@ export type StoredOrder = {
   email?: SentEmail;
 };
 
-export type RequestStatus = "À commander" | "Partiellement commandée" | "Commandée";
+export type RequestStatus =
+  | "À commander"
+  | "Partiellement commandée"
+  | "Commandée"
+  | "Refusée";
 
 export type PurchaseRequestLine = {
   productId: number;
@@ -94,6 +98,9 @@ export type StoredPurchaseRequest = {
   status: RequestStatus;
   lines: PurchaseRequestLine[];
   seen?: boolean;
+  /** Motif du refus : le demandeur doit savoir pourquoi. */
+  refusalReason?: string;
+  refusedAt?: string;
 };
 
 export type SupplierContact = {
