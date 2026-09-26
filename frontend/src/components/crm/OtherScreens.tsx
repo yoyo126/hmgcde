@@ -63,6 +63,7 @@ import type { ScreenId } from "./Sidebar";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
 import { CRM_VERSION, CRM_VERSION_HISTORY } from "@/lib/version";
+import { filtrerCommandes, totauxCommandes } from "@/lib/order-filters";
 export function OrdersScreen({
   onNavigate,
   initialOpenOrder,
@@ -72,16 +73,24 @@ export function OrdersScreen({
 }) {
   const [query, setQuery] = useState(""),
     [statusFilter, setStatusFilter] = useState(""),
+    [supplierFilter, setSupplierFilter] = useState(""),
+    [du, setDu] = useState(""),
+    [au, setAu] = useState(""),
     [openOrder, setOpenOrder] = useState<string | null>(initialOpenOrder || null),
     [orders, setOrders] = useState<StoredOrder[]>(() => getStoredOrders());
   const orderCatalog = useCatalogProducts();
-  const filteredOrders = orders.filter(
-    (order) =>
-      (!statusFilter || order.status === statusFilter) &&
-      `${order.id} ${order.reference} ${order.supplier} ${order.status}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-  );
+  // Le calcul vit dans @/lib/order-filters et est vérifié automatiquement :
+  // il répond à « combien avons-nous commandé chez untel, et quand ».
+  const filteredOrders = filtrerCommandes(orders, {
+    recherche: query,
+    statut: statusFilter,
+    fournisseur: supplierFilter,
+    du,
+    au,
+  });
+  const totaux = totauxCommandes(filteredOrders);
+  const fournisseursConnus = [...new Set(orders.map((o) => o.supplier))].sort();
+  const filtreActif = Boolean(supplierFilter || du || au || statusFilter || query);
   const openMail = async (order: StoredOrder) => {
     const email = createMailPreview(order);
     saveOrder({ ...order, email, status: "Envoyée" });
@@ -155,6 +164,68 @@ export function OrdersScreen({
             </button>
           ))}
         </div>
+        {/* Filtres par période et par fournisseur : c'est ce qui permet de
+            savoir combien on a commandé chez qui, et quand. */}
+        <div className="filtres-commandes">
+          <label>
+            <span>Fournisseur</span>
+            <select
+              value={supplierFilter}
+              onChange={(event) => setSupplierFilter(event.target.value)}
+            >
+              <option value="">Tous les fournisseurs</option>
+              {fournisseursConnus.map((nom) => (
+                <option key={nom}>{nom}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Du</span>
+            <input type="date" value={du} onChange={(e) => setDu(e.target.value)} />
+          </label>
+          <label>
+            <span>Au</span>
+            <input type="date" value={au} onChange={(e) => setAu(e.target.value)} />
+          </label>
+          {filtreActif && (
+            <button
+              className="secondary-btn"
+              onClick={() => {
+                setSupplierFilter("");
+                setDu("");
+                setAu("");
+                setStatusFilter("");
+                setQuery("");
+              }}
+            >
+              <X size={16} /> Tout afficher
+            </button>
+          )}
+        </div>
+
+        <div className="bandeau-totaux">
+          <div className="total-principal">
+            <span>
+              {totaux.nombre} commande{totaux.nombre > 1 ? "s" : ""}
+              {filtreActif ? " (filtrées)" : ""}
+            </span>
+            <strong>{money(totaux.montant)}</strong>
+          </div>
+          {totaux.parFournisseur.length > 1 && (
+            <div className="total-fournisseurs">
+              {totaux.parFournisseur.map((ligne) => (
+                <span key={ligne.fournisseur}>
+                  <b>{ligne.fournisseur}</b>
+                  {money(ligne.montant)}
+                  <small>
+                    {ligne.nombre} cde{ligne.nombre > 1 ? "s" : ""}
+                  </small>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Un vrai tableau, comme les écrans de saisie et les demandes :
             le dernier des quatre à parler une autre langue. */}
         <div className="comptoir-table">

@@ -42,6 +42,12 @@ step "Conservation des prix saisis"
 node --experimental-strip-types --test frontend/tests/catalog-prices.test.ts \
   || fail "conservation des prix saisis"
 
+step "Filtres et totaux des commandes"
+# Ces filtres répondent à « combien avons-nous commandé chez untel » :
+# ils portent des montants.
+node --experimental-strip-types --test frontend/tests/order-filters.test.ts \
+  || fail "filtres et totaux des commandes"
+
 step "Compilation de l'interface"
 npm --prefix frontend run build || fail "compilation interface"
 

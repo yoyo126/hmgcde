@@ -3399,3 +3399,98 @@ tr.ligne-depliee .order-detail-panel {
     border-top: 1px solid var(--filet);
   }
 }
+
+/* --- 24. Filtres et montants des commandes --------------------------- */
+.filtres-commandes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 12px var(--gouttiere);
+  border-bottom: 1px solid var(--filet);
+}
+.filtres-commandes label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.filtres-commandes label > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--encre-3);
+}
+.filtres-commandes select {
+  min-width: 15rem;
+}
+.filtres-commandes input[type="date"] {
+  min-width: 10rem;
+  font-family: var(--chiffres);
+}
+
+/* Le montant est la réponse à la question qu'on vient poser : il est
+   donc le plus gros élément de l'écran. */
+.bandeau-totaux {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px var(--gouttiere);
+  border-bottom: 1px solid var(--filet);
+  background: var(--fond-alt);
+}
+.total-principal {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.total-principal span {
+  font-size: 14.5px;
+  color: var(--encre-2);
+}
+.total-principal strong {
+  font-family: var(--chiffres);
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.total-fournisseurs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+.total-fournisseurs > span {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-family: var(--chiffres);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.total-fournisseurs b {
+  font-family: var(--police);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--encre-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.total-fournisseurs small {
+  font-family: var(--police);
+  font-size: 13px;
+  color: var(--encre-3);
+}
+
+@media (max-width: 760px) {
+  .filtres-commandes label,
+  .filtres-commandes select,
+  .filtres-commandes input[type="date"] {
+    width: 100%;
+    min-width: 0;
+  }
+  .bandeau-totaux {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
