@@ -6338,3 +6338,123 @@ body {
     font-size: 24px;
   }
 }
+
+/* ================================================================== */
+/*  PLUS DE CARRÉ DANS UN CARRÉ                                        */
+/*                                                                     */
+/*  Le contenu vivait dans un grand panneau blanc arrondi, posé au     */
+/*  milieu de la page grise : « un truc collé en plein milieu ».       */
+/*  Le cadre extérieur disparaît, le contenu occupe la page, et les    */
+/*  surfaces blanches ne servent plus qu'aux listes et au panier —     */
+/*  un seul niveau, jamais deux.                                       */
+/* ================================================================== */
+
+/* --- Le panneau enveloppant s'efface ------------------------------- */
+.wizard-panel,
+.panel.wizard-panel,
+.table-panel,
+.request-catalog {
+  max-width: none;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+.wizard-content {
+  padding: 0;
+  min-height: 0;
+}
+
+/* --- Les listes deviennent la surface, à même la page -------------- */
+.select-products,
+.request-products,
+.product-list-scroll,
+.data-table {
+  background: #fff;
+  border: 1px solid var(--trait);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.wizard-content .select-products {
+  margin: 12px 0 0;
+  border-top: 1px solid var(--trait);
+}
+.wizard-content .select-product {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+.catalog-section-head {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+/* La barre d'outils et les filtres respirent sur le fond de page. */
+.product-toolbar,
+.request-toolbar,
+.table-toolbar {
+  padding-left: 0;
+  padding-right: 0;
+}
+.family-chips.table-chips {
+  padding-left: 0;
+  padding-right: 0;
+}
+.wizard-heading {
+  padding: 0;
+}
+.supplier-legend,
+.nouveau-produit-form {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* --- Le panier : une colonne, pas une boîte flottante -------------- */
+.order-basket,
+.request-summary {
+  border: 1px solid var(--trait);
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+/* --- Le pied d'étape suit le bas de l'écran, sans cadre ------------ */
+.wizard-footer {
+  border-radius: 0;
+  border-top: 1px solid var(--trait);
+  margin-top: 14px;
+  padding-left: 0;
+  padding-right: 0;
+  background: rgba(244, 247, 252, 0.94);
+}
+
+/* --- Colonne de gauche : texte rendu lisible ----------------------- */
+.sidebar nav button {
+  font-size: 15.5px;
+}
+.nav-eyebrow {
+  font-size: 11.5px;
+}
+/* Le numéro de version chevauchait le rôle : il passe sous le bloc. */
+.sidebar-user {
+  flex-wrap: wrap;
+  padding-bottom: 6px;
+}
+.sidebar-user .crm-version {
+  position: static;
+  width: 100%;
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: #7e91b0;
+}
+
+@media (max-width: 760px) {
+  .wizard-content .select-product {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .wizard-footer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
