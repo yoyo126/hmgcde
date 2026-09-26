@@ -164,13 +164,15 @@ input[type="number"]::-webkit-inner-spin-button {
   flex-direction: column;
   z-index: 40;
 }
-/* Le logo reprend ses couleurs d'origine — le dégradé bleu de HM Group —
-   sur une plaque blanche qui occupe toute la largeur de la colonne. La
-   variante éclaircie, posée à même le marine, en changeait la teinte. */
+/* Le logo se pose directement sur le marine, sans plaque blanche : son
+   fond est déjà transparent. Il garde le dégradé bleu d'origine, remonté
+   d'un tiers vers le blanc — juste ce qu'il faut pour que rien ne
+   descende sous 3:1 de contraste sur le marine, sans le délaver. */
 .brand {
-  margin: -16px -10px 16px;
-  padding: 16px 14px;
-  background: #fff;
+  margin: 0 0 16px;
+  padding: 4px 6px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
 }
 .brand-logo {
   display: block;
@@ -2189,7 +2191,8 @@ tr.comptoir-composition td span {
     bottom: 0;
     z-index: 30;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
     background: var(--marine);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }

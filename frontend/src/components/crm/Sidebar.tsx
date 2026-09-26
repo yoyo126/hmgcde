@@ -25,12 +25,21 @@ const initials = (user: SessionUser) =>
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() || "")
     .join("") || "?";
+/**
+ * Entrées du menu. « Nouvelle commande » n'y figure plus : c'était une
+ * ligne de plus pour le même sujet que « Commandes », d'où l'on part
+ * déjà pour en créer une. L'écran existe toujours, on y accède par le
+ * bouton « Nouvelle commande » de la liste et du tableau de bord.
+ */
 export const navItems = [
   { id: "dashboard", label: "Tableau de bord", icon: BarChart3 },
-  { id: "new-order", label: "Nouvelle commande", icon: PackagePlus },
   { id: "purchase-requests", label: "Demandes d’achat", icon: ClipboardPlus },
   { id: "orders", label: "Commandes", icon: ClipboardList },
   { id: "settings", label: "Paramètres", icon: Settings },
+] as const;
+/** L'écran de création reste une destination, sans entrée de menu. */
+export const hiddenNavItems = [
+  { id: "new-order", label: "Nouvelle commande", icon: PackagePlus },
 ] as const;
 export const settingsItems = [
   { id: "products", label: "Produits", icon: Box },
@@ -39,6 +48,7 @@ export const settingsItems = [
 ] as const;
 export type ScreenId =
   | (typeof navItems)[number]["id"]
+  | (typeof hiddenNavItems)[number]["id"]
   | (typeof settingsItems)[number]["id"];
 export function Sidebar({
   user,
@@ -74,7 +84,7 @@ export function Sidebar({
         <div className="brand">
           {/* Le logo porte déjà le nom du groupe : inutile de le répéter à côté,
               autant lui laisser toute la largeur pour rester lisible. */}
-          <HmLogo className="brand-logo" />
+          <HmLogo clair className="brand-logo" />
           {/* Le logo porte déjà « ACHAT FILIALE » : le répéter en dessous
               n'apportait rien. */}
           <button className="close-sidebar" onClick={onClose}>
