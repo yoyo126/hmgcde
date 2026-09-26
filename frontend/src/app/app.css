@@ -759,7 +759,6 @@ select:focus {
 
 /* Bascule à deux positions (meilleur prix / tous les fournisseurs). */
 .comptoir-bascule,
-.supplier-toggle,
 .table-chips,
 .review-filters {
   display: inline-flex;
@@ -768,7 +767,6 @@ select:focus {
   overflow: hidden;
 }
 .comptoir-bascule button,
-.supplier-toggle button,
 .table-chips button,
 .review-filters button {
   height: 42px;
@@ -780,7 +778,6 @@ select:focus {
   font-weight: 600;
 }
 .comptoir-bascule button[aria-pressed="true"],
-.supplier-toggle button.active,
 .table-chips button.active,
 .review-filters button.active {
   background: var(--entete);
@@ -1664,12 +1661,7 @@ tr.comptoir-composition td span {
   gap: 3px;
   min-width: 0;
 }
-.prices-closed {
-  display: none;
-}
-.prices-open {
-  display: block;
-}
+
 .nouveau-produit-form {
   padding: 14px 0;
   border-bottom: 1px solid var(--filet);
@@ -2294,4 +2286,143 @@ span.dispatch-input:empty::before {
   background: var(--entete);
   color: #fff;
   box-shadow: none;
+}
+
+/* --- 18. Écran Produits : reprises ----------------------------------- */
+
+/* Sept colonnes de fournisseurs sur 80 px : « YESS ELECTRIQUE » débordait
+   sur sa voisine. Les intitulés se replient sur deux lignes. */
+.product-list-head {
+  align-items: end;
+}
+.product-list-head > span {
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.product-list-head > span:first-child,
+.product-list-head > span:nth-child(2) {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* Bande de catégorie : trois niveaux de titre empilés, dont un h2 laissé
+   à la taille du navigateur. */
+.catalog-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.catalog-section-head > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.catalog-section-head span {
+  font-size: 11.5px;
+  opacity: 0.75;
+}
+.catalog-section-head h2 {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Bouton de dépliage des prix : du texte, pas une boîte. */
+button.supplier-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--bleu);
+  font-size: 13px;
+  font-weight: 600;
+}
+button.supplier-toggle svg {
+  transition: transform 0.18s;
+}
+.prices-open button.supplier-toggle svg {
+  transform: rotate(180deg);
+}
+
+/* Fiche produit : en consultation, le nom et son unité tiennent sur une
+   ligne et les prix restent lisibles d'un coup d'œil. */
+.product-list-item {
+  border-bottom: 1px solid var(--filet-2);
+}
+.product-list-item:nth-of-type(even) {
+  background: var(--fond-alt);
+}
+.product-list-item:hover {
+  background: var(--bleu-pale);
+}
+.product-list-row {
+  border-bottom: 0;
+}
+.product-list-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.prices-closed .product-list-name {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+}
+.prices-closed .product-list-name strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* L'unité figure déjà dans la colonne Conditionnement : elle volait la
+   place du nom, au point de tronquer « Angle apparent 120 ». */
+.prices-closed .product-list-name small,
+.prices-closed .price-cell small,
+.prices-closed .packaging-cell small {
+  display: none;
+}
+.prices-closed .packaging-cell,
+.prices-closed .price-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.price-cell b {
+  font-family: var(--chiffres);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--encre);
+}
+.price-cell.best-price {
+  background: transparent;
+  padding: 0;
+}
+.price-cell.best-price b {
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--vert-pale);
+  color: var(--vert);
+}
+.price-cell small {
+  display: block;
+  font-size: 11.5px;
+  color: var(--encre-3);
+}
+
+/* Sur téléphone, une fiche dépliant sept fournisseurs mesure près d'un
+   mètre : repliée, elle ne montre que le meilleur prix. */
+@media (max-width: 960px) {
+  .prices-closed .price-cell {
+    display: none;
+  }
+  .prices-closed .price-cell.best-price {
+    display: block;
+  }
 }
