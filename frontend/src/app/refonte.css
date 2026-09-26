@@ -1092,3 +1092,48 @@ tr.comptoir-section td {
     margin-right: 14px;
   }
 }
+
+/* Compléments du comptoir partagés par la demande d'achat. */
+.comptoir-sous-familles {
+  background: #f8fafd;
+}
+.comptoir-sous-familles button {
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 7px 13px;
+}
+.comptoir-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--c-bleu);
+  font-size: 12px;
+  font-weight: 600;
+  height: auto;
+  min-height: 0;
+  cursor: pointer;
+}
+tr.comptoir-composition td {
+  background: #f8fafd;
+  padding: 7px 11px 8px 22px;
+  font-size: 12.5px;
+  color: var(--c-encre-2);
+}
+tr.comptoir-composition td span {
+  display: inline-block;
+  margin: 0 14px 0 0;
+}
+tr.comptoir-section td b {
+  margin-left: 7px;
+  font-family: var(--police-chiffres);
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+.panier-valider {
+  margin: 10px;
+  justify-content: center;
+}

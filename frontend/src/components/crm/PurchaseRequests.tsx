@@ -1,11 +1,9 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import {
-  Box,
   Check,
   ChevronDown,
   ChevronRight,
   ClipboardPlus,
-  PackageOpen,
   Plus,
   Search,
   ShoppingCart,
@@ -475,11 +473,14 @@ export function PurchaseRequests({
         </div>
         <span className="draft-tag">Brouillon</span>
       </div>
-      <div className="request-layout">
-        <section className="panel request-catalog">
-          <div className="request-toolbar">
-            <div className="search-box">
-              <Search size={18} />
+      {/* Même tableau que la nouvelle commande : les deux écrans se
+          ressemblent enfin. Ici pas de prix — une demande ne porte que
+          des quantités globales. */}
+      <div className="comptoir-avec-panier">
+        <div className="comptoir">
+          <div className="comptoir-outils">
+            <div className="comptoir-recherche">
+              <Search size={16} />
               <input
                 autoFocus
                 value={query}
@@ -487,179 +488,171 @@ export function PurchaseRequests({
                 placeholder="Rechercher un produit, une référence…"
               />
               {query && (
-                <button
-                  className="search-clear"
-                  aria-label="Effacer la recherche"
-                  onClick={() => setQuery("")}
-                >
-                  <X size={15} />
+                <button aria-label="Effacer la recherche" onClick={() => setQuery("")}>
+                  <X size={14} />
                 </button>
               )}
             </div>
           </div>
-          <div className="family-chips">
+
+          <div className="comptoir-familles">
             <button
-              className={family ? "" : "active"}
+              className={family ? "" : "actif"}
               onClick={() => {
                 setFamily("");
                 setGroup("");
               }}
             >
-              Tous
-              <b>{countFor("")}</b>
+              Tous <b>{countFor("")}</b>
             </button>
-            {families.map((name) => (
+            {families.map((nom) => (
               <button
-                key={name}
-                className={family === name ? "active" : ""}
+                key={nom}
+                className={family === nom ? "actif" : ""}
                 onClick={() => {
-                  setFamily(family === name ? "" : name);
+                  setFamily(family === nom ? "" : nom);
                   setGroup("");
                 }}
               >
-                {name}
-                <b>{countFor(name)}</b>
+                {nom} <b>{countFor(nom)}</b>
               </button>
             ))}
           </div>
+
           {family && groups.length > 1 && (
-            <div className="family-chips group-chips">
-              <button className={group ? "" : "active"} onClick={() => setGroup("")}>
+            <div className="comptoir-familles comptoir-sous-familles">
+              <button className={group ? "" : "actif"} onClick={() => setGroup("")}>
                 Tout {family.toLowerCase()}
               </button>
-              {groups.map((name) => (
+              {groups.map((nom) => (
                 <button
-                  key={name}
-                  className={group === name ? "active" : ""}
-                  onClick={() => setGroup(group === name ? "" : name)}
+                  key={nom}
+                  className={group === nom ? "actif" : ""}
+                  onClick={() => setGroup(group === nom ? "" : nom)}
                 >
-                  {name}
+                  {nom}
                 </button>
               ))}
             </div>
           )}
-          <div className="request-products">
-            {sections.map(({ titre, produits }) => (
-              <div className="catalog-section" key={titre}>
-                <div className="catalog-section-head">
-                  <span>{titre}</span>
-                  <b>{produits.length}</b>
-                </div>
-                {produits.map((product) => {
-              const quantity = quantities[product.id] || 0;
-              return (
-                <article
-                  className={
-                    quantity ? "request-product selected" : "request-product"
-                  }
-                  key={product.id}
-                >
-                  <div className="request-product-icon">
-                    {product.kind === "ensemble" ? (
-                      <PackageOpen size={20} />
-                    ) : (
-                      <Box size={20} />
-                    )}
-                  </div>
-                  <div className="request-product-copy">
-                    <span>
-                      {product.family === "Électricité"
-                        ? `Électricité · ${productSection(product)}`
-                        : product.family}
-                    </span>
-                    <h3>{product.name}</h3>
-                    <small>
-                      Commande par {product.unit.toLowerCase()}
-                      {(() => {
-                        const packaging = packagingFor(product.id);
-                        return packaging && packaging !== product.unit
-                          ? ` · ${packaging}`
-                          : "";
-                      })()}
-                    </small>
-                    {product.kind === "ensemble" && (
-                      <button
-                        className="composition-toggle"
-                        onClick={() =>
-                          setOpenProduct(
-                            openProduct === product.id ? null : product.id,
-                          )
-                        }
-                      >
-                        <ChevronDown size={14} /> Détail des sous-produits
-                      </button>
-                    )}
-                    {openProduct === product.id && (
-                      <div className="composition-box">
-                        {product.contents?.map((item) => (
-                          <span key={item.name}>
-                            {item.quantity} × {item.name}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <NumberControl
-                    compact
-                    label={`Quantité de ${product.name}`}
-                    value={quantity}
-                    onMinus={() => change(product.id, quantity - 1)}
-                    onPlus={() => change(product.id, quantity + 1)}
-                    onSet={(valeur) => change(product.id, valeur)}
-                  />
-                </article>
-              );
-                })}
-              </div>
-            ))}
-            {!filtered.length && (
-              <p className="catalog-empty">
-                Aucun produit ne correspond à cette recherche.
-              </p>
-            )}
+
+          <div className="comptoir-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Produit</th>
+                  <th>Conditionnement</th>
+                  <th className="chiffre">Qté demandée</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sections.map(({ titre, produits }) => (
+                  <Fragment key={titre}>
+                    <tr className="comptoir-section">
+                      <td colSpan={3}>
+                        {titre} <b>{produits.length}</b>
+                      </td>
+                    </tr>
+                    {produits.map((product) => {
+                      const quantite = quantities[product.id] || 0;
+                      const reference = product.offers.find((o) => o.reference)?.reference;
+                      return (
+                        <Fragment key={product.id}>
+                          <tr className={quantite ? "retenue" : ""}>
+                            <td>
+                              <strong>{product.name}</strong>
+                              {reference && <span className="comptoir-ref">{reference}</span>}
+                              {product.kind === "ensemble" && (
+                                <button
+                                  className="comptoir-detail"
+                                  onClick={() =>
+                                    setOpenProduct(
+                                      openProduct === product.id ? null : product.id,
+                                    )
+                                  }
+                                >
+                                  <ChevronDown size={13} />
+                                  {openProduct === product.id
+                                    ? "Masquer le détail"
+                                    : "Détail du lot"}
+                                </button>
+                              )}
+                            </td>
+                            <td className="comptoir-cond">{packagingFor(product.id)}</td>
+                            <td className="chiffre">
+                              <NumberControl
+                                compact
+                                value={quantite}
+                                label={`Quantité de ${product.name}`}
+                                onMinus={() => change(product.id, quantite - 1)}
+                                onPlus={() => change(product.id, quantite + 1)}
+                                onSet={(valeur) => change(product.id, valeur)}
+                              />
+                            </td>
+                          </tr>
+                          {openProduct === product.id && !!product.contents?.length && (
+                            <tr className="comptoir-composition">
+                              <td colSpan={3}>
+                                {product.contents.map((item) => (
+                                  <span key={item.name}>
+                                    {item.quantity} × {item.name}
+                                  </span>
+                                ))}
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      );
+                    })}
+                  </Fragment>
+                ))}
+                {!filtered.length && (
+                  <tr>
+                    <td colSpan={3} className="comptoir-vide">
+                      Aucun produit ne correspond à cette recherche.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        </section>
-        <aside className="panel request-summary">
-          <div className="summary-head">
-            <span>
-              <ClipboardPlus size={18} />
-            </span>
-            <div>
-              <h2>Demande globale</h2>
-              <p>{selected.length} référence(s)</p>
-            </div>
+        </div>
+
+        <aside className="comptoir-panier">
+          <div className="panier-tete">
+            <span>Votre demande</span>
+            <b>{selected.length} réf.</b>
           </div>
-          <div className="summary-lines">
+          <div className="panier-lignes">
             {selected.length ? (
               selected.map((product) => (
-                <div key={product.id}>
+                <div className="panier-ligne" key={product.id}>
                   <span>
                     <strong>{product.name}</strong>
-                    <small>{packagingFor(product.id) || product.unit}</small>
+                    <small>{packagingFor(product.id)}</small>
                   </span>
                   <b>{quantities[product.id]}</b>
+                  <button
+                    aria-label={`Retirer ${product.name}`}
+                    onClick={() => change(product.id, 0)}
+                  >
+                    <X size={13} />
+                  </button>
                 </div>
               ))
             ) : (
-              <div className="empty-summary">
-                <PackageOpen size={25} />
-                <p>Ajoutez les produits demandés.</p>
-              </div>
+              <p className="panier-vide">Ajoutez les produits demandés.</p>
             )}
           </div>
-          <div className="global-note">
-            <Check size={16} />
-            <span>
-              <strong>Quantités globales</strong>
-              <small>Les fournisseurs seront choisis par l’acheteur.</small>
-            </span>
-          </div>
+          <p className="panier-note">
+            Quantités globales : les fournisseurs seront choisis par l’acheteur.
+          </p>
           <button
-            className="primary-btn request-submit"
+            className="primary-btn panier-valider"
             disabled={!selected.length}
             onClick={submitRequest}
           >
-            <ClipboardPlus size={17} /> Envoyer la demande
+            <ClipboardPlus size={16} /> Envoyer la demande
           </button>
         </aside>
       </div>
