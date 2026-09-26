@@ -423,7 +423,6 @@ main {
 .product-delete-banner,
 .settings-lock-note,
 .role-help,
-.import-summary,
 .doc-note,
 .supplier-legend,
 .price-edit-actions,
@@ -3493,4 +3492,14 @@ tr.ligne-depliee .order-detail-panel {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* « import-summary » est un panneau, pas un encart : rangé avec les
+   bandeaux d'information, il alignait titre, compteurs et liste de
+   contrôle sur une seule rangée. Chaque compteur tombait à 71 px et
+   « Prix modifiés » mordait sur « Nouveaux produits ». */
+.import-summary {
+  display: block;
+  padding: 0;
+  border: 0;
 }
