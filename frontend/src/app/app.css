@@ -860,13 +860,23 @@ select:focus {
 /* --- 5. La langue des tableaux -------------------------------------- */
 /* Toutes les listes de l'application : même en-tête sombre, mêmes
    lignes, mêmes filets. C'est ce qui rend l'ensemble uniforme. */
-.comptoir-table,
+/* Un conteneur à défilement horizontal enferme ses en-têtes collants :
+   ils ne se figent plus en haut de la fenêtre mais dans un cadre qui
+   s'en va avec la page. On ne le met que là où il sert vraiment. */
 .data-table,
 .import-table,
 .doc-table,
 .product-list,
 .order-list,
 .control-list {
+  overflow-x: auto;
+}
+.comptoir-table {
+  overflow: visible;
+}
+/* Mode comparatif : sept colonnes de fournisseurs en plus, là il faut
+   bien défiler. */
+.comptoir-table:has(thead th:nth-child(6)) {
   overflow-x: auto;
 }
 .comptoir-table thead th,
