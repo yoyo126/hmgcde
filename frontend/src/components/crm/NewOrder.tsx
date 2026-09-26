@@ -5,6 +5,7 @@ import {
   Check,
   CheckCircle2,
   Package,
+  ShoppingCart,
   Search,
   X,
   Send,
@@ -321,7 +322,11 @@ export function NewOrder({
           ),
         )}
       </div>
-      <section className="panel wizard-panel">
+      <section
+        className={
+          "panel wizard-panel" + (step === 2 ? " wizard-panel-large" : "")
+        }
+      >
         {step === 1 && (
           <div className="wizard-content">
             <Heading
@@ -360,7 +365,8 @@ export function NewOrder({
           </div>
         )}
         {step === 2 && (
-          <div className="wizard-content">
+          <div className="wizard-content order-layout">
+            <div className="order-catalog">
             <Heading
               icon={<Package />}
               title="Sélection des produits"
@@ -491,12 +497,75 @@ export function NewOrder({
               })}
                 </div>
               ))}
+  
               {!filtered.length && (
                 <p className="catalog-empty">
                   Aucun produit ne correspond à cette recherche.
                 </p>
               )}
+              </div>
             </div>
+            {/* Panier : ce qu'on a mis dans la commande reste sous les yeux,
+                comme sur la demande d'achat. */}
+            <aside className="order-basket">
+              <div className="summary-head">
+                <span>
+                  <ShoppingCart size={18} />
+                </span>
+                <div>
+                  <h2>Votre commande</h2>
+                  <p>{selectedLines.length} référence(s)</p>
+                </div>
+              </div>
+              <div className="summary-lines">
+                {selectedLines.length ? (
+                  selectedLines.map(([id, quantite]) => {
+                    const produit = products.find((item) => item.id === Number(id));
+                    if (!produit) return null;
+                    const prix = meilleurPrix(produit);
+                    return (
+                      <div key={id}>
+                        <span>
+                          <strong>{produit.name}</strong>
+                          <small>
+                            {quantite} × {offreDe(produit)?.packaging || produit.unit}
+                          </small>
+                        </span>
+                        <b>{prix ? money(prix * quantite) : "—"}</b>
+                        <button
+                          className="basket-remove"
+                          aria-label={`Retirer ${produit.name}`}
+                          onClick={() => qty(Number(id), 0)}
+                        >
+                          <X size={15} />
+                        </button>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="empty-summary">
+                    <Package size={25} />
+                    <p>Ajoutez les produits à commander.</p>
+                  </div>
+                )}
+              </div>
+              {selectedLines.length > 0 && (
+                <div className="basket-total">
+                  <span>Total estimé</span>
+                  <strong>{money(total)}</strong>
+                </div>
+              )}
+              <div className="global-note">
+                <Check size={16} />
+                <span>
+                  <strong>Fournisseur à l'étape suivante</strong>
+                  <small>
+                    Les prix affichés sont les plus bas connus, tous
+                    fournisseurs confondus.
+                  </small>
+                </span>
+              </div>
+            </aside>
           </div>
         )}
         {step === 3 && (

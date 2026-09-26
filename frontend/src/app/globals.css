@@ -6073,3 +6073,78 @@ textarea:focus-visible {
     text-overflow: ellipsis;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Nouvelle commande : catalogue à gauche, panier à droite             */
+/*                                                                     */
+/* Même disposition que la demande d'achat, dont le panier donne le    */
+/* repère de ce qu'on a déjà mis dans la commande.                     */
+/* ------------------------------------------------------------------ */
+.wizard-panel-large {
+  max-width: none;
+}
+.order-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+.order-catalog {
+  min-width: 0;
+}
+.order-basket {
+  position: sticky;
+  top: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+.order-basket .summary-lines > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+}
+.basket-remove {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: #f3f5f9;
+  color: var(--ink-400);
+  cursor: pointer;
+}
+.basket-remove:hover {
+  background: #fdecec;
+  color: #c0392b;
+}
+.basket-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line-soft);
+  background: var(--brand-050);
+}
+.basket-total span {
+  font-size: 13.5px;
+  color: var(--ink-500);
+}
+.basket-total strong {
+  font-size: 18px;
+  color: var(--ink-900);
+}
+
+@media (max-width: 1050px) {
+  /* Le panier passe sous le catalogue plutôt que de l'écraser. */
+  .order-layout {
+    grid-template-columns: 1fr;
+  }
+  .order-basket {
+    position: static;
+  }
+}
