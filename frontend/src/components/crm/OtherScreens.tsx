@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   Box,
   ChevronDown,
@@ -154,39 +154,51 @@ export function OrdersScreen({
             </button>
           ))}
         </div>
-        <div className="data-table">
-          <div className="table-head">
-            <span>Commande</span>
-            <span>Fournisseur</span>
-            <span>Date</span>
-            <span>Produits</span>
-            <span>Total HT</span>
-            <span>Statut</span>
-            <span />
-          </div>
+        {/* Un vrai tableau, comme les écrans de saisie et les demandes :
+            le dernier des quatre à parler une autre langue. */}
+        <div className="comptoir-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Commande</th>
+                <th>Fournisseur</th>
+                <th>Date</th>
+                <th className="chiffre">Produits</th>
+                <th className="chiffre">Total HT</th>
+                <th>Statut</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
           {filteredOrders.map((o) => (
-            <div
-              className={`order-record ${openOrder === o.id ? "open" : ""}`}
-              key={o.id}
-            >
-              <button
-                className="table-row order-row-button"
+            <Fragment key={o.id}>
+              <tr
+                className={openOrder === o.id ? "retenue" : ""}
                 onClick={() => setOpenOrder(openOrder === o.id ? null : o.id)}
               >
-                <span>
-                  <FileText size={17} />
+                <td>
                   <span className="order-reference-cell">
-                    <strong>{o.reference}</strong>
+                    <FileText size={16} />
+                    <button
+                      className="lien-ligne"
+                      aria-expanded={openOrder === o.id}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setOpenOrder(openOrder === o.id ? null : o.id);
+                      }}
+                    >
+                      {o.reference}
+                    </button>
                     <small>{o.id}</small>
                   </span>
-                </span>
-                <span>{o.supplier}</span>
-                <span>{o.date}</span>
-                <span>{o.lines.length}</span>
-                <span>
-                  <strong>{money(o.total)}</strong>
-                </span>
-                <span>
+                </td>
+                <td>{o.supplier}</td>
+                <td className="order-date">{o.date}</td>
+                <td className="chiffre">{o.lines.length}</td>
+                <td className="chiffre">
+                  <strong className="order-total">{money(o.total)}</strong>
+                </td>
+                <td>
                   <i
                     className={
                       "status " +
@@ -199,14 +211,18 @@ export function OrdersScreen({
                   >
                     {o.status}
                   </i>
-                </span>
-                {openOrder === o.id ? (
-                  <ChevronDown size={18} />
-                ) : (
-                  <ChevronRight size={18} />
-                )}
-              </button>
+                </td>
+                <td className="chiffre">
+                  {openOrder === o.id ? (
+                    <ChevronDown size={18} />
+                  ) : (
+                    <ChevronRight size={18} />
+                  )}
+                </td>
+              </tr>
               {openOrder === o.id && (
+                <tr className="ligne-depliee">
+                  <td colSpan={7}>
                 <div className="order-detail-panel">
                   <div className="order-detail-head">
                     <div>
@@ -319,9 +335,13 @@ export function OrdersScreen({
                     </div>
                   </div>
                 </div>
+                  </td>
+                </tr>
               )}
-            </div>
+            </Fragment>
           ))}
+            </tbody>
+          </table>
         </div>
       </section>
     </div>

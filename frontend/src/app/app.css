@@ -2883,3 +2883,15 @@ tr.ligne-depliee .order-detail-panel {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
+/* La référence d'une commande : icône, numéro cliquable, identifiant. */
+.order-reference-cell {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  color: var(--encre-3);
+}
+.order-reference-cell svg {
+  align-self: center;
+  color: var(--encre-3);
+}
