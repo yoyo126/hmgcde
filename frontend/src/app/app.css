@@ -3755,3 +3755,55 @@ tr.ligne-depliee .order-detail-panel {
   margin: 0 var(--gouttiere) 16px;
   max-width: 70rem;
 }
+
+/* Les champs des rubriques sont des <label> nus, sans classe : mes
+   règles visaient « supplier-field », qui ne s'applique qu'ailleurs.
+   Les saisies restaient à leur largeur par défaut de 211 px avec
+   800 px de vide à côté. */
+.supplier-setting-row > label,
+.default-teams-grid > label,
+.default-teams-settings label,
+.mail-settings-card label,
+.settings-form-card label,
+.purchasing-settings-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.supplier-setting-row > label > span,
+.default-teams-grid > label > span,
+.default-teams-settings label > span,
+.mail-settings-card label > span,
+.settings-form-card label > span,
+.purchasing-settings-grid label > span {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--encre-2);
+}
+.supplier-setting-row > label > input,
+.supplier-setting-row > label > select,
+.default-teams-grid > label > input,
+.default-teams-settings label input,
+.mail-settings-card label input,
+.mail-settings-card label textarea,
+.settings-form-card label input,
+.settings-form-card label select,
+.settings-form-card label textarea,
+.purchasing-settings-grid label input,
+.purchasing-settings-grid label select,
+.purchasing-settings-grid label textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+/* Les nombres d'équipes n'ont pas besoin d'un champ pleine largeur. */
+.default-teams-grid > label > input {
+  max-width: 10rem;
+  font-family: var(--chiffres);
+  text-align: right;
+}
+.supplier-setting-row {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
