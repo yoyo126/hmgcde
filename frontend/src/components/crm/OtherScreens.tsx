@@ -615,8 +615,12 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
         }
       });
     });
-    saveManualPriceChanges({ prices, componentPrices: components, changes });
+    // L'ordre compte : le catalogue local porte encore les anciens prix,
+    // puisque les saisies vivent dans priceDrafts. L'enregistrer APRÈS les
+    // prix écrasait ces derniers — toute saisie était perdue, seule
+    // l'historique en gardait la trace.
     saveCatalogProducts(catalog);
+    saveManualPriceChanges({ prices, componentPrices: components, changes });
     setPriceRevision((revision) => revision + 1);
     setPriceHistory(getManualPriceHistory());
     setEditing(false);
