@@ -126,6 +126,16 @@ table {
   width: 1%;
   white-space: nowrap;
 }
+/* L'en-tête suit ses valeurs : la règle générale des en-têtes est plus
+   spécifique que « .chiffre » et les retenait à gauche, au-dessus de
+   chiffres alignés à droite. */
+.comptoir-table thead th.chiffre,
+.table-head > .chiffre,
+.product-list-head > .chiffre,
+.dispatch-head > .chiffre,
+.order-lines-head > .chiffre {
+  text-align: right;
+}
 
 /* Les champs numériques affichaient les flèches de réglage du
    navigateur — le « 0 ⌄ » à côté de chaque quantité. */
