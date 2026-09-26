@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
+import { fusionnerPrix } from "@/lib/catalog-prices";
 import { IS_DEMO } from "@/lib/demo-mode";
 import { ROLE_DESCRIPTIONS as ROLE_HELP } from "@/lib/permissions";
 import { usePermissions } from "./permissions-context";
@@ -615,11 +616,9 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
         }
       });
     });
-    // L'ordre compte : le catalogue local porte encore les anciens prix,
-    // puisque les saisies vivent dans priceDrafts. L'enregistrer APRÈS les
-    // prix écrasait ces derniers — toute saisie était perdue, seule
-    // l'historique en gardait la trace.
-    saveCatalogProducts(catalog);
+    // Le catalogue part avec les prix déjà reportés : plus aucun ordre
+    // d'appel ne peut les effacer (voir lib/catalog-prices, sous test).
+    saveCatalogProducts(fusionnerPrix(catalog, prices, components));
     saveManualPriceChanges({ prices, componentPrices: components, changes });
     setPriceRevision((revision) => revision + 1);
     setPriceHistory(getManualPriceHistory());

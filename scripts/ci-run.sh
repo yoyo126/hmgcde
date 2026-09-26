@@ -37,6 +37,11 @@ step "Répartition entre les sociétés"
 node --experimental-strip-types --test frontend/tests/dispatch.test.ts \
   || fail "répartition entre les sociétés"
 
+step "Conservation des prix saisis"
+# Un prix entré dans l'écran Produits doit survivre à l'enregistrement.
+node --experimental-strip-types --test frontend/tests/catalog-prices.test.ts \
+  || fail "conservation des prix saisis"
+
 step "Compilation de l'interface"
 npm --prefix frontend run build || fail "compilation interface"
 
