@@ -606,3 +606,55 @@ textarea:focus-visible,
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Reprises pour le téléphone                                          */
+/*                                                                     */
+/* La nouvelle barre de filtres avait rompu le défilement horizontal   */
+/* des catégories : « Plomberie » et « SSc » sortaient du cadre sans   */
+/* qu'on puisse les atteindre. Et la densité de comptoir avait ramené  */
+/* les cibles tactiles sous la taille du doigt.                        */
+/* ------------------------------------------------------------------ */
+@media (max-width: 760px) {
+  .barre-filtres {
+    display: block;
+  }
+  .barre-filtres .family-chips {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -14px;
+    padding: 0 14px;
+  }
+  .barre-filtres .family-chips::-webkit-scrollbar {
+    display: none;
+  }
+  .family-chips button {
+    flex: none;
+    min-height: 42px;
+    padding: 0 13px;
+    font-size: 13px;
+  }
+  .bascule-comparatif {
+    display: flex;
+    width: 100%;
+    margin: 8px 0 0;
+  }
+  .bascule-comparatif button {
+    flex: 1;
+    min-height: 42px;
+    font-size: 12.5px;
+  }
+  .back-link {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .primary-btn,
+  .secondary-btn,
+  .filter-btn,
+  .danger-btn {
+    min-height: 42px;
+  }
+}
