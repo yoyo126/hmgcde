@@ -469,7 +469,7 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  padding: 16px 0 10px;
+  padding: 16px var(--gouttiere) 10px;
 }
 /* Titre de section : l'icône colle au texte. En « space-between », les
    deux partaient chacun à un bout de la page. */
@@ -480,7 +480,7 @@ main {
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
-  padding: 16px 0 10px;
+  padding: 16px var(--gouttiere) 10px;
 }
 .panel-head h2,
 .settings-form-head h2,
@@ -1244,7 +1244,7 @@ tr.comptoir-composition td span {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
+  padding: 10px var(--gouttiere);
   flex-wrap: wrap;
 }
 .comptoir-recherche {
@@ -1501,7 +1501,7 @@ tr.comptoir-composition td span {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  padding: 12px 0;
+  padding: 12px var(--gouttiere);
 }
 .team-card {
   display: flex;
@@ -1577,7 +1577,7 @@ tr.comptoir-composition td span {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  padding: 12px 0;
+  padding: 12px var(--gouttiere);
 }
 .final-recap-heading {
   display: flex;
@@ -1585,12 +1585,16 @@ tr.comptoir-composition td span {
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
-  padding: 14px 0 10px;
+  padding: 14px var(--gouttiere) 10px;
 }
 
 /* Document fournisseur : c'est ce qui s'imprime, il reste sobre. */
 .supplier-document {
   padding: 18px 0;
+}
+.supplier-document > * {
+  padding-left: var(--gouttiere);
+  padding-right: var(--gouttiere);
 }
 .doc-brand {
   display: flex;
@@ -1604,7 +1608,7 @@ tr.comptoir-composition td span {
   display: flex;
   gap: 26px;
   flex-wrap: wrap;
-  padding: 12px 0;
+  padding: 12px var(--gouttiere);
   font-size: 14.5px;
 }
 .doc-note {
@@ -1632,7 +1636,7 @@ tr.comptoir-composition td span {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 0 10px;
+  padding: 16px var(--gouttiere) 10px;
 }
 .request-record {
   border-bottom: 1px solid var(--filet);
@@ -1651,7 +1655,7 @@ tr.comptoir-composition td span {
   display: grid;
   grid-template-columns: 210px minmax(0, 1fr);
   gap: 16px;
-  padding: 14px 0;
+  padding: 14px var(--gouttiere);
 }
 .assignment-product-name strong {
   display: block;
@@ -1662,7 +1666,7 @@ tr.comptoir-composition td span {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  padding: 12px 0;
+  padding: 12px var(--gouttiere);
 }
 
 /* --- 9. Commandes ---------------------------------------------------- */
@@ -1708,7 +1712,7 @@ tr.comptoir-composition td span {
   grid-template-columns: 240px minmax(0, 1fr);
   gap: 12px;
   align-items: center;
-  padding: 10px 0;
+  padding: 10px var(--gouttiere);
 }
 .product-list-name strong {
   font-size: 17px;
@@ -1723,7 +1727,7 @@ tr.comptoir-composition td span {
 }
 
 .nouveau-produit-form {
-  padding: 14px 0;
+  padding: 14px var(--gouttiere);
   border-bottom: 1px solid var(--filet);
 }
 .nouveau-produit-grille {
@@ -1798,7 +1802,7 @@ tr.comptoir-composition td span {
   display: grid;
   grid-template-columns: 90px minmax(0, 1fr);
   gap: 12px;
-  padding: 10px 0;
+  padding: 10px var(--gouttiere);
   border-bottom: 1px solid var(--filet-2);
 }
 .version-number {
@@ -1818,7 +1822,7 @@ tr.comptoir-composition td span {
   grid-template-columns: minmax(170px, 0.8fr) minmax(260px, 1.6fr) 42px;
   align-items: center;
   gap: 10px;
-  padding: 8px 0;
+  padding: 8px var(--gouttiere);
   border-bottom: 1px solid var(--filet-2);
 }
 .supplier-field {
@@ -1836,6 +1840,10 @@ tr.comptoir-composition td span {
 .supplier-settings-card,
 .mail-settings-card {
   padding: 4px 0 16px;
+}
+.panel-head > div,
+.wizard-heading > div {
+  min-width: 0;
 }
 
 /* --- 12. Import de tarifs -------------------------------------------- */
@@ -2542,7 +2550,7 @@ button.supplier-toggle {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 10px 0;
+  padding: 10px var(--gouttiere);
 }
 .product-toolbar > *,
 .request-toolbar > *,
