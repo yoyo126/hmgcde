@@ -2115,11 +2115,7 @@ tr.comptoir-composition td span {
   }
   .page-title,
   .welcome-row {
-    padding-left: 58px;
-  }
-  .page-title,
-  .welcome-row {
-    padding: 11px 14px 13px;
+    padding: 11px 14px 13px 58px;
   }
   .page-title h1,
   .welcome-row h1 {
@@ -2656,7 +2652,7 @@ button.supplier-toggle {
   }
   .page-title,
   .welcome-row {
-    padding: 9px 14px 10px;
+    padding: 9px 14px 10px 58px;
     gap: 10px;
   }
   .page-title h1,
@@ -2955,4 +2951,21 @@ tr.ligne-depliee .order-detail-panel {
 }
 .produits-comptoir .catalog-text-input {
   width: 100%;
+}
+
+/* Sur une seule colonne, un filet vertical referme chaque tuile en
+   cadre : il ne sert qu'entre deux colonnes. */
+@media (max-width: 760px) {
+  .settings-hub-grid > button,
+  .settings-main-grid > button,
+  .catalog-navigation-cards > button,
+  .catalog-card,
+  .quick-action,
+  .settings-card,
+  .rights-card,
+  .stat-card,
+  .stat,
+  .import-kpis > div {
+    border-right: 0;
+  }
 }
