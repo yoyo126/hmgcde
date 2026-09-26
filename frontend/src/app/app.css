@@ -2426,3 +2426,44 @@ button.supplier-toggle svg {
     display: block;
   }
 }
+
+/* Le dépliage des prix n'a de sens que sur petit écran : sur ordinateur
+   le comparatif des sept fournisseurs reste affiché en entier. Laissé
+   visible, ce bouton occupait une 11e case dans une grille de 10
+   colonnes et décalait toute la ligne — d'où les intitulés superposés. */
+button.supplier-toggle {
+  display: none;
+}
+.product-list-row > span {
+  min-width: 0;
+  padding: 0;
+}
+.product-list-item .product-list-row {
+  padding: 6px 12px;
+}
+.product-list-name strong {
+  line-height: 1.25;
+}
+
+@media (max-width: 960px) {
+  button.supplier-toggle {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 0;
+    font-size: 14px;
+  }
+  button.supplier-toggle span {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  button.supplier-toggle small {
+    color: var(--encre-3);
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
