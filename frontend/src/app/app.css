@@ -2249,6 +2249,33 @@ tr.comptoir-composition td span {
   display: none;
 }
 @media print {
+  /* Masquer par « visibility » garde la place des éléments : sans les
+     retirer aussi de la mise en page, le document était suivi de
+     plusieurs pages blanches, hautes comme la liste des commandes. */
+  .sidebar,
+  .mobile-nav,
+  .mobile-overlay,
+  .menu-btn,
+  .page-title,
+  .welcome-row,
+  .wizard-footer,
+  .table-toolbar,
+  .product-toolbar,
+  .request-toolbar,
+  .comptoir-table thead,
+  .comptoir-table tbody tr:not(.ligne-depliee),
+  .catalog-section-head,
+  .panel-head {
+    display: none !important;
+  }
+  tr.ligne-depliee > td {
+    padding: 0;
+    background: #fff;
+    border: 0;
+  }
+  .main-shell {
+    margin-left: 0;
+  }
   body * {
     visibility: hidden;
   }
