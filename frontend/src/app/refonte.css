@@ -1,0 +1,455 @@
+/* ==================================================================== */
+/*  REFONTE COMPLÈTE — 26 septembre 2026                                */
+/*                                                                      */
+/*  Les 6 400 lignes héritées dessinaient des cartes arrondies flottant */
+/*  sur un fond gris, empilées les unes dans les autres. Retoucher      */
+/*  cette base ne changeait rien : l'ossature restait la même.          */
+/*                                                                      */
+/*  Cette feuille est chargée en dernier et impose une autre langue :   */
+/*  surfaces blanches à plat, séparations au filet, angles francs,      */
+/*  densité d'outil de travail. Aucune ombre portée, aucun dégradé      */
+/*  décoratif, aucun cadre qui en enferme un autre.                     */
+/*                                                                      */
+/*  Ce qui ne change pas, à la demande : menu à gauche, barre du bas    */
+/*  sur téléphone, et toute la logique métier.                          */
+/* ==================================================================== */
+
+:root {
+  --r-encre: #0b1220;
+  --r-texte: #1a2438;
+  --r-doux: #5b6a84;
+  --r-pale: #8494ad;
+  --r-filet: #e4e8ef;
+  --r-filet-fort: #cfd6e2;
+  --r-fond: #ffffff;
+  --r-zone: #f7f9fc;
+  --r-nuit: #111c30;
+  --r-nuit-clair: #1a2942;
+  --r-accent: #1466c6;
+  --r-accent-vif: #2b8ae6;
+  --r-accent-pale: #eaf2fd;
+  --r-vert: #1f7a45;
+  --r-vert-pale: #e8f5ed;
+  --r-orange: #9a5b00;
+  --r-orange-pale: #fdf2e0;
+  --r-rouge: #a8201f;
+  --r-rouge-pale: #fceded;
+}
+
+/* --- Remise à plat générale ---------------------------------------- */
+body {
+  background: var(--r-fond);
+  color: var(--r-texte);
+  font-size: 14.5px;
+}
+
+/* Plus aucune ombre portée ni angle très arrondi sur les contenants. */
+.panel,
+.wizard-panel,
+.table-panel,
+.request-catalog,
+.order-basket,
+.request-summary,
+.settings-form-card,
+.select-products,
+.request-products,
+.product-list-scroll,
+.data-table,
+.supplier-document,
+.stat,
+.stat-card,
+.catalog-card,
+.success-card {
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background: var(--r-fond);
+}
+
+/* --- Colonne de navigation ----------------------------------------- */
+.sidebar {
+  width: 224px;
+  background: var(--r-nuit);
+  border-right: 1px solid #0a1120;
+  padding: 18px 12px;
+}
+.brand {
+  padding: 0 4px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  margin-bottom: 16px;
+}
+.brand-logo {
+  max-width: 128px;
+  filter: none;
+}
+.nav-eyebrow {
+  margin: 0 0 8px 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #65789a;
+}
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidebar nav button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #a9b8d0;
+  font-size: 14.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.sidebar nav button::before {
+  display: none;
+}
+.sidebar nav button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+.sidebar nav button.active {
+  background: var(--r-accent);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: none;
+}
+.sidebar-user {
+  margin-top: auto;
+  padding: 14px 6px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 13px;
+}
+.sidebar-user .avatar {
+  border-radius: 6px;
+  background: var(--r-accent);
+  color: #fff;
+}
+.crm-version,
+.sidebar-user .crm-version {
+  color: #5f7391;
+}
+
+/* --- Barre du haut -------------------------------------------------- */
+.main-shell {
+  margin-left: 224px;
+}
+.topbar {
+  height: 54px;
+  padding: 0 24px;
+  background: var(--r-fond);
+  border-bottom: 1px solid var(--r-filet);
+  backdrop-filter: none;
+}
+.topbar::after {
+  display: none;
+}
+.top-search {
+  height: 34px;
+  border-radius: 6px;
+  background: var(--r-zone);
+  border: 1px solid var(--r-filet);
+}
+.top-user .avatar,
+.avatar {
+  border-radius: 6px;
+}
+
+/* --- Zone de contenu ------------------------------------------------ */
+main {
+  max-width: none;
+  padding: 22px 24px 40px;
+  background: var(--r-fond);
+}
+.page-title {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--r-filet);
+}
+.page-title h1,
+.welcome-row h1 {
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--r-encre);
+  margin: 4px 0 2px;
+}
+.page-title p,
+.welcome-row p {
+  color: var(--r-doux);
+  font-size: 14px;
+}
+.eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--r-pale);
+}
+
+/* --- Boutons -------------------------------------------------------- */
+.primary-btn,
+.secondary-btn,
+.filter-btn,
+.text-btn,
+.danger-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: background 0.12s, border-color 0.12s;
+  box-shadow: none;
+}
+.primary-btn {
+  background: var(--r-accent);
+  border: 1px solid var(--r-accent);
+  color: #fff;
+}
+.primary-btn:hover:not(:disabled) {
+  background: #0f55aa;
+  transform: none;
+  box-shadow: none;
+}
+.secondary-btn,
+.filter-btn {
+  background: var(--r-fond);
+  border: 1px solid var(--r-filet-fort);
+  color: var(--r-texte);
+}
+.secondary-btn:hover,
+.filter-btn:hover {
+  background: var(--r-zone);
+}
+.danger-btn {
+  background: var(--r-fond);
+  border: 1px solid #e0b9b9;
+  color: var(--r-rouge);
+}
+
+/* --- Champs --------------------------------------------------------- */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input:not([type]),
+select,
+textarea {
+  border-radius: 6px;
+  border: 1px solid var(--r-filet-fort);
+  background: var(--r-fond);
+  font-size: 14px;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--r-accent);
+  box-shadow: 0 0 0 2px rgba(20, 102, 198, 0.15);
+}
+.search-box {
+  border-radius: 6px;
+  border: 1px solid var(--r-filet-fort);
+  background: var(--r-fond);
+}
+.search-box:focus-within {
+  border-color: var(--r-accent);
+  box-shadow: 0 0 0 2px rgba(20, 102, 198, 0.15);
+}
+
+/* --- Filtres : onglets francs, plus de pastilles ovales ------------- */
+.family-chips {
+  gap: 0;
+  border-bottom: 1px solid var(--r-filet);
+  margin-bottom: 0;
+}
+.family-chips button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--r-doux);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.family-chips button:hover {
+  color: var(--r-texte);
+  background: var(--r-zone);
+}
+.family-chips button.active {
+  background: transparent;
+  color: var(--r-accent);
+  border-bottom-color: var(--r-accent);
+}
+.family-chips button b {
+  background: transparent;
+  color: var(--r-pale);
+  padding: 0 0 0 6px;
+  font-size: 12px;
+}
+.family-chips button.active b {
+  color: var(--r-accent);
+}
+
+/* --- Listes et tableaux : filets, pas de cadres ---------------------- */
+.select-products,
+.request-products,
+.product-list-scroll,
+.data-table {
+  border: 0;
+  border-top: 1px solid var(--r-filet);
+}
+.catalog-section-head {
+  background: var(--r-zone);
+  border-top: 0;
+  border-bottom: 1px solid var(--r-filet);
+  color: var(--r-doux);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+.select-product,
+.request-product,
+.product-list-item,
+.table-row {
+  border-bottom: 1px solid var(--r-filet);
+  border-radius: 0;
+}
+.select-product:hover,
+.request-product:hover,
+.product-list-item:hover,
+.table-row:hover {
+  background: var(--r-zone);
+}
+.select-product.chosen {
+  background: var(--r-accent-pale);
+  box-shadow: inset 2px 0 0 var(--r-accent) !important;
+}
+.table-head,
+.product-list-head,
+.request-assignment-head {
+  background: var(--r-nuit);
+  color: #dbe5f4;
+  border: 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+/* --- Panier : une colonne bordée d'un filet, pas une carte ---------- */
+.order-basket,
+.request-summary {
+  border: 0;
+  border-left: 1px solid var(--r-filet);
+  padding-left: 18px;
+}
+.summary-head {
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--r-filet);
+}
+.summary-head h2 {
+  font-size: 15px;
+}
+.basket-total {
+  background: transparent;
+  border-top: 1px solid var(--r-filet);
+  padding: 12px 0;
+}
+.global-note,
+.order-supplier-pick,
+.default-team-summary {
+  border-radius: 6px;
+  border: 1px solid var(--r-filet);
+  background: var(--r-zone);
+}
+
+/* --- États ---------------------------------------------------------- */
+.status,
+.draft-tag,
+.match-status,
+.line-ordered,
+.line-pending,
+.new-request-pill {
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 3px 8px;
+  text-transform: uppercase;
+}
+
+/* --- Indicateurs ----------------------------------------------------- */
+.stats-grid {
+  gap: 0;
+  border: 1px solid var(--r-filet);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.stats-grid > * {
+  border: 0;
+  border-right: 1px solid var(--r-filet);
+  border-radius: 0;
+  padding: 14px 16px;
+}
+.stats-grid > *:last-child {
+  border-right: 0;
+}
+
+/* --- Étapes ---------------------------------------------------------- */
+.stepper {
+  border-bottom: 1px solid var(--r-filet);
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+}
+.step span {
+  border-radius: 4px;
+}
+
+/* --- Pied d'étape ---------------------------------------------------- */
+.wizard-footer {
+  background: var(--r-fond);
+  border-top: 1px solid var(--r-filet);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 12px 0;
+}
+
+@media (max-width: 760px) {
+  .main-shell {
+    margin-left: 0;
+  }
+  main {
+    padding: 16px 14px 92px;
+  }
+  .page-title h1,
+  .welcome-row h1 {
+    font-size: 21px;
+  }
+  .mobile-nav {
+    background: var(--r-nuit);
+    border-top: 0;
+  }
+  .order-basket,
+  .request-summary {
+    border-left: 0;
+    border-top: 1px solid var(--r-filet);
+    padding-left: 0;
+    padding-top: 14px;
+  }
+  .stats-grid {
+    border: 0;
+  }
+  .stats-grid > * {
+    border: 1px solid var(--r-filet);
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+}
