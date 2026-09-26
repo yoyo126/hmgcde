@@ -2571,3 +2571,80 @@ button.supplier-toggle {
     padding: 0 14px;
   }
 }
+
+/* Sur 375 px, le tableau à quatre colonnes rejetait la case quantité
+   hors de l'écran : il fallait faire défiler latéralement pour chaque
+   produit. La ligne s'empile — nom, puis conditionnement dessous — et
+   le compteur reste à droite, toujours sous le pouce.
+   Le mode comparatif garde son défilement : afficher sept fournisseurs
+   est une demande explicite. */
+@media (max-width: 760px) {
+  .comptoir-table table,
+  .comptoir-table tbody {
+    display: block;
+  }
+  .comptoir-table thead {
+    display: none;
+  }
+  .comptoir-table tbody tr {
+    display: block;
+  }
+  .comptoir-table tbody tr:not(.comptoir-section):not(:has(> td:nth-child(5))) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 12px;
+    padding: 8px 2px;
+    border-bottom: 1px solid var(--filet-2);
+  }
+  .comptoir-table tbody tr:not(.comptoir-section):not(:has(> td:nth-child(5))) td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+  /* Quatre colonnes : nom, conditionnement, meilleur prix, quantité. */
+  tr:has(> td:nth-child(4)):not(:has(> td:nth-child(5))) td:nth-child(1) {
+    grid-area: 1 / 1;
+  }
+  tr:has(> td:nth-child(4)):not(:has(> td:nth-child(5))) td:nth-child(2),
+  tr:has(> td:nth-child(4)):not(:has(> td:nth-child(5))) td:nth-child(3) {
+    grid-row: 2;
+    grid-column: 1;
+    display: inline-block !important;
+    margin-right: 12px;
+    font-size: 13.5px;
+    color: var(--encre-3);
+  }
+  tr:has(> td:nth-child(4)):not(:has(> td:nth-child(5))) td:nth-child(4) {
+    grid-area: 1 / 2 / 3 / 3;
+  }
+  /* Trois colonnes, comme la demande d'achat : nom, conditionnement,
+     quantité. */
+  tr:not(:has(> td:nth-child(4))) td:nth-child(1) {
+    grid-area: 1 / 1;
+  }
+  tr:not(:has(> td:nth-child(4))) td:nth-child(2) {
+    grid-area: 2 / 1;
+    font-size: 13.5px;
+    color: var(--encre-3);
+  }
+  tr:not(:has(> td:nth-child(4))) td:nth-child(3) {
+    grid-area: 1 / 2 / 3 / 3;
+  }
+  .comptoir-table tbody tr.comptoir-section {
+    display: block;
+  }
+  .comptoir-table tbody tr.comptoir-section td {
+    display: block;
+    margin: 0 -14px;
+    padding: 7px 14px;
+  }
+  .comptoir-table td strong {
+    font-size: 16px;
+    line-height: 1.3;
+  }
+  .comptoir-table {
+    margin: 0;
+    padding: 0;
+  }
+}
