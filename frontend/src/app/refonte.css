@@ -43,7 +43,7 @@ button {
 body {
   background: #fff;
   color: var(--c-encre);
-  font-size: 15px;
+  font-size: 16px;
 }
 
 /* Plus aucune ombre ni angle arrondi sur les contenants. */
@@ -106,7 +106,7 @@ body {
   border-radius: 4px;
   background: transparent;
   color: #b6c5dd;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
@@ -182,11 +182,11 @@ body {
 }
 .top-user strong {
   color: #fff;
-  font-size: 13.5px;
+  font-size: 14.5px;
 }
 .top-user small {
   color: #8fa3c2;
-  font-size: 11.5px;
+  font-size: 12.5px;
 }
 .avatar {
   border-radius: 4px;
@@ -201,8 +201,12 @@ main {
 /* Le titre prolonge le même marine : un seul bloc sombre, pas deux. */
 .page-title,
 .welcome-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
   margin: 0 0 0;
-  padding: 13px 20px 15px;
+  padding: 9px 20px 11px;
   background: var(--c-marine);
   border: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.09);
@@ -211,17 +215,17 @@ main {
 }
 .page-title h1,
 .welcome-row h1 {
-  font-size: 19px;
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   color: #fff;
   margin: 0;
 }
 .page-title p,
 .welcome-row p {
   color: #a9bcd8;
-  font-size: 13px;
-  margin: 3px 0 0;
+  font-size: 13.5px;
+  margin: 2px 0 0;
 }
 .page-title .eyebrow,
 .welcome-row .eyebrow {
@@ -230,7 +234,8 @@ main {
 .page-title .back-link {
   color: #a9bcd8;
   min-height: 0;
-  margin: 0 0 4px;
+  margin: 0 0 1px;
+  font-size: 13px;
 }
 .screen > *:not(.page-title):not(.welcome-row) {
   margin-left: 20px;
@@ -242,10 +247,10 @@ main {
 .secondary-btn,
 .filter-btn,
 .danger-btn {
-  height: 34px;
-  padding: 0 13px;
+  height: 38px;
+  padding: 0 15px;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 600;
   box-shadow: none;
 }
@@ -713,8 +718,8 @@ textarea:focus-visible,
   gap: 8px;
   flex: 1 1 280px;
   min-width: 0;
-  height: 38px;
-  padding: 0 11px;
+  height: 42px;
+  padding: 0 12px;
   border: 1px solid var(--c-filet);
   border-radius: 4px;
   color: var(--c-encre-3);
@@ -730,7 +735,7 @@ textarea:focus-visible,
   border: 0;
   outline: 0;
   background: transparent;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--c-encre);
   box-shadow: none;
 }
@@ -754,9 +759,9 @@ textarea:focus-visible,
   border: 0;
   background: #fff;
   color: var(--c-encre-3);
-  padding: 0 13px;
-  height: 36px;
-  font-size: 12.5px;
+  padding: 0 14px;
+  height: 40px;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -780,9 +785,9 @@ textarea:focus-visible,
   border: 0;
   background: transparent;
   color: var(--c-encre-3);
-  font-size: 13.5px;
+  font-size: 14.5px;
   font-weight: 600;
-  padding: 9px 13px;
+  padding: 10px 14px;
   height: auto;
   cursor: pointer;
   white-space: nowrap;
@@ -815,17 +820,17 @@ textarea:focus-visible,
   background: var(--c-entete);
   color: #dbe6f6;
   text-align: left;
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 9px 11px;
+  padding: 10px 12px;
   white-space: nowrap;
 }
 .comptoir-table td {
-  padding: 6px 11px;
+  padding: 7px 12px;
   border-bottom: 1px solid var(--c-filet-2);
-  font-size: 14px;
+  font-size: 15.5px;
   vertical-align: middle;
 }
 .comptoir-table tbody tr:nth-of-type(even):not(.comptoir-section) {
@@ -840,13 +845,13 @@ textarea:focus-visible,
 }
 .comptoir-table td strong {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 16.5px;
 }
 .comptoir-ref {
   display: inline-block;
   margin-left: 8px;
   font-family: var(--police-chiffres);
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--c-encre-3);
 }
 .comptoir-cond {
@@ -863,23 +868,23 @@ textarea:focus-visible,
   color: var(--c-vert);
   font-weight: 700;
   border-radius: 3px;
-  padding: 2px 7px;
+  padding: 2px 8px;
   font-family: var(--police-chiffres);
-  font-size: 13.5px;
+  font-size: 15px;
 }
 .comptoir-autre {
   color: var(--c-encre-3);
   font-family: var(--police-chiffres);
-  font-size: 13.5px;
+  font-size: 14.5px;
 }
 tr.comptoir-section td {
   background: var(--c-bleu-pale);
   color: var(--c-bleu);
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  padding: 6px 11px;
+  padding: 7px 12px;
 }
 .comptoir-vide {
   padding: 22px 10px;
@@ -890,15 +895,15 @@ tr.comptoir-section td {
   border-radius: 4px;
 }
 .comptoir-table .number-control button {
-  width: 28px;
-  height: 28px;
+  width: 31px;
+  height: 31px;
   min-width: 0;
   min-height: 0;
 }
 .comptoir-table .number-control-input {
-  width: 44px;
-  height: 28px;
-  font-size: 14px;
+  width: 48px;
+  height: 31px;
+  font-size: 15.5px;
 }
 
 @media (max-width: 760px) {
@@ -938,7 +943,7 @@ tr.comptoir-section td {
 /* ==================================================================== */
 .comptoir-avec-panier {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 252px;
+  grid-template-columns: minmax(0, 1fr) 270px;
   gap: 18px;
   align-items: start;
 }
@@ -956,10 +961,10 @@ tr.comptoir-section td {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 9px 12px;
+  padding: 10px 13px;
   background: var(--c-entete);
   color: #dbe6f6;
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -988,19 +993,19 @@ tr.comptoir-section td {
 }
 .panier-ligne strong {
   display: block;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.3;
 }
 .panier-ligne small {
   display: block;
   margin-top: 2px;
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--c-encre-3);
 }
 .panier-ligne > b {
   font-family: var(--police-chiffres);
-  font-size: 13px;
+  font-size: 14.5px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -1020,8 +1025,8 @@ tr.comptoir-section td {
 }
 .panier-vide {
   margin: 0;
-  padding: 20px 12px;
-  font-size: 13.5px;
+  padding: 20px 13px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--c-encre-3);
 }
@@ -1033,20 +1038,20 @@ tr.comptoir-section td {
   padding: 10px 12px;
   border-top: 1px solid var(--c-filet);
   background: #f8fafd;
-  font-size: 12.5px;
+  font-size: 13.5px;
   color: var(--c-encre-2);
 }
 .panier-total strong {
   font-family: var(--police-chiffres);
-  font-size: 18px;
+  font-size: 20px;
   color: var(--c-encre);
   font-variant-numeric: tabular-nums;
 }
 .panier-note {
   margin: 0;
-  padding: 9px 12px;
+  padding: 10px 13px;
   border-top: 1px solid var(--c-filet-2);
-  font-size: 11.5px;
+  font-size: 12.5px;
   line-height: 1.45;
   color: var(--c-encre-3);
 }
@@ -1098,7 +1103,7 @@ tr.comptoir-section td {
   background: #f8fafd;
 }
 .comptoir-sous-familles button {
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 500;
   padding: 7px 13px;
 }
@@ -1111,7 +1116,7 @@ tr.comptoir-section td {
   border: 0;
   background: transparent;
   color: var(--c-bleu);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   height: auto;
   min-height: 0;
@@ -1119,8 +1124,8 @@ tr.comptoir-section td {
 }
 tr.comptoir-composition td {
   background: #f8fafd;
-  padding: 7px 11px 8px 22px;
-  font-size: 12.5px;
+  padding: 8px 12px 9px 24px;
+  font-size: 13.5px;
   color: var(--c-encre-2);
 }
 tr.comptoir-composition td span {
@@ -1138,79 +1143,74 @@ tr.comptoir-section td b {
   justify-content: center;
 }
 
-/* Le fil d'étapes : deux pastilles centrées qui flottaient au-dessus du
-   tableau. Il devient une barre d'onglets alignée à gauche, comme les
-   familles, pour ne plus faire pièce rapportée. */
-.stepper,
-.stepper.two-steps {
-  display: flex;
-  grid-template-columns: none;
-  max-width: none;
-  margin: 0 20px 0;
-  padding: 0;
-  gap: 0;
-  border-bottom: 1px solid var(--c-filet);
-  background: #fff;
-}
-.stepper::before {
-  display: none;
-}
-.step {
+/* Les étapes vivent désormais dans le bandeau sombre. */
+.etapes {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 10px 16px 9px 0;
-  margin-right: 18px;
-  border: 0;
-  background: transparent;
-  color: var(--c-encre-3);
-  box-shadow: none;
+  gap: 8px;
+  flex-wrap: wrap;
 }
-.step > span {
-  width: 21px;
-  height: 21px;
-  min-width: 21px;
+.etape {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
+  color: #a9bcd8;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.etape b {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: var(--c-filet-2);
-  color: var(--c-encre-3);
-  border: 0;
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: #cddaee;
   font-family: var(--police-chiffres);
   font-size: 11.5px;
   font-weight: 700;
-  display: grid;
-  place-items: center;
 }
-.step > div small {
-  display: none;
-}
-.step > div strong {
-  font-size: 13.5px;
-  font-weight: 600;
-}
-.step.active {
-  color: var(--c-encre);
-  box-shadow: inset 0 -2px 0 var(--c-bleu);
-}
-.step.active > span {
+.etape.active {
   background: var(--c-bleu);
+  border-color: var(--c-bleu);
   color: #fff;
 }
-.step.done > span {
-  background: var(--c-vert-pale);
-  color: var(--c-vert);
+.etape.active b {
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+.etape.faite b {
+  background: var(--c-vert);
+  color: #fff;
+}
+.page-title .draft-tag,
+.etapes .draft-tag {
+  margin-left: 4px;
+  padding: 6px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
+  background: transparent;
+  color: #a9bcd8;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 /* Prix pas encore connu : on le dit, plutôt qu'un tiret muet. */
 .panier-attente {
   font-family: var(--police);
-  font-size: 12px;
+  font-size: 13.5px;
   font-weight: 500;
   color: var(--c-encre-3);
   white-space: nowrap;
 }
 .panier-total strong.panier-attente {
-  font-size: 13px;
+  font-size: 15px;
 }
 
 /* En dessous de 1080 px le panier passe AU-DESSUS du tableau : placé

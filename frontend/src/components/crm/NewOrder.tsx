@@ -310,30 +310,25 @@ export function NewOrder({
           <h1>Nouvelle commande</h1>
           <p>Créez et répartissez une commande fournisseur.</p>
         </div>
-        <div className="draft-tag">Brouillon automatique</div>
-      </div>
-      <div className="stepper two-steps">
-        {[
-          { id: 2, label: "Produits" },
-          { id: 4, label: "Validation" },
-        ].map(
-          ({ id, label }, i) => (
-            <div
+        {/* Les étapes remontent dans le bandeau : la barre isolée qui les
+            portait faisait un liseré de plus entre le titre et le tableau. */}
+        <div className="etapes">
+          {[
+            { id: 2, label: "Produits" },
+            { id: 4, label: "Validation" },
+          ].map(({ id, label }, i) => (
+            <span
               key={label}
               className={
-                "step " +
-                (step === id ? "active " : "") +
-                (step > id ? "done" : "")
+                "etape" + (step === id ? " active" : step > id ? " faite" : "")
               }
             >
-              <span>{step > id ? <Check size={15} /> : i + 1}</span>
-              <div>
-                <small>ÉTAPE {i + 1}</small>
-                <strong>{label}</strong>
-              </div>
-            </div>
-          ),
-        )}
+              <b>{step > id ? <Check size={13} /> : i + 1}</b>
+              {label}
+            </span>
+          ))}
+          <span className="draft-tag">Brouillon</span>
+        </div>
       </div>
       <section
         className={
