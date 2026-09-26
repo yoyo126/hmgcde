@@ -4,8 +4,6 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
-  Package,
-  ShoppingCart,
   Search,
   X,
   Send,
@@ -79,13 +77,6 @@ export function NewOrder({
     [reference] = useState(() => initialOrder?.reference || orderReference());
   const products = useCatalogProducts();
   const families = [...new Set(products.map((product) => product.family))];
-  const groups = [
-    ...new Set(
-      products
-        .filter((product) => product.family === family)
-        .map((product) => productSection(product)),
-    ),
-  ];
   const totalTeams = Math.max(
     1,
     Object.values(teams).reduce((a, b) => a + b, 0),
