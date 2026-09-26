@@ -315,6 +315,7 @@ export function NewOrder({
         <div className="etapes">
           {[
             { id: 2, label: "Produits" },
+            { id: 3, label: "Répartition" },
             { id: 4, label: "Validation" },
           ].map(({ id, label }, i) => (
             <span
@@ -851,10 +852,10 @@ export function NewOrder({
         )}
         <div className="wizard-footer">
           <div>
-            {step === 4 && !initialOrder && (
+            {step > 2 && !initialOrder && (
               <button
                 className="secondary-btn"
-                onClick={() => setStep(2)}
+                onClick={() => setStep(step === 4 ? 3 : 2)}
               >
                 <ArrowLeft size={17} />
                 Précédent
@@ -870,11 +871,11 @@ export function NewOrder({
                 <strong className="panier-attente">prix à saisir</strong>
               )}
             </span>
-            {step === 2 ? (
+            {step < 4 ? (
               <button
                 className="primary-btn"
                 disabled={!Object.values(selected).some((quantity) => quantity > 0)}
-                onClick={() => setStep(4)}
+                onClick={() => setStep(step === 2 ? 3 : 4)}
               >
                 Continuer <ArrowRight size={17} />
               </button>

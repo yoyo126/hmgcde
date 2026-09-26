@@ -1,0 +1,2179 @@
+/* ====================================================================
+   ACHATS FILIALES HM GROUP — feuille de style unique
+   ====================================================================
+
+   Écrite d'un seul tenant, en remplacement de globals.css (6 460 lignes)
+   et refonte.css (1 280 lignes). Ces deux fichiers se superposaient : le
+   second rattrapait le premier, et chaque conteneur du premier gardait
+   sa bordure. D'où les « carrés dans des carrés » et les doubles filets.
+
+   Trois règles tiennent tout le fichier :
+
+   1. AUCUN CONTENEUR N'A DE BORDURE. Ni cadre, ni angle arrondi, ni
+      ombre. Seuls les CONTRÔLES (boutons, champs, sélecteurs) sont
+      cernés, parce qu'on doit pouvoir cliquer dedans.
+   2. La séparation se fait par trois moyens seulement : le bleu marine
+      du cadre (colonne + haut de page), les filets horizontaux d'un
+      pixel, et les fonds alternés des lignes.
+   3. Toutes les listes de l'application parlent la même langue : en-tête
+      sombre, lignes de même hauteur, chiffres alignés à droite en
+      police à chasse fixe.
+   ==================================================================== */
+
+/* --- 1. Jetons ------------------------------------------------------ */
+:root {
+  /* Le marine du cadre. Un seul ton : deux tons faisaient une couture. */
+  --marine: #1b2c4e;
+  --entete: #2b4269;
+  --bleu: #1466c6;
+  --bleu-sombre: #0f55aa;
+  --bleu-pale: #e9f1fc;
+
+  --encre: #10151f;
+  --encre-2: #48546b;
+  --encre-3: #78849a;
+  --sur-marine: #b6c5dd;
+  --sur-marine-2: #8fa3c2;
+
+  --filet: #dde3ec;
+  --filet-2: #eef1f6;
+  --fond-alt: #f8fafd;
+
+  --vert: #1f7a45;
+  --vert-pale: #e6f4ec;
+  --ambre: #9a5b00;
+  --ambre-pale: #fdf1df;
+  --rouge: #a8201f;
+  --rouge-pale: #fceded;
+  --violet: #5b3fa8;
+  --violet-pale: #efeaff;
+
+  --police: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --chiffres: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --colonne: 248px;
+  --gouttiere: 20px;
+  --haut: 40px;
+}
+
+/* --- 2. Remise à zéro ----------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: #fff;
+  color: var(--encre);
+  font-family: var(--police);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+a {
+  color: var(--bleu);
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+:focus-visible {
+  outline: 2px solid var(--bleu);
+  outline-offset: 1px;
+}
+
+/* Les chiffres s'alignent en colonne : c'est un outil de commande. */
+.chiffre,
+.price-cell,
+.order-total,
+.unit-price,
+.computed-price,
+.validation-qty,
+.version-number {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 3. Le cadre : colonne et haut de page -------------------------- */
+/* Un seul bloc marine, sans couture entre la colonne et la barre. */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--colonne);
+  padding: 16px 10px;
+  background: var(--marine);
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+}
+.brand {
+  padding: 0 4px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 14px;
+}
+.brand-logo {
+  display: block;
+  max-width: 130px;
+  height: auto;
+}
+.brand-mark {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #fff;
+  font-weight: 700;
+}
+.nav-eyebrow {
+  margin: 0 0 7px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sur-marine-2);
+}
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.sidebar nav button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--sur-marine);
+  font-size: 17.5px;
+  font-weight: 500;
+  text-align: left;
+}
+.sidebar nav button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+.sidebar nav button.active {
+  background: var(--bleu);
+  color: #fff;
+  font-weight: 600;
+}
+.nav-notification {
+  margin-left: auto;
+  min-width: 21px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--rouge);
+  color: #fff;
+  font-family: var(--chiffres);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 21px;
+}
+.sidebar nav button.active .nav-notification {
+  background: rgba(255, 255, 255, 0.28);
+}
+.sidebar-user {
+  margin-top: auto;
+  padding: 12px 6px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  font-size: 15px;
+  color: #fff;
+}
+.sidebar-user small {
+  display: block;
+  margin-top: 2px;
+  color: var(--sur-marine-2);
+  font-size: 12.5px;
+}
+.sidebar-user .avatar {
+  background: var(--bleu);
+}
+.crm-version {
+  width: 100%;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--sur-marine-2);
+}
+.online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #35c58a;
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 4px;
+  background: var(--bleu);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.main-shell {
+  margin-left: var(--colonne);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+/* La barre du haut est du même marine : pas de filet, pas de couture. */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: var(--haut);
+  padding: 0 var(--gouttiere);
+  background: var(--marine);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.top-actions > button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cddaee;
+}
+.top-actions > button:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.top-notification {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--rouge);
+  color: #fff;
+  font-family: var(--chiffres);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+}
+.top-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.top-user strong {
+  display: block;
+  color: #fff;
+  font-size: 14.5px;
+}
+.top-user small {
+  display: block;
+  color: var(--sur-marine-2);
+  font-size: 12.5px;
+}
+.menu-btn,
+.close-sidebar {
+  display: none;
+}
+
+/* Le bandeau de titre prolonge le marine : un seul bloc sombre. */
+.page-title,
+.welcome-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 9px var(--gouttiere) 11px;
+  background: var(--marine);
+  color: #e8eef8;
+}
+.page-title h1,
+.welcome-row h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  color: #fff;
+}
+.page-title p,
+.welcome-row p {
+  margin-top: 1px;
+  color: #a9bcd8;
+  font-size: 14.5px;
+}
+.page-title .eyebrow,
+.welcome-row .eyebrow {
+  display: none;
+}
+/* « Retour » tenait sa propre ligne et gonflait le bandeau de 21 px :
+   il passe à gauche, sur toute la hauteur du bloc. */
+.page-title > div:has(> .back-link) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "retour titre"
+    "retour soustitre";
+  align-items: center;
+  column-gap: 14px;
+  min-width: 0;
+}
+.back-link {
+  grid-area: retour;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  background: transparent;
+  color: #cddaee;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.back-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.page-title > div > h1 {
+  grid-area: titre;
+}
+.page-title > div > p {
+  grid-area: soustitre;
+}
+.draft-tag,
+.new-request-pill {
+  padding: 6px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  color: #cddaee;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+main {
+  flex: 1;
+  padding: 0 0 40px;
+}
+.screen > *:not(.page-title):not(.welcome-row) {
+  margin-left: var(--gouttiere);
+  margin-right: var(--gouttiere);
+}
+/* Les anciens panneaux : plus de cadre, plus rien. Ce sont des blocs. */
+.panel,
+.wizard-panel,
+.table-panel,
+.data-table,
+.request-catalog,
+.request-summary,
+.request-overview,
+.request-processing,
+.order-detail-panel,
+.order-lines-view,
+.order-total-card,
+.settings-form-card,
+.supplier-settings-card,
+.mail-settings-card,
+.select-products,
+.request-products,
+.product-list-scroll,
+.compact-catalog,
+.supplier-document,
+.stat,
+.stat-card,
+.catalog-card,
+.success-card,
+.import-panel,
+.version-history-panel,
+.manual-price-history,
+.rights-card,
+.quick-panel,
+.inline-team-editor,
+.nouveau-produit-form,
+.composition-box,
+.component-price-scroll,
+.sent-mail-preview,
+.compact-mail-preview,
+.mail-template-preview,
+.delivery-box {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #fff;
+}
+.panel-head,
+.settings-form-head,
+.import-panel-title,
+.request-processing-head,
+.order-detail-head,
+.mail-preview-head,
+.component-title-row,
+.wizard-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 0 10px;
+}
+.panel-head h2,
+.settings-form-head h2,
+.wizard-heading h2,
+.import-panel-title h2 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.panel-head p,
+.settings-form-head p,
+.wizard-heading p,
+.import-panel-title p {
+  margin-top: 2px;
+  color: var(--encre-3);
+  font-size: 14px;
+}
+/* L'icône encadrée à côté de chaque titre faisait une boîte de plus. */
+.section-icon,
+.request-intro-icon,
+.settings-icon,
+.supplier-icon,
+.rights-icon,
+.success-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--bleu);
+}
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--encre-3);
+}
+
+/* --- 4. Contrôles : les seuls éléments cernés ----------------------- */
+.primary-btn,
+.secondary-btn,
+.filter-btn,
+.danger-btn,
+.add-supplier-btn,
+.login-submit,
+.panier-valider {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 15px;
+  border-radius: 4px;
+  font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.primary-btn,
+.login-submit,
+.panier-valider {
+  border: 1px solid var(--bleu);
+  background: var(--bleu);
+  color: #fff;
+}
+.primary-btn:hover:not(:disabled),
+.login-submit:hover:not(:disabled),
+.panier-valider:hover:not(:disabled) {
+  background: var(--bleu-sombre);
+  border-color: var(--bleu-sombre);
+}
+.secondary-btn,
+.filter-btn,
+.add-supplier-btn {
+  border: 1px solid var(--filet);
+  background: #fff;
+  color: var(--encre-2);
+}
+.secondary-btn:hover,
+.filter-btn:hover,
+.add-supplier-btn:hover {
+  border-color: var(--encre-3);
+  color: var(--encre);
+}
+.filter-btn.active {
+  border-color: var(--bleu);
+  background: var(--bleu-pale);
+  color: var(--bleu);
+}
+.danger-btn {
+  border: 1px solid var(--rouge);
+  background: #fff;
+  color: var(--rouge);
+}
+.danger-btn:hover {
+  background: var(--rouge-pale);
+}
+.primary-btn:disabled,
+.secondary-btn:disabled,
+.danger-btn:disabled,
+.panier-valider:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.page-title .secondary-btn {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.text-btn,
+.composition-link,
+.settings-back-link,
+.settings-section-back,
+.comptoir-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--bleu);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.icon-danger-btn,
+.component-delete-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--filet);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--encre-3);
+}
+.icon-danger-btn:hover,
+.component-delete-btn:hover {
+  border-color: var(--rouge);
+  color: var(--rouge);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+textarea,
+select,
+.search-box,
+.comptoir-recherche,
+.login-field,
+.family-select,
+.product-match-select,
+.supplier-field select,
+.catalog-text-input,
+.catalog-price-input,
+.catalog-packaging-input,
+.catalog-quantity-input,
+.meter-price-input,
+.recap-qty-input,
+.dispatch-input,
+.global-qty input {
+  height: 40px;
+  padding: 0 11px;
+  border: 1px solid var(--filet);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--encre);
+  font-size: 15px;
+}
+textarea {
+  height: auto;
+  min-height: 96px;
+  padding: 10px 11px;
+  line-height: 1.5;
+  resize: vertical;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 0;
+  border-color: var(--bleu);
+  box-shadow: 0 0 0 2px rgba(20, 102, 198, 0.15);
+}
+.search-box,
+.comptoir-recherche {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 12px;
+  color: var(--encre-3);
+}
+.search-box:focus-within,
+.comptoir-recherche:focus-within {
+  border-color: var(--bleu);
+  box-shadow: 0 0 0 2px rgba(20, 102, 198, 0.15);
+}
+.search-box input,
+.comptoir-recherche input {
+  flex: 1;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  color: var(--encre);
+}
+.search-box input:focus,
+.comptoir-recherche input:focus {
+  box-shadow: none;
+}
+.search-clear,
+.comptoir-recherche > button {
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  color: var(--encre-3);
+}
+.catalog-price-input,
+.catalog-quantity-input,
+.meter-price-input,
+.recap-qty-input,
+.dispatch-input,
+.validation-qty {
+  font-family: var(--chiffres);
+  text-align: right;
+}
+
+/* Compteur de quantité : trois cases jointives, une seule bordure. */
+.number-control {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--filet);
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+}
+.number-control button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: #fff;
+  color: var(--encre-2);
+}
+.number-control button:hover:not(:disabled) {
+  background: var(--bleu-pale);
+  color: var(--bleu);
+}
+.number-control button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.number-control-input {
+  width: 52px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid var(--filet-2);
+  border-right: 1px solid var(--filet-2);
+  border-radius: 0;
+  background: #fff;
+  font-family: var(--chiffres);
+  font-size: 16px;
+  text-align: center;
+}
+.number-control-input:focus {
+  box-shadow: none;
+  background: var(--bleu-pale);
+}
+.number-control.compact button {
+  width: 32px;
+  height: 32px;
+}
+.number-control.compact .number-control-input {
+  width: 50px;
+  height: 32px;
+  font-size: 16.5px;
+}
+
+/* Bascule à deux positions (meilleur prix / tous les fournisseurs). */
+.comptoir-bascule,
+.supplier-toggle,
+.table-chips,
+.review-filters {
+  display: inline-flex;
+  border: 1px solid var(--filet);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.comptoir-bascule button,
+.supplier-toggle button,
+.table-chips button,
+.review-filters button {
+  height: 42px;
+  padding: 0 15px;
+  border: 0;
+  background: #fff;
+  color: var(--encre-3);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.comptoir-bascule button[aria-pressed="true"],
+.supplier-toggle button.active,
+.table-chips button.active,
+.review-filters button.active {
+  background: var(--entete);
+  color: #fff;
+}
+
+/* Onglets de familles : soulignés, jamais encadrés. */
+.comptoir-familles,
+.family-chips,
+.catalog-groups {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--filet);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.comptoir-familles::-webkit-scrollbar,
+.family-chips::-webkit-scrollbar,
+.catalog-groups::-webkit-scrollbar {
+  display: none;
+}
+.comptoir-familles button,
+.family-chips button,
+.catalog-groups button {
+  flex: none;
+  height: auto;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--encre-3);
+  font-size: 15.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.comptoir-familles button b,
+.family-chips button b,
+.catalog-groups button b {
+  margin-left: 6px;
+  font-family: var(--chiffres);
+  font-weight: 600;
+  opacity: 0.7;
+}
+.comptoir-familles button.actif,
+.comptoir-familles button.active,
+.family-chips button.active,
+.catalog-groups button.active {
+  color: var(--encre);
+  box-shadow: inset 0 -2px 0 var(--bleu);
+}
+.comptoir-familles button.actif b,
+.comptoir-familles button.active b,
+.family-chips button.active b,
+.catalog-groups button.active b {
+  color: var(--bleu);
+  opacity: 1;
+}
+.comptoir-sous-familles {
+  background: var(--fond-alt);
+}
+.comptoir-sous-familles button {
+  font-size: 14.5px;
+  font-weight: 500;
+  min-height: 40px;
+}
+
+/* --- 5. La langue des tableaux -------------------------------------- */
+/* Toutes les listes de l'application : même en-tête sombre, mêmes
+   lignes, mêmes filets. C'est ce qui rend l'ensemble uniforme. */
+.comptoir-table,
+.data-table,
+.import-table,
+.doc-table,
+.product-list,
+.order-list,
+.control-list {
+  overflow-x: auto;
+}
+.comptoir-table thead th,
+.table-head,
+.product-list-head,
+.request-list-head,
+.dispatch-head,
+.order-lines-head,
+.request-assignment-head,
+.import-table-head,
+.component-price-head,
+.doc-table > div:first-child {
+  background: var(--entete);
+  color: #dbe6f6;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+.comptoir-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.comptoir-table td,
+.table-row,
+.product-list-row,
+.request-list-row,
+.dispatch-row,
+.order-line-view,
+.request-assignment-line,
+.import-line,
+.user-row,
+.order-row,
+.doc-table > div {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--filet-2);
+  font-size: 16px;
+  vertical-align: middle;
+}
+.comptoir-table tbody tr:nth-of-type(even):not(.comptoir-section),
+.product-list-row:nth-of-type(even),
+.table-row:nth-of-type(even),
+.request-list-row:nth-of-type(even),
+.import-line:nth-of-type(even) {
+  background: var(--fond-alt);
+}
+.comptoir-table tbody tr:hover:not(.comptoir-section),
+.product-list-row:hover,
+.table-row:hover,
+.request-list-row:hover,
+.order-row:hover,
+.user-row:hover {
+  background: var(--bleu-pale);
+}
+.comptoir-table tr.retenue,
+.product-list-row.chosen,
+.table-row.chosen {
+  background: var(--bleu-pale) !important;
+  box-shadow: inset 2px 0 0 var(--bleu);
+}
+.comptoir-table td strong {
+  font-weight: 600;
+  font-size: 17px;
+}
+.comptoir-ref,
+.order-reference-cell small,
+.product-list-name small {
+  display: inline-block;
+  margin-left: 8px;
+  font-family: var(--chiffres);
+  font-size: 13px;
+  color: var(--encre-3);
+}
+.comptoir-cond,
+.packaging-cell,
+.request-line-packaging {
+  color: var(--encre-2);
+  white-space: nowrap;
+}
+.comptoir-meilleur,
+.best-price {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--vert-pale);
+  color: var(--vert);
+  font-family: var(--chiffres);
+  font-size: 15px;
+  font-weight: 700;
+}
+.comptoir-autre,
+.unit-price,
+.price-cell,
+.computed-price {
+  font-family: var(--chiffres);
+  font-size: 14.5px;
+  color: var(--encre-3);
+}
+/* Bande de section : un repère, pas un cadre. */
+tr.comptoir-section td,
+.catalog-section-head,
+.component-comparison-title {
+  padding: 8px 12px;
+  background: var(--bleu-pale);
+  color: var(--bleu);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+tr.comptoir-section td b,
+.catalog-section-head b {
+  margin-left: 7px;
+  font-family: var(--chiffres);
+  letter-spacing: 0;
+  opacity: 0.7;
+}
+tr.comptoir-composition td,
+.composition-box,
+.list-composition,
+.doc-component-list,
+.saved-order-components {
+  padding: 8px 12px 9px 24px;
+  background: var(--fond-alt);
+  font-size: 13.5px;
+  color: var(--encre-2);
+}
+tr.comptoir-composition td span {
+  display: inline-block;
+  margin-right: 14px;
+}
+.comptoir-vide,
+.catalog-empty,
+.empty-history,
+.empty-price-history,
+.empty-summary {
+  padding: 26px 12px;
+  color: var(--encre-3);
+  font-size: 15px;
+  text-align: center;
+}
+
+/* Les listes bâties en grille gardent leurs colonnes, mais prennent la
+   présentation ci-dessus : c'est ce qui les rend semblables au reste. */
+.table-head,
+.table-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 0.6fr 0.8fr 0.8fr 30px;
+  align-items: center;
+  gap: 12px;
+}
+.product-list-head,
+.product-list-row {
+  display: grid;
+  grid-template-columns: minmax(310px, 2.2fr) 108px repeat(7, minmax(80px, 1fr)) 76px;
+  align-items: center;
+  gap: 10px;
+}
+.request-list-head,
+.request-list-row {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 1fr 0.7fr 0.8fr 25px;
+  align-items: center;
+  gap: 12px;
+}
+.dispatch-head,
+.dispatch-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 2fr) 120px repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: 10px;
+}
+.order-lines-head,
+.order-line-view {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.7fr) 1.2fr 0.65fr 0.8fr 0.9fr;
+  align-items: center;
+  gap: 12px;
+}
+.request-assignment-head,
+.request-assignment-line {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.6fr) 0.8fr minmax(180px, 1fr) 0.75fr;
+  align-items: center;
+  gap: 12px;
+}
+.import-table-head,
+.import-line {
+  display: grid;
+  grid-template-columns: 34px minmax(230px, 1.4fr) minmax(210px, 1.2fr) 105px 105px 85px;
+  align-items: center;
+  gap: 10px;
+}
+.user-row {
+  display: grid;
+  grid-template-columns: 46px 1fr 110px 60px 26px;
+  align-items: center;
+  gap: 12px;
+}
+.order-row {
+  display: grid;
+  grid-template-columns: 42px 1fr 100px 105px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.doc-table > div {
+  display: grid;
+  grid-template-columns: minmax(260px, 2.2fr) 105px 48px 82px 90px repeat(4, 52px);
+  align-items: center;
+  gap: 8px;
+}
+.component-price-head,
+.component-price-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) 90px repeat(7, minmax(78px, 1fr));
+  align-items: center;
+  gap: 8px;
+}
+.component-price-grid {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--filet-2);
+}
+
+/* Pastilles d'état : la seule forme arrondie de l'application. */
+.status,
+.account-state,
+.line-ordered,
+.line-pending,
+.import-success,
+.import-error,
+.changed,
+.unchanged,
+.same,
+.new,
+.received,
+.sent,
+.draft,
+.unavailable {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 3px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.status.green,
+.line-ordered,
+.import-success,
+.received,
+.sent,
+.account-state.active {
+  background: var(--vert-pale);
+  color: var(--vert);
+}
+.status.amber,
+.line-pending,
+.changed,
+.draft {
+  background: var(--ambre-pale);
+  color: var(--ambre);
+}
+.status.blue,
+.new {
+  background: var(--bleu-pale);
+  color: var(--bleu);
+}
+.status.violet {
+  background: var(--violet-pale);
+  color: var(--violet);
+}
+.import-error,
+.unavailable {
+  background: var(--rouge-pale);
+  color: var(--rouge);
+}
+.same,
+.unchanged {
+  background: var(--filet-2);
+  color: var(--encre-3);
+}
+.delta-up {
+  color: var(--rouge);
+  font-family: var(--chiffres);
+  font-weight: 700;
+}
+.delta-down {
+  color: var(--vert);
+  font-family: var(--chiffres);
+  font-weight: 700;
+}
+.company-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.company-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --- 6. Le comptoir : écran de saisie commande et demande ----------- */
+.comptoir-avec-panier {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 18px;
+  align-items: start;
+}
+.comptoir {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.comptoir-outils {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  flex-wrap: wrap;
+}
+.comptoir-recherche {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+/* Le panier : une colonne, pas une carte. Son en-tête reprend celui
+   des tableaux pour qu'on lise les deux d'un seul coup d'œil. */
+.comptoir-panier {
+  position: sticky;
+  top: calc(var(--haut) + 20px);
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-left: 1px solid var(--filet);
+}
+.panier-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 13px;
+  background: var(--entete);
+  color: #dbe6f6;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.panier-tete b {
+  color: #fff;
+  font-family: var(--chiffres);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.panier-lignes {
+  max-height: 44vh;
+  overflow-y: auto;
+}
+.panier-ligne {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 20px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 13px;
+  border-bottom: 1px solid var(--filet-2);
+}
+.panier-ligne > span {
+  min-width: 0;
+}
+.panier-ligne strong {
+  display: block;
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.panier-ligne small {
+  display: block;
+  margin-top: 2px;
+  font-size: 13.5px;
+  color: var(--encre-3);
+}
+.panier-ligne > b {
+  font-family: var(--chiffres);
+  font-size: 14.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.panier-ligne > button {
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  color: var(--encre-3);
+}
+.panier-ligne > button:hover {
+  color: var(--rouge);
+}
+.panier-vide {
+  padding: 22px 13px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--encre-3);
+}
+.panier-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 13px;
+  border-top: 1px solid var(--filet);
+  background: var(--fond-alt);
+  font-size: 14.5px;
+  color: var(--encre-2);
+}
+.panier-total strong {
+  font-family: var(--chiffres);
+  font-size: 20px;
+  color: var(--encre);
+}
+.panier-note {
+  padding: 10px 13px;
+  border-top: 1px solid var(--filet-2);
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--encre-3);
+}
+/* Un prix pas encore saisi n'est pas un montant : il ne prend pas la
+   police des chiffres, et le total ne dit jamais « 0,00 € ». */
+.panier-attente,
+.footer-summary strong.panier-attente,
+.panier-ligne > b.panier-attente {
+  font-family: var(--police);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--encre-3);
+  white-space: nowrap;
+}
+.panier-total strong.panier-attente {
+  font-size: 15px;
+}
+.panier-valider {
+  margin: 10px;
+}
+
+/* --- 7. Le parcours de commande ------------------------------------- */
+/* Les étapes vivent dans le bandeau sombre : la barre qui les portait
+   faisait un liseré de plus entre le titre et le tableau. */
+.etapes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.etape {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
+  color: #a9bcd8;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.etape b {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  color: #cddaee;
+  font-family: var(--chiffres);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.etape.active {
+  background: var(--bleu);
+  border-color: var(--bleu);
+  color: #fff;
+}
+.etape.active b {
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+.etape.faite b {
+  background: var(--vert);
+  color: #fff;
+}
+.wizard-content {
+  padding: 4px 0 0;
+}
+.wizard-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 0;
+  padding: 10px var(--gouttiere);
+  border-top: 1px solid var(--filet);
+  background: #fff;
+}
+.footer-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 15px;
+  color: var(--encre-2);
+}
+.footer-summary strong {
+  font-family: var(--chiffres);
+  font-size: 17px;
+  color: var(--encre);
+}
+
+/* Répartition entre les quatre sociétés : c'est le cœur de l'outil,
+   il décide quelle filiale est servie, donc quelle filiale paie. */
+.dispatch-table {
+  overflow-x: auto;
+}
+.dispatch-row span {
+  min-width: 0;
+}
+.dispatch-row > span:first-child strong {
+  display: block;
+  font-size: 16.5px;
+  font-weight: 600;
+}
+.dispatch-row > span:first-child small {
+  display: block;
+  margin-top: 1px;
+  color: var(--encre-3);
+  font-size: 13.5px;
+}
+.dispatch-input,
+.dispatch-quantity-control {
+  width: 100%;
+  height: 34px;
+  font-family: var(--chiffres);
+  font-size: 15.5px;
+  text-align: center;
+}
+.dispatch-total-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 2fr) 120px repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-top: 2px solid var(--entete);
+  background: var(--fond-alt);
+  font-family: var(--chiffres);
+  font-size: 15.5px;
+}
+.dispatch-total-row strong {
+  font-weight: 700;
+}
+.dispatch-error {
+  display: block;
+  color: var(--rouge);
+  font-size: 13px;
+  font-weight: 600;
+}
+.teams-grid,
+.default-teams-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px 0;
+}
+.team-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--filet-2);
+}
+.team-card strong {
+  display: block;
+  font-size: 15.5px;
+}
+.default-team-summary,
+.order-supplier-pick,
+.info-strip,
+.app-notice,
+.price-edit-banner,
+.product-delete-banner,
+.settings-lock-note,
+.role-help,
+.import-summary,
+.doc-note,
+.supplier-legend,
+.login-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 13px;
+  border: 0;
+  border-left: 3px solid var(--bleu);
+  border-radius: 0;
+  background: var(--bleu-pale);
+  font-size: 14.5px;
+  color: var(--encre-2);
+}
+.default-team-summary strong,
+.order-supplier-pick strong,
+.info-strip strong {
+  display: block;
+  color: var(--encre);
+  font-size: 15.5px;
+}
+.default-team-summary span,
+.order-supplier-pick small,
+.info-strip small {
+  display: block;
+  margin-top: 2px;
+  color: var(--encre-2);
+  font-size: 13.5px;
+}
+.order-supplier-pick select {
+  min-width: 230px;
+}
+.product-delete-banner {
+  border-left-color: var(--rouge);
+  background: var(--rouge-pale);
+}
+.price-edit-banner {
+  border-left-color: var(--ambre);
+  background: var(--ambre-pale);
+}
+.price-edit-actions,
+.settings-actions,
+.product-actions,
+.order-detail-actions,
+.success-actions,
+.review-footer,
+.nouveau-produit-actions,
+.user-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+}
+.final-recap-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 0 10px;
+}
+
+/* Document fournisseur : c'est ce qui s'imprime, il reste sobre. */
+.supplier-document {
+  padding: 18px 0;
+}
+.doc-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--entete);
+}
+.doc-meta {
+  display: flex;
+  gap: 26px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  font-size: 14.5px;
+}
+.doc-note {
+  margin-top: 12px;
+}
+.sent-mail-preview,
+.compact-mail-preview,
+.mail-template-preview {
+  padding: 13px;
+  background: var(--fond-alt);
+  font-size: 14.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+/* --- 8. Demandes d'achat -------------------------------------------- */
+.request-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  align-items: start;
+}
+.request-intro,
+.request-processing-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 10px;
+}
+.request-record {
+  border-bottom: 1px solid var(--filet);
+}
+.request-row-button,
+.order-row-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.request-processing-footer,
+.order-detail-bottom {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px 0;
+}
+.assignment-product-name strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+}
+.bulk-supplier-tools {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px 0;
+}
+
+/* --- 9. Commandes ---------------------------------------------------- */
+.order-main {
+  min-width: 0;
+}
+.order-record {
+  border-bottom: 1px solid var(--filet);
+}
+.order-date,
+.order-reference-cell {
+  font-family: var(--chiffres);
+  font-size: 14.5px;
+}
+.order-total {
+  font-family: var(--chiffres);
+  font-size: 16.5px;
+  font-weight: 700;
+  text-align: right;
+}
+.order-total-card {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: var(--fond-alt);
+}
+.order-total-card strong {
+  font-family: var(--chiffres);
+  font-size: 22px;
+}
+.order-detail-panel {
+  padding: 0 0 14px;
+}
+
+/* --- 10. Produits et tarifs ------------------------------------------ */
+.product-toolbar,
+.request-toolbar,
+.review-toolbar,
+.table-toolbar {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+}
+.product-list-name strong {
+  font-size: 17px;
+  font-weight: 600;
+}
+.price-column,
+.component-supplier-price {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.prices-closed {
+  display: none;
+}
+.prices-open {
+  display: block;
+}
+.nouveau-produit-form {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--filet);
+}
+.nouveau-produit-grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+.catalog-navigation-cards,
+.settings-hub-grid,
+.settings-main-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--filet);
+}
+.catalog-card,
+.quick-action,
+.settings-card,
+.rights-card,
+.stat-card,
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 14px;
+  border-right: 1px solid var(--filet);
+  border-bottom: 1px solid var(--filet);
+  text-align: left;
+  background: #fff;
+}
+.catalog-card:hover,
+.quick-action:hover,
+.settings-card:hover {
+  background: var(--bleu-pale);
+}
+.catalog-card strong,
+.quick-action strong,
+.settings-card strong,
+.stat-card strong {
+  display: block;
+  font-size: 16.5px;
+  font-weight: 600;
+}
+.catalog-card small,
+.quick-action small,
+.settings-card small,
+.stat-card small {
+  display: block;
+  margin-top: 2px;
+  color: var(--encre-3);
+  font-size: 13.5px;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--filet);
+}
+.stat-card b,
+.stat b {
+  font-family: var(--chiffres);
+  font-size: 26px;
+  font-weight: 700;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.65fr);
+  gap: 18px;
+  align-items: start;
+}
+.version-timeline article {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--filet-2);
+}
+.version-number {
+  font-family: var(--chiffres);
+  font-weight: 700;
+}
+
+/* --- 11. Réglages et utilisateurs ------------------------------------ */
+.users-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 18px;
+  align-items: start;
+}
+.supplier-setting-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.8fr) minmax(260px, 1.6fr) 42px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--filet-2);
+}
+.supplier-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.supplier-field label,
+.supplier-email-list span {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--encre-2);
+}
+.settings-form-card,
+.supplier-settings-card,
+.mail-settings-card {
+  padding: 4px 0 16px;
+}
+
+/* --- 12. Import de tarifs -------------------------------------------- */
+.tariff-screen .import-top-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
+  gap: 18px;
+  align-items: start;
+}
+.import-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--filet);
+}
+.import-kpis > div {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 12px;
+  border-right: 1px solid var(--filet);
+  border-bottom: 1px solid var(--filet);
+}
+.import-kpis b {
+  font-family: var(--chiffres);
+  font-size: 22px;
+}
+.drop-zone {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 28px 16px;
+  border: 1px dashed var(--filet);
+  background: var(--fond-alt);
+  color: var(--encre-3);
+  text-align: center;
+}
+.drop-zone.visible {
+  border-color: var(--bleu);
+  background: var(--bleu-pale);
+  color: var(--bleu);
+}
+.import-history article {
+  display: grid;
+  grid-template-columns: 44px minmax(240px, 1fr) repeat(3, 120px);
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--filet-2);
+}
+.history-file {
+  font-family: var(--chiffres);
+  font-size: 13.5px;
+}
+
+/* --- 13. Connexion, chargement, succès ------------------------------- */
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: var(--marine);
+}
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 26px 24px 28px;
+  background: #fff;
+}
+.login-logo {
+  display: block;
+  max-width: 150px;
+  margin: 0 auto 18px;
+}
+.login-field {
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+}
+.login-intro {
+  margin-bottom: 16px;
+}
+.login-submit {
+  width: 100%;
+  margin-top: 4px;
+}
+.login-error {
+  margin-top: 12px;
+  padding: 9px 11px;
+  border-left: 3px solid var(--rouge);
+  background: var(--rouge-pale);
+  color: var(--rouge);
+  font-size: 14px;
+}
+.app-loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  color: var(--encre-3);
+}
+.app-loading-dot {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--filet);
+  border-top-color: var(--bleu);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.success-screen {
+  padding: 40px var(--gouttiere);
+  text-align: center;
+}
+.success-card {
+  max-width: 480px;
+  margin: 0 auto;
+}
+.success-icon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  color: var(--vert);
+}
+
+/* --- 14. Tablette ---------------------------------------------------- */
+/* Le panier écrase le tableau en dessous de 1080 px : il repasse
+   AU-DESSUS de la liste. Placé dessous, il se retrouvait à 3 700 px de
+   haut, donc inatteignable. */
+@media (max-width: 1080px) {
+  .comptoir-avec-panier,
+  .request-layout,
+  .dashboard-grid,
+  .users-layout,
+  .tariff-screen .import-top-grid,
+  .order-detail-bottom,
+  .request-processing-footer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .comptoir-panier {
+    position: static;
+    order: -1;
+    margin: 0 0 4px;
+    border-left: 0;
+    border-bottom: 1px solid var(--filet);
+  }
+  .panier-lignes {
+    max-height: 30vh;
+  }
+  .catalog-navigation-cards,
+  .settings-hub-grid,
+  .settings-main-grid,
+  .import-kpis,
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .product-toolbar,
+  .request-toolbar,
+  .review-toolbar,
+  .table-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- 15. Téléphone --------------------------------------------------- */
+/* L'outil est beaucoup utilisé sur téléphone : les cibles repassent
+   au-dessus de 44 px et les tableaux larges défilent seuls. */
+@media (max-width: 960px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    width: 264px;
+  }
+  .sidebar.visible {
+    transform: none;
+  }
+  .close-sidebar {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    margin-left: auto;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #cddaee;
+  }
+  .mobile-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(12, 20, 36, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .mobile-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .main-shell {
+    margin-left: 0;
+  }
+  .topbar {
+    height: 52px;
+    padding: 0 14px;
+    justify-content: space-between;
+  }
+  .menu-btn {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #dbe6f6;
+  }
+  .page-title,
+  .welcome-row {
+    padding: 11px 14px 13px;
+  }
+  .page-title h1,
+  .welcome-row h1 {
+    font-size: 19px;
+  }
+  .screen > *:not(.page-title):not(.welcome-row) {
+    margin-left: 14px;
+    margin-right: 14px;
+  }
+  main {
+    padding-bottom: 76px;
+  }
+  .mobile-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: var(--marine);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .mobile-nav button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 9px 2px;
+    border: 0;
+    background: transparent;
+    color: var(--sur-marine);
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  .mobile-nav button.current {
+    color: #fff;
+    box-shadow: inset 0 2px 0 var(--bleu);
+  }
+  .mobile-notification {
+    position: absolute;
+    top: 5px;
+    margin-left: 17px;
+    min-width: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: var(--rouge);
+    color: #fff;
+    font-family: var(--chiffres);
+    font-size: 10px;
+    line-height: 16px;
+  }
+  .wizard-footer {
+    bottom: 60px;
+    padding: 9px 14px;
+  }
+  /* Les listes en grille deviennent des fiches empilées : à 380 px,
+     sept colonnes de fournisseurs ne tiennent pas. */
+  .table-head,
+  .product-list-head,
+  .request-list-head,
+  .order-lines-head,
+  .request-assignment-head,
+  .import-table-head,
+  .component-price-head,
+  .dispatch-head {
+    display: none;
+  }
+  .table-row,
+  .product-list-row,
+  .request-list-row,
+  .order-line-view,
+  .request-assignment-line,
+  .import-line,
+  .user-row,
+  .order-row,
+  .dispatch-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 10px;
+    padding: 11px 12px;
+  }
+  .dispatch-total-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .teams-grid,
+  .default-teams-grid,
+  .catalog-navigation-cards,
+  .settings-hub-grid,
+  .settings-main-grid,
+  .import-kpis,
+  .stats-grid,
+  .bulk-supplier-tools,
+  .supplier-setting-row {
+    grid-template-columns: 1fr;
+  }
+  .comptoir-bascule,
+  .supplier-toggle,
+  .table-chips,
+  .review-filters {
+    width: 100%;
+  }
+  .comptoir-bascule button,
+  .supplier-toggle button,
+  .table-chips button,
+  .review-filters button {
+    flex: 1;
+    height: 46px;
+  }
+  .number-control button,
+  .number-control.compact button {
+    width: 40px;
+    height: 40px;
+  }
+  .number-control-input,
+  .number-control.compact .number-control-input {
+    width: 52px;
+    height: 40px;
+    font-size: 17px;
+  }
+  .primary-btn,
+  .secondary-btn,
+  .filter-btn,
+  .danger-btn {
+    height: 44px;
+  }
+  .comptoir-table td {
+    padding: 9px 10px;
+  }
+}
+
+/* --- 16. Impression --------------------------------------------------- */
+/* Le bon de commande part au fournisseur : rien de l'interface ne
+   l'accompagne, et les prix peuvent être retirés. */
+@media print {
+  .sidebar,
+  .topbar,
+  .mobile-nav,
+  .mobile-overlay,
+  .page-title,
+  .welcome-row,
+  .wizard-footer,
+  .comptoir-panier,
+  .table-toolbar,
+  .product-toolbar,
+  .request-toolbar,
+  .order-detail-actions,
+  .sent-mail-preview,
+  .etapes,
+  .back-link {
+    display: none !important;
+  }
+  .main-shell,
+  main,
+  .screen > * {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body {
+    font-size: 11pt;
+  }
+  .doc-table > div:first-child {
+    background: #e8eef8 !important;
+    color: #10151f !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+body.print-without-prices .order-lines-head,
+body.print-without-prices .order-line-view {
+  grid-template-columns: minmax(260px, 2fr) 1.2fr 0.65fr;
+}
+body.print-without-prices .price-cell,
+body.print-without-prices .unit-price,
+body.print-without-prices .order-total,
+body.print-without-prices .price-column {
+  display: none !important;
+}

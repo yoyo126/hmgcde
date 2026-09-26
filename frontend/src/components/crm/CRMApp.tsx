@@ -15,18 +15,8 @@ import {
   getNewPurchaseRequestCount,
   type StoredOrder,
 } from "@/lib/order-storage";
-import { ROLE_LABELS } from "@/lib/permissions";
 import type { SessionUser } from "@/lib/types";
 import { usePermissions } from "./permissions-context";
-
-/** Initiales affichées dans la pastille utilisateur. */
-const initials = (user: SessionUser) =>
-  (user.name || user.email)
-    .split(/[\s.@_-]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() || "")
-    .join("") || "?";
 
 export function CRMApp({
   user,
@@ -125,13 +115,6 @@ export function CRMApp({
                 <b className="top-notification">{requestNotifications}</b>
               )}
             </button>
-            <div className="top-user">
-              <div className="avatar">{initials(user)}</div>
-              <div>
-                <strong>{user.name || user.email}</strong>
-                <small>{ROLE_LABELS[user.role]}</small>
-              </div>
-            </div>
             <button aria-label="Se déconnecter" title="Se déconnecter" onClick={onSignOut}>
               <LogOut size={18} />
             </button>
