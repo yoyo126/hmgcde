@@ -2895,3 +2895,51 @@ tr.ligne-depliee .order-detail-panel {
   align-self: center;
   color: var(--encre-3);
 }
+
+/* --- 22. Écran Produits en tableau ----------------------------------- */
+/* Sept colonnes de fournisseurs : le tableau défile seul, la page non. */
+.produits-comptoir {
+  overflow-x: auto;
+}
+.produits-comptoir .product-list-name strong {
+  font-size: 16.5px;
+  font-weight: 600;
+}
+.produits-comptoir td {
+  font-size: 15px;
+}
+.produits-comptoir .price-cell {
+  white-space: nowrap;
+}
+.produits-comptoir .price-cell.unavailable {
+  color: var(--encre-3);
+  background: transparent;
+  padding: 7px 12px;
+  border-radius: 0;
+  font-size: 13.5px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.produits-comptoir .product-actions {
+  white-space: nowrap;
+}
+.produits-comptoir tfoot,
+.produits-comptoir .catalog-price-input {
+  font-family: var(--chiffres);
+}
+.catalog-price-input input,
+.catalog-quantity-input input,
+.catalog-packaging-input input,
+.meter-price-input input,
+.catalog-text-input input {
+  width: 100%;
+}
+.produits-comptoir .catalog-price-input {
+  display: block;
+  width: 96px;
+  margin-left: auto;
+}
+.produits-comptoir .catalog-text-input {
+  width: 100%;
+}

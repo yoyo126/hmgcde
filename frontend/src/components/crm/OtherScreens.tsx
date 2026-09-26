@@ -977,16 +977,23 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                     {items.length} produit{items.length > 1 ? "s" : ""}
                   </b>
                 </div>
-                <div className="product-list-scroll">
-                  <div className="product-list">
-                    <div className="product-list-head">
-                      <span>Produit</span>
-                      <span>Conditionnement</span>
-                      {configuredSupplierNames.map((supplier) => (
-                        <span key={supplier}>{supplier}</span>
-                      ))}
-                      <span />
-                    </div>
+                {/* Un vrai tableau, comme les trois autres écrans. Le
+                    détail d'un ensemble s'ouvre sur une ligne dépliée. */}
+                <div className="comptoir-table produits-comptoir">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Produit</th>
+                        <th>Conditionnement</th>
+                        {configuredSupplierNames.map((supplier) => (
+                          <th className="chiffre" key={supplier}>
+                            {supplier}
+                          </th>
+                        ))}
+                        <th />
+                      </tr>
+                    </thead>
+                    <tbody>
                     {items.map((p) => {
                       const supplierPrices = configuredSupplierNames.map((supplier) => {
                         const offer = p.offers.find(
@@ -1016,19 +1023,18 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                         ? Math.min(...knownPrices)
                         : 0;
                       return (
-                        <article
-                          data-produit={p.id}
-                          className={
-                            "product-list-item " +
-                            (editingPrices || openedPrices.includes(p.id)
-                              ? "prices-open"
-                              : "prices-closed") +
-                            (nouveauProduit === p.id ? " produit-nouveau" : "")
-                          }
-                          key={`${p.id}-${priceRevision}`}
-                        >
-                          <div className="product-list-row">
-                            <span className="product-list-name">
+                        <Fragment key={`${p.id}-${priceRevision}`}>
+                          <tr
+                            data-produit={p.id}
+                            className={
+                              "product-list-item " +
+                              (editingPrices || openedPrices.includes(p.id)
+                                ? "prices-open"
+                                : "prices-closed") +
+                              (nouveauProduit === p.id ? " produit-nouveau" : "")
+                            }
+                          >
+                            <td className="product-list-name">
                               {deletingProducts && (
                                 <label className="product-delete-check">
                                   <input
@@ -1125,7 +1131,6 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                   ? `${p.bundleLabel || "Ensemble"} avec sous-produits`
                                   : `Commande par ${p.unit.toLowerCase()}`}
                               </small>
-                            </span>
                             {!editingPrices && (
                               <button
                                 className="supplier-toggle"
@@ -1143,7 +1148,8 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                 <ChevronDown size={18} />
                               </button>
                             )}
-                            <span
+                            </td>
+                            <td
                               className="packaging-cell"
                               data-label="Conditionnement"
                             >
@@ -1165,7 +1171,7 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                               ) : (
                                 p.offers[0]?.packaging || "À renseigner"
                               )}
-                            </span>
+                            </td>
                             {configuredSupplierNames.map((supplier) => {
                               const supplierPrice = supplierPrices.find(
                                 (item) => item.supplier === supplier,
@@ -1175,7 +1181,7 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                               const key = priceKey(p.id, supplier);
                               const draft = priceDrafts[key];
                               return (
-                                <span
+                                <td
                                   className={
                                     !offer && !price
                                       ? "price-cell unavailable"
@@ -1285,10 +1291,10 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                     ) : (
                                       <small>{offer.packaging}</small>
                                     ))}
-                                </span>
+                                </td>
                               );
                             })}
-                            <span className="product-actions">
+                            <td className="product-actions">
                               {p.kind === "ensemble" && (
                                 <button
                                   className="composition-link"
@@ -1299,9 +1305,11 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                   {open === p.id ? "Fermer" : editingCatalog ? "Modifier" : "Détail"}
                                 </button>
                               )}
-                            </span>
-                          </div>
+                            </td>
+                          </tr>
                           {open === p.id && (
+                            <tr className="ligne-depliee">
+                              <td colSpan={configuredSupplierNames.length + 3}>
                             <div className="composition-box list-composition">
                               <div className="component-title-row">
                                 <strong className="component-comparison-title">
@@ -1495,11 +1503,14 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                 </div>
                               </div>
                             </div>
+                              </td>
+                            </tr>
                           )}
-                        </article>
+                        </Fragment>
                       );
                     })}
-                  </div>
+                    </tbody>
+                  </table>
                 </div>
               </section>
             );
