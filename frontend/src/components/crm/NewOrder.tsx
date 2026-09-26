@@ -99,9 +99,15 @@ export function NewOrder({
   const countFor = (nomFamille: string) =>
     chezCeFournisseur.filter((p) => !nomFamille || p.family === nomFamille).length;
 
-  /** Offre de référence : celle du fournisseur retenu, sinon la première. */
+  /**
+   * Offre de référence : celle du fournisseur retenu, sinon la première qui
+   * porte un conditionnement réel — afficher « À renseigner » quand une autre
+   * offre connaît la couronne ou le carton n'aide personne.
+   */
   const offreDe = (produit: Product) =>
-    produit.offers.find((o) => o.supplier === supplier) || produit.offers[0];
+    produit.offers.find((o) => o.supplier === supplier) ||
+    produit.offers.find((o) => o.packaging && o.packaging !== "À renseigner") ||
+    produit.offers[0];
 
   /** Prix le plus bas connu, tous fournisseurs confondus. */
   const meilleurPrix = (produit: Product) => {
@@ -132,13 +138,25 @@ export function NewOrder({
     return [...paquets.entries()].map(([titre, produits]) => ({ titre, produits }));
   }, [filtered]);
 
+  /**
+   * Total de la commande.
+   *
+   * Tant qu'aucun fournisseur n'est désigné — ce qui est le cas pendant toute
+   * la sélection — on additionne les prix les plus bas connus, ceux-là mêmes
+   * qui s'affichent sur les lignes. Auparavant le total cherchait le prix du
+   * fournisseur retenu et retombait donc à zéro, alors que chaque ligne
+   * affichait un montant.
+   */
   const total = useMemo(
     () =>
-      Object.entries(selected).reduce((sum, [id, qty]) => {
-        const o = products
-          .find((p) => p.id === Number(id))
-          ?.offers.find((x) => x.supplier === supplier);
-        return sum + (o?.price || 0) * qty;
+      Object.entries(selected).reduce((sum, [id, quantite]) => {
+        const produit = products.find((p) => p.id === Number(id));
+        if (!produit) return sum;
+        const offre = supplier
+          ? produit.offers.find((x) => x.supplier === supplier)
+          : undefined;
+        const prix = offre?.price || meilleurPrix(produit);
+        return sum + prix * quantite;
       }, 0),
     [products, selected, supplier],
   );
