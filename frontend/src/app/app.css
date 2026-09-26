@@ -452,12 +452,22 @@ main {
 .request-processing-head,
 .order-detail-head,
 .mail-preview-head,
-.component-title-row,
-.wizard-heading {
+.component-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+  padding: 16px 0 10px;
+}
+/* Titre de section : l'icône colle au texte. En « space-between », les
+   deux partaient chacun à un bout de la page. */
+.wizard-heading,
+.request-intro,
+.request-processing-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
   padding: 16px 0 10px;
 }
 .panel-head h2,
@@ -2176,4 +2186,112 @@ body.print-without-prices .unit-price,
 body.print-without-prices .order-total,
 body.print-without-prices .price-column {
   display: none !important;
+}
+
+/* --- 17. Reprises après relecture à l'écran -------------------------- */
+
+/* Répartition : les cases sont calculées, pas saisies. Encadrées, elles
+   ressemblaient à des champs vides qu'on aurait oublié de remplir. */
+span.dispatch-input {
+  display: block;
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--chiffres);
+  font-size: 16.5px;
+  font-weight: 600;
+  text-align: center;
+}
+span.dispatch-input:empty::before {
+  content: "0";
+  color: var(--encre-3);
+}
+
+/* Une grille de cellules ne doit pas se refermer en boîte : la dernière
+   colonne ne porte pas de filet à droite. */
+.stats-grid > *:last-child,
+.import-kpis > *:last-child,
+.catalog-navigation-cards > *:nth-child(3n),
+.catalog-navigation-cards > *:last-child,
+.settings-hub-grid > *:nth-child(3n),
+.settings-hub-grid > *:last-child,
+.settings-main-grid > *:nth-child(3n),
+.settings-main-grid > *:last-child {
+  border-right: 0;
+}
+/* Les accès rapides sont empilés sur une seule colonne : pas de filet
+   vertical, sinon chaque ligne se referme en cadre. */
+.quick-action {
+  border-right: 0;
+  width: 100%;
+}
+.quick-panel {
+  border-top: 1px solid var(--filet);
+}
+
+/* Les tuiles des réglages et du catalogue sont des <button> sans classe,
+   à trois enfants : icône, titre, description. */
+.settings-hub-grid > button,
+.settings-main-grid > button,
+.catalog-navigation-cards > button {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 12px;
+  padding: 16px 14px;
+  border: 0;
+  border-right: 1px solid var(--filet);
+  border-bottom: 1px solid var(--filet);
+  background: #fff;
+  text-align: left;
+}
+.settings-hub-grid > button:hover,
+.settings-main-grid > button:hover,
+.catalog-navigation-cards > button:hover {
+  background: var(--bleu-pale);
+}
+.settings-hub-grid > button > span:first-child,
+.settings-main-grid > button > span:first-child,
+.catalog-navigation-cards > button > span:first-child {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  color: var(--bleu);
+}
+.settings-hub-grid > button > strong,
+.settings-main-grid > button > strong,
+.catalog-navigation-cards > button > strong {
+  grid-column: 2;
+  font-size: 16.5px;
+  font-weight: 600;
+}
+.settings-hub-grid > button > small,
+.settings-main-grid > button > small,
+.catalog-navigation-cards > button > small {
+  grid-column: 2;
+  margin-top: 2px;
+  color: var(--encre-3);
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+/* Une barre de filtres qui porte les deux classes devient un sélecteur
+   segmenté, pas une rangée d'onglets dans une boîte. */
+.family-chips.table-chips {
+  display: inline-flex;
+  border-bottom: 1px solid var(--filet);
+  overflow: hidden;
+}
+.family-chips.table-chips button {
+  min-height: 42px;
+  padding: 0 15px;
+  box-shadow: none;
+}
+.family-chips.table-chips button.active {
+  background: var(--entete);
+  color: #fff;
+  box-shadow: none;
 }
