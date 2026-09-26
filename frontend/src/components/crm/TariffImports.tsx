@@ -1,6 +1,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import {
+  ArrowLeft,
   AlertTriangle,
   ArrowDown,
   ArrowUp,
@@ -568,7 +569,9 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
       <div className="page-title standard">
         <div>
           {onBack && (
-            <button className="back-link" onClick={onBack}>← Paramètres</button>
+            <button className="back-link" onClick={onBack}>
+              <ArrowLeft size={16} /> Rubriques
+            </button>
           )}
           <span className="eyebrow">MISE À JOUR FOURNISSEURS</span>
           <h1>Import tarifs</h1>

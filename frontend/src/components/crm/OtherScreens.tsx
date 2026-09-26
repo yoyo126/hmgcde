@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import {
+  ArrowLeft,
   Box,
   ChevronDown,
   ChevronRight,
@@ -756,7 +757,9 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
       <div className="page-title standard product-page-title">
         <div>
           {onBack && (
-            <button className="back-link" onClick={onBack}>← Paramètres</button>
+            <button className="back-link" onClick={onBack}>
+              <ArrowLeft size={16} /> Rubriques
+            </button>
           )}
           <span className="eyebrow">CATALOGUE UNIQUE</span>
           <h1>Produits</h1>
@@ -1691,15 +1694,13 @@ export function UsersScreen({ onBack }: { onBack?: () => void } = {}) {
 
   return (
     <div className="screen">
-      {onBack && (
-        <button className="back-link settings-back-link" onClick={onBack}>← Paramètres</button>
-      )}
       <ScreenHeader
         eyebrow="ACCÈS"
         title="Utilisateurs et droits"
         description="Gérez simplement qui peut voir et modifier."
         action="Ajouter un utilisateur"
         onAction={() => setAdding((open) => !open)}
+        onBack={onBack}
       />
       {error && <p className="login-error">{error}</p>}
       <div className="users-layout">
@@ -1801,6 +1802,33 @@ export function UsersScreen({ onBack }: { onBack?: () => void } = {}) {
     </div>
   );
 }
+/**
+ * Nom et sous-titre de chaque rubrique des paramètres. Sans cela, quatre
+ * rubriques sur sept s'annonçaient toutes « Paramètres ».
+ */
+const RUBRIQUES = {
+  hub: {
+    titre: "Paramètres",
+    texte: "Adresses fournisseurs, modèle d’e-mail et livraison.",
+  },
+  suppliers: {
+    titre: "Fournisseurs et e-mails",
+    texte: "Les destinataires de chaque bon de commande.",
+  },
+  teams: {
+    titre: "Équipes par défaut",
+    texte: "Le nombre d’équipes qui sert au calcul de la répartition.",
+  },
+  order: {
+    titre: "E-mail et livraison",
+    texte: "Objet, message, signature et adresse de livraison.",
+  },
+  versions: {
+    titre: "Versions du CRM",
+    texte: "Ce qui a changé, version par version.",
+  },
+} as const;
+
 export function SettingsScreen({
   onNavigate,
 }: {
@@ -1834,9 +1862,23 @@ export function SettingsScreen({
     <div className="screen">
       <div className="page-title standard settings-page-title">
         <div>
+          {section !== null && (
+            <button
+              className="back-link"
+              onClick={() => {
+                setEditing(false);
+                setDraft(saved);
+                setSection(null);
+              }}
+            >
+              <ArrowLeft size={16} /> Rubriques
+            </button>
+          )}
           <span className="eyebrow">CONFIGURATION</span>
-          <h1>Paramètres</h1>
-          <p>Adresses fournisseurs, modèle d’e-mail et livraison.</p>
+          {/* Quatre rubriques sur sept affichaient « Paramètres » : on ne
+              savait pas où l'on était. Chacune porte son nom. */}
+          <h1>{RUBRIQUES[section ?? "hub"].titre}</h1>
+          <p>{RUBRIQUES[section ?? "hub"].texte}</p>
         </div>
         {(section === "suppliers" || section === "teams" || section === "order") && (
           <div className="settings-actions">
@@ -1901,18 +1943,6 @@ export function SettingsScreen({
           <small>Version actuelle {CRM_VERSION} et historique des évolutions</small>
         </button>
       </div>
-      )}
-      {section !== null && (
-        <button
-          className="back-link settings-section-back"
-          onClick={() => {
-            setEditing(false);
-            setDraft(saved);
-            setSection(null);
-          }}
-        >
-          ← Toutes les rubriques
-        </button>
       )}
       {section === "versions" && (
         <section className="panel version-history-panel">
@@ -2131,16 +2161,24 @@ function ScreenHeader({
   description,
   action,
   onAction,
+  onBack,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   action?: string;
   onAction?: () => void;
+  /** Retour aux rubriques : toujours dans le bandeau, jamais autour. */
+  onBack?: () => void;
 }) {
   return (
     <div className="page-title standard">
       <div>
+        {onBack && (
+          <button className="back-link" onClick={onBack}>
+            <ArrowLeft size={16} /> Rubriques
+          </button>
+        )}
         <span className="eyebrow">{eyebrow}</span>
         <h1>{title}</h1>
         <p>{description}</p>
