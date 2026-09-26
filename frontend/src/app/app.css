@@ -2467,3 +2467,36 @@ button.supplier-toggle {
     font-weight: 600;
   }
 }
+
+/* Les barres d'outils portent tantôt un champ, tantôt quatre : en
+   grille fixe, un champ seul restait coincé dans 240 px avec 900 px de
+   vide à côté. En ligne souple, elles s'adaptent au nombre d'éléments. */
+.product-toolbar,
+.request-toolbar,
+.review-toolbar,
+.table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+.product-toolbar > *,
+.request-toolbar > *,
+.review-toolbar > *,
+.table-toolbar > * {
+  flex: 0 1 auto;
+}
+.product-toolbar .search-box,
+.request-toolbar .search-box,
+.review-toolbar .search-box,
+.table-toolbar .search-box {
+  flex: 1 1 300px;
+  max-width: 480px;
+}
+
+/* « Conditionnement » demande 136 px dans une colonne de 108 : il se
+   replie comme les intitulés de fournisseurs. */
+.product-list-head > span:nth-child(2) {
+  white-space: normal;
+}
