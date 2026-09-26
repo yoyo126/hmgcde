@@ -1779,26 +1779,39 @@ export function UsersScreen({ onBack }: { onBack?: () => void } = {}) {
             </div>
           ))}
         </section>
-        <aside className="panel rights-card">
-          <div className="rights-icon">
-            <ShieldCheck size={25} />
+      </div>
+      {/* Les trois rôles, en pleine largeur sous la liste. Serrés dans
+          une case de 280 px à droite, ils tombaient en escalier et
+          volaient la place des comptes. */}
+      <section className="panel rights-card">
+        <div className="rights-tete">
+          <span className="rights-icon">
+            <ShieldCheck size={22} />
+          </span>
+          <div>
+            <h2>Droits simples</h2>
+            <p>Trois niveaux suffisent pour garder l’application claire.</p>
           </div>
-          <h2>Droits simples</h2>
-          <p>Trois niveaux suffisent pour garder l’application claire.</p>
+        </div>
+        <div className="rights-roles">
           <div>
             <strong>Administrateur</strong>
-            <span>Accès complet, gestion des comptes</span>
+            <span>Accès complet, gestion des comptes et des paramètres</span>
           </div>
           <div>
-            <strong>Commandes</strong>
-            <span>Création et suivi</span>
+            <strong>Achats et commandes</strong>
+            <span>Création, répartition et suivi des commandes</span>
+          </div>
+          <div>
+            <strong>Demandes d’achat</strong>
+            <span>Saisie des besoins, sans accès aux prix</span>
           </div>
           <div>
             <strong>Lecture seule</strong>
             <span>Consultation uniquement</span>
           </div>
-        </aside>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

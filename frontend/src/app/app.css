@@ -164,15 +164,20 @@ input[type="number"]::-webkit-inner-spin-button {
   flex-direction: column;
   z-index: 40;
 }
+/* Le logo reprend ses couleurs d'origine — le dégradé bleu de HM Group —
+   sur une plaque blanche qui occupe toute la largeur de la colonne. La
+   variante éclaircie, posée à même le marine, en changeait la teinte. */
 .brand {
-  padding: 0 4px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 14px;
+  margin: -16px -10px 16px;
+  padding: 16px 14px;
+  background: #fff;
 }
 .brand-logo {
   display: block;
-  max-width: 130px;
+  width: 100%;
+  max-width: 172px;
   height: auto;
+  margin: 0 auto;
 }
 .brand-mark {
   display: flex;
@@ -1899,15 +1904,11 @@ tr.comptoir-composition td span {
 }
 
 /* --- 11. Réglages et utilisateurs ------------------------------------ */
+/* La liste des comptes occupe toute la largeur : la case des rôles,
+   serrée à 280 px sur le côté, lui volait la place et tombait en
+   escalier. Elle est passée dessous. */
 .users-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-  gap: 0;
-  align-items: start;
-}
-.users-layout > .rights-card {
-  border-left: 1px solid var(--filet);
-  border-top: 0;
+  display: block;
 }
 .supplier-setting-row {
   display: grid;
@@ -3503,4 +3504,178 @@ tr.ligne-depliee .order-detail-panel {
   display: block;
   padding: 0;
   border: 0;
+}
+
+/* Rappel des rôles : quatre colonnes sous la liste des comptes. */
+.rights-card {
+  display: block;
+  padding: 0 0 18px;
+  border-top: 1px solid var(--filet);
+}
+.rights-tete {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px var(--gouttiere) 12px;
+}
+.rights-tete h2 {
+  font-size: 19px;
+  font-weight: 700;
+}
+.rights-tete p {
+  margin-top: 2px;
+  color: var(--encre-3);
+  font-size: 15px;
+}
+.rights-roles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--filet);
+}
+.rights-roles > div {
+  padding: 14px var(--gouttiere);
+  border-right: 1px solid var(--filet);
+}
+.rights-roles > div:last-child {
+  border-right: 0;
+}
+.rights-card strong {
+  display: block;
+  font-size: 16.5px;
+  font-weight: 600;
+}
+.rights-card span {
+  display: block;
+  margin-top: 3px;
+  color: var(--encre-3);
+  font-size: 15px;
+  line-height: 1.4;
+}
+@media (max-width: 1080px) {
+  .rights-roles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rights-roles > div:nth-child(2n) {
+    border-right: 0;
+  }
+}
+@media (max-width: 760px) {
+  .rights-roles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rights-roles > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--filet-2);
+  }
+}
+
+/* --- 25. Lisibilité des réglages et des formulaires ------------------ */
+/* Les rubriques de paramètres tournaient entre 13 et 15 px, avec des
+   « small » laissés à la taille du navigateur (13,3 px). On y lit des
+   adresses e-mail et des nombres d'équipes : ça se lit, ça ne se
+   devine pas. */
+.settings-form-card,
+.supplier-settings-card,
+.mail-settings-card,
+.purchasing-settings-grid,
+.version-history-panel,
+.rights-card,
+.user-list,
+.import-panel,
+.import-summary,
+.import-history,
+.manual-price-history {
+  font-size: 16px;
+}
+.panel-head p,
+.settings-form-head p,
+.wizard-heading p,
+.import-panel-title p,
+.rights-tete p,
+.page-title p,
+.welcome-row p {
+  font-size: 16px;
+}
+.panel-head h2,
+.settings-form-head h2,
+.import-panel-title h2,
+.wizard-heading h2,
+.rights-tete h2 {
+  font-size: 20px;
+}
+.settings-form-card p,
+.supplier-settings-card p,
+.mail-settings-card p,
+.purchasing-settings-grid p,
+.version-history-panel p {
+  font-size: 16px;
+  line-height: 1.5;
+}
+/* Les « small » sans règle sortaient à 13,3 px, taille par défaut. */
+.settings-form-card small,
+.supplier-settings-card small,
+.mail-settings-card small,
+.purchasing-settings-grid small,
+.version-history-panel small,
+.user-list small,
+.import-panel small,
+.import-summary small,
+.manual-price-history small {
+  font-size: 15px;
+}
+.supplier-field label,
+.supplier-field > span,
+.settings-form-card label,
+.purchasing-settings-grid label,
+.filtres-commandes label > span {
+  font-size: 15.5px;
+  font-weight: 600;
+}
+.settings-form-card input,
+.settings-form-card select,
+.settings-form-card textarea,
+.purchasing-settings-grid input,
+.purchasing-settings-grid select,
+.purchasing-settings-grid textarea,
+.supplier-setting-row input,
+.supplier-setting-row select {
+  font-size: 16px;
+}
+.settings-lock-note,
+.role-help,
+.info-strip,
+.default-team-summary,
+.order-supplier-pick,
+.app-notice {
+  font-size: 16px;
+}
+.eyebrow {
+  font-size: 14px;
+}
+
+/* Historique des versions : de quoi se relire sans plisser les yeux. */
+.version-timeline article strong,
+.version-number {
+  font-size: 17px;
+}
+.version-timeline article small {
+  font-size: 15px;
+}
+.version-timeline article li,
+.version-history-panel li {
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* Les tuiles des rubriques, premier écran des paramètres. */
+.settings-hub-grid > button > strong,
+.settings-main-grid > button > strong,
+.catalog-navigation-cards > button > strong {
+  font-size: 18px;
+}
+.settings-hub-grid > button > small,
+.settings-main-grid > button > small,
+.catalog-navigation-cards > button > small {
+  font-size: 15px;
 }

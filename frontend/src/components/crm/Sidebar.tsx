@@ -74,7 +74,7 @@ export function Sidebar({
         <div className="brand">
           {/* Le logo porte déjà le nom du groupe : inutile de le répéter à côté,
               autant lui laisser toute la largeur pour rester lisible. */}
-          <HmLogo clair className="brand-logo" />
+          <HmLogo className="brand-logo" />
           {/* Le logo porte déjà « ACHAT FILIALE » : le répéter en dessous
               n'apportait rien. */}
           <button className="close-sidebar" onClick={onClose}>
