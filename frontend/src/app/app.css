@@ -1132,10 +1132,15 @@ tr.comptoir-composition td span {
   align-items: center;
   gap: 12px;
 }
+/* Cinq cellules par ligne pour cinq colonnes : la pastille d'état était
+   la cinquième dans une grille qui n'en comptait que quatre, et partait
+   seule sur une deuxième ligne, sous le produit. */
 .request-assignment-head,
 .request-assignment-line {
   display: grid;
-  grid-template-columns: minmax(220px, 1.6fr) 0.8fr minmax(180px, 1fr) 0.75fr;
+  grid-template-columns:
+    minmax(200px, 1.6fr) minmax(120px, 0.8fr) 150px
+    minmax(160px, 1fr) minmax(110px, 0.7fr);
   align-items: center;
   gap: 12px;
 }
@@ -1684,12 +1689,20 @@ tr.comptoir-composition td span {
   background: transparent;
   text-align: left;
 }
+/* Un seul bloc à l'intérieur : en grille fixe, il se retrouvait écrasé
+   dans 210 px avec 1 046 px de vide à côté. */
 .request-processing-footer,
 .order-detail-bottom {
-  display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
   gap: 16px;
   padding: 14px var(--gouttiere);
+}
+.request-processing-footer > *,
+.order-detail-bottom > * {
+  flex: 1 1 320px;
+  min-width: 0;
 }
 .assignment-product-name strong {
   display: block;

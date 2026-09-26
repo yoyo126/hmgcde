@@ -359,6 +359,7 @@ export function PurchaseRequests({
                   )}
                   <div className="request-assignment-head">
                     <span>Produit</span>
+                    <span>Conditionnement</span>
                     <span>Quantité globale</span>
                     <span>Fournisseur retenu</span>
                     <span>État</span>
