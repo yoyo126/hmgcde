@@ -832,8 +832,7 @@ select:focus {
 
 /* Onglets de familles : soulignés, jamais encadrés. */
 .comptoir-familles,
-.family-chips,
-.catalog-groups {
+.family-chips {
   display: flex;
   gap: 0;
   border-bottom: 1px solid var(--filet);
@@ -841,13 +840,11 @@ select:focus {
   scrollbar-width: none;
 }
 .comptoir-familles::-webkit-scrollbar,
-.family-chips::-webkit-scrollbar,
-.catalog-groups::-webkit-scrollbar {
+.family-chips::-webkit-scrollbar {
   display: none;
 }
 .comptoir-familles button,
-.family-chips button,
-.catalog-groups button {
+.family-chips button {
   flex: none;
   height: auto;
   min-height: 44px;
@@ -861,8 +858,7 @@ select:focus {
   white-space: nowrap;
 }
 .comptoir-familles button b,
-.family-chips button b,
-.catalog-groups button b {
+.family-chips button b {
   margin-left: 6px;
   font-family: var(--chiffres);
   font-weight: 600;
@@ -870,15 +866,13 @@ select:focus {
 }
 .comptoir-familles button.actif,
 .comptoir-familles button.active,
-.family-chips button.active,
-.catalog-groups button.active {
+.family-chips button.active {
   color: var(--encre);
   box-shadow: inset 0 -2px 0 var(--bleu);
 }
 .comptoir-familles button.actif b,
 .comptoir-familles button.active b,
-.family-chips button.active b,
-.catalog-groups button.active b {
+.family-chips button.active b {
   color: var(--bleu);
   opacity: 1;
 }
@@ -3000,4 +2994,18 @@ tr.ligne-depliee .order-detail-panel {
   .import-kpis > div {
     border-right: 0;
   }
+}
+
+/* Le catalogue empile ses catégories, il ne les aligne pas. Rangé avec
+   les barres d'onglets, ce conteneur mettait les cinq catégories côte à
+   côte sur 5 400 px : on voyait la Climatisation, puis l'Électricité
+   qui repartait à droite hors de l'écran. */
+.catalog-groups,
+.compact-catalog {
+  display: block;
+  overflow: visible;
+}
+.catalog-section {
+  display: block;
+  margin-bottom: 4px;
 }
