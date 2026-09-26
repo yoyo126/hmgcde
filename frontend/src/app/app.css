@@ -2648,3 +2648,24 @@ button.supplier-toggle {
     padding: 0;
   }
 }
+
+/* Conditionnement et prix partagent la même case de grille : placés là
+   sans alignement, ils se superposaient — « Couronne de 100 m » et
+   « à saisir » imprimés l'un sur l'autre. L'un se cale à gauche,
+   l'autre à droite. */
+@media (max-width: 760px) {
+  tr:has(> td:nth-child(4)):not(:has(> td:nth-child(5))) td:nth-child(2) {
+    justify-self: start;
+    margin-right: 0;
+  }
+  tr:has(> td:nth-child(4)):not(:has(> td:nth-child(5))) td:nth-child(3) {
+    justify-self: end;
+    margin-right: 0;
+  }
+  /* La bande de section débordait de 14 px : sa marge négative n'a plus
+     de rembourrage à compenser. */
+  .comptoir-table tbody tr.comptoir-section td {
+    margin: 0;
+    padding: 7px 2px;
+  }
+}
