@@ -1326,7 +1326,7 @@ tr.comptoir-composition td span {
 /* --- 6. Le comptoir : écran de saisie commande et demande ----------- */
 .comptoir-avec-panier {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 290px;
+  grid-template-columns: minmax(0, 1fr) clamp(290px, 24vw, 400px);
   gap: 0;
   align-items: start;
 }
@@ -1385,7 +1385,7 @@ tr.comptoir-composition td span {
 }
 .panier-ligne {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto 20px;
+  grid-template-columns: minmax(0, 1fr) auto 22px;
   align-items: center;
   gap: 8px;
   padding: 8px 20px 8px 13px;
@@ -2423,6 +2423,36 @@ tr.comptoir-composition td span {
     padding: 1.6mm 2mm;
     font-size: 9pt;
     break-inside: avoid;
+  }
+  /* Tenir sur une page tant que c'est raisonnable : au-delà d'une
+     quinzaine de lignes, on resserre plutôt que de déborder. Au-delà
+     de trente, on laisse la deuxième page venir : illisible ne vaut
+     pas mieux que long. */
+  .order-lines-view:has(.order-line-view:nth-of-type(16)) .order-line-view,
+  .order-lines-view:has(.order-line-view:nth-of-type(16)) .order-lines-head {
+    padding: 1mm 2mm;
+    font-size: 8pt;
+  }
+  .order-lines-view:has(.order-line-view:nth-of-type(16)) .order-line-view strong {
+    font-size: 8pt;
+  }
+  .order-lines-view:has(.order-line-view:nth-of-type(16)) .saved-order-components {
+    display: none;
+  }
+  .order-lines-view:has(.order-line-view:nth-of-type(23)) .order-line-view,
+  .order-lines-view:has(.order-line-view:nth-of-type(23)) .order-lines-head {
+    padding: 0.6mm 2mm;
+    font-size: 7.2pt;
+  }
+  .order-lines-view:has(.order-line-view:nth-of-type(23)) .order-line-view strong {
+    font-size: 7.2pt;
+  }
+  /* Une commande longue resserre aussi son en-tête. */
+  .order-detail-panel:has(.order-line-view:nth-of-type(23)) .doc-logo {
+    width: 26mm;
+  }
+  .order-detail-panel:has(.order-line-view:nth-of-type(23)) .order-detail-head {
+    padding: 2mm 0 1mm;
   }
   .order-lines-head {
     background: #e8eef8 !important;
@@ -3874,4 +3904,15 @@ tr.ligne-depliee .order-detail-panel {
 .request-status-refusée {
   background: var(--rouge-pale);
   color: var(--rouge);
+}
+
+/* Le nom du produit s'étalait sur toute la place libre, laissant un
+   long vide avant le conditionnement. La colonne se borne : le reste
+   va au panier, qui en profite mieux. */
+.comptoir-table td:first-child > strong {
+  display: inline-block;
+  max-width: 46rem;
+}
+.comptoir-table th:first-child {
+  width: 46%;
 }
