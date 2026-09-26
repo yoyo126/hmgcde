@@ -951,10 +951,16 @@ export function NewOrder({
             {step < 4 ? (
               <button
                 className="primary-btn"
-                disabled={!Object.values(selected).some((quantity) => quantity > 0)}
+                disabled={
+                  !Object.values(selected).some((quantity) => quantity > 0) ||
+                  (step === 3 && !dispatchValid)
+                }
                 onClick={() => setStep(step === 2 ? 3 : 4)}
               >
-                Continuer <ArrowRight size={17} />
+                {step === 3 && !dispatchValid
+                  ? "Corriger la répartition"
+                  : "Continuer"}
+                <ArrowRight size={17} />
               </button>
             ) : (
               <button
