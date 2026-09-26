@@ -90,6 +90,10 @@ export function NewOrder({
     1,
     Object.values(teams).reduce((a, b) => a + b, 0),
   );
+  // Comparatif des fournisseurs : replié par défaut, car sept colonnes de
+  // prix mangent la largeur des noms. On le déplie quand on arbitre.
+  const [comparatif, setComparatif] = useState(false);
+
   // Le catalogue est visible dès l'ouverture : les filtres restreignent, ils
   // ne conditionnent plus l'affichage.
   // Le fournisseur se choisit à la validation : on compose d'abord sa
@@ -413,6 +417,7 @@ export function NewOrder({
                 )}
               </div>
             </div>
+            <div className="barre-filtres">
             <div className="family-chips">
               <button
                 className={family ? "" : "active"}
@@ -438,6 +443,21 @@ export function NewOrder({
                 </button>
               ))}
             </div>
+            <div className="bascule-comparatif" role="group" aria-label="Affichage des prix">
+              <button
+                aria-pressed={!comparatif}
+                onClick={() => setComparatif(false)}
+              >
+                Meilleur prix
+              </button>
+              <button
+                aria-pressed={comparatif}
+                onClick={() => setComparatif(true)}
+              >
+                Tous les fournisseurs
+              </button>
+            </div>
+            </div>
             {family && groups.length > 1 && (
               <div className="family-chips group-chips">
                 <button className={group ? "" : "active"} onClick={() => setGroup("")}>
@@ -454,7 +474,7 @@ export function NewOrder({
                 ))}
               </div>
             )}
-            <div className="select-products">
+            <div className={"select-products" + (comparatif ? " avec-comparatif" : "")}>
               {sections.map(({ titre, produits }) => (
                 <div className="catalog-section" key={titre}>
                   <div className="catalog-section-head">
@@ -498,10 +518,30 @@ export function NewOrder({
                         </div>
                       )}
                     </div>
-                    <strong className="unit-price">
-                      {meilleurPrix(p) ? money(meilleurPrix(p)) : "Prix à saisir"}
-                      <small>/ {p.unit.toLowerCase()}</small>
-                    </strong>
+                    {comparatif ? (
+                      <span className="prix-fournisseurs">
+                        {settings.suppliers.map(({ name }) => {
+                          const offre = p.offers.find((o) => o.supplier === name);
+                          const prix = offre?.price || 0;
+                          const estMeilleur = prix > 0 && prix === meilleurPrix(p);
+                          return (
+                            <span
+                              key={name}
+                              className={estMeilleur ? "prix-cellule meilleur" : "prix-cellule"}
+                              title={name}
+                            >
+                              <small>{name.split(" ")[0]}</small>
+                              {prix ? money(prix) : "—"}
+                            </span>
+                          );
+                        })}
+                      </span>
+                    ) : (
+                      <strong className="unit-price">
+                        {meilleurPrix(p) ? money(meilleurPrix(p)) : "Prix à saisir"}
+                        <small>/ {p.unit.toLowerCase()}</small>
+                      </strong>
+                    )}
                     <NumberControl
                       compact
                       value={n}

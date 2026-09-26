@@ -520,3 +520,89 @@ textarea:focus-visible,
     margin-bottom: 6px;
   }
 }
+
+/* --- Comparatif des fournisseurs, à la demande ------------------------- */
+.barre-filtres {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--c-filet);
+}
+.barre-filtres .family-chips {
+  border-bottom: 0;
+  flex: 1 1 auto;
+}
+.bascule-comparatif {
+  display: inline-flex;
+  border: 1px solid var(--c-filet);
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 11.5px;
+  font-weight: 600;
+  flex: none;
+}
+.bascule-comparatif button {
+  border: 0;
+  background: #fff;
+  color: var(--c-encre-3);
+  padding: 6px 11px;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.bascule-comparatif button[aria-pressed="true"] {
+  background: var(--c-bandeau);
+  color: #fff;
+}
+
+/* Les sept prix, alignés sur une rangée compacte. */
+.prix-fournisseurs {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(58px, 1fr);
+  gap: 3px;
+  align-items: stretch;
+}
+.prix-cellule {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 5px;
+  border-radius: 3px;
+  font-family: var(--police-chiffres);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--c-encre-2);
+  background: #f7f9fc;
+}
+.prix-cellule small {
+  font-family: var(--police);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--c-encre-3);
+  text-transform: uppercase;
+}
+.prix-cellule.meilleur {
+  background: var(--c-vert-pale);
+  color: var(--c-vert);
+  font-weight: 600;
+}
+.prix-cellule.meilleur small {
+  color: var(--c-vert);
+}
+/* Le comparatif prend la place de la colonne de prix. */
+.select-products.avec-comparatif .select-product {
+  grid-template-columns: 24px minmax(0, 1.1fr) minmax(0, 2fr) 102px;
+}
+
+@media (max-width: 1050px) {
+  .prix-fournisseurs {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
