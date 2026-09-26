@@ -6148,3 +6148,193 @@ textarea:focus-visible {
     position: static;
   }
 }
+
+/* ================================================================== */
+/*  REFONTE VISUELLE — septembre 2026                                  */
+/*                                                                     */
+/*  La colonne de navigation reste à gauche, comme demandé. Le reste   */
+/*  est repris : profondeur de la barre latérale, échelle              */
+/*  typographique, surfaces, tableaux, boutons et états.               */
+/*  Le logo se pose directement sur le fond sombre grâce à sa          */
+/*  variante claire : la plaque blanche sur fond blanc ne rendait pas. */
+/* ================================================================== */
+
+:root {
+  --nuit-900: #0f1b33;
+  --nuit-800: #16253f;
+  --nuit-700: #1d3052;
+  --azur: #38a8f0;
+  --encre: #101a2e;
+  --encre-douce: #5a6880;
+  --trait: #e3e9f2;
+  --fond-page: #f4f7fc;
+}
+
+body {
+  background: var(--fond-page);
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Barre latérale ----------------------------------------------- */
+.sidebar {
+  background: linear-gradient(180deg, var(--nuit-800) 0%, var(--nuit-900) 100%);
+  border-right: 0;
+}
+.brand {
+  padding: 4px 6px 22px;
+}
+.brand-logo {
+  max-width: 150px;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.35));
+}
+.nav-eyebrow {
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: #6c7e9c;
+  margin: 2px 0 8px 12px;
+}
+.sidebar nav button {
+  position: relative;
+  gap: 12px;
+  padding: 11px 13px;
+  color: #b8c6dd;
+  font-size: 14.5px;
+  font-weight: 600;
+  border-radius: 12px;
+}
+.sidebar nav button:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+.sidebar nav button.active {
+  background: linear-gradient(135deg, var(--brand-500) 0%, #2a55c8 100%);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(45, 90, 210, 0.35);
+}
+/* Repère lumineux sur l'onglet courant. */
+.sidebar nav button.active::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--azur);
+  box-shadow: 0 0 12px var(--azur);
+}
+.sidebar-user {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 14px;
+}
+.sidebar-user strong {
+  color: #eaf1fb;
+}
+.sidebar-user small {
+  color: #8698b6;
+}
+
+/* --- Titres et respiration ---------------------------------------- */
+.page-title h1,
+.welcome-row h1 {
+  font-size: 29px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--encre);
+}
+.eyebrow {
+  color: var(--brand-600);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+}
+
+/* --- Surfaces ------------------------------------------------------ */
+.panel,
+.settings-form-card,
+.login-card,
+.success-card {
+  border: 1px solid var(--trait);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(16, 26, 46, 0.04), 0 10px 28px rgba(16, 26, 46, 0.05);
+}
+
+/* Filet dégradé sous la barre du haut : un rappel discret du logo. */
+.topbar {
+  position: relative;
+  border-bottom: 1px solid var(--trait);
+}
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--azur) 0%, var(--brand-500) 50%, var(--nuit-800) 100%);
+  opacity: 0.85;
+}
+
+/* --- Tableaux ------------------------------------------------------ */
+.table-head,
+.product-list-head,
+.request-assignment-head {
+  background: #eef2f9;
+  color: #41506b;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 11.5px;
+  border-bottom: 1px solid var(--trait);
+}
+.table-row:hover,
+.product-list-item:hover {
+  background: #f7f9fd;
+}
+
+/* --- Boutons ------------------------------------------------------- */
+.primary-btn {
+  background: linear-gradient(135deg, var(--brand-500) 0%, #2a55c8 100%);
+  box-shadow: 0 2px 6px rgba(45, 90, 210, 0.28);
+  font-weight: 700;
+}
+.secondary-btn,
+.filter-btn {
+  border-color: var(--trait);
+  font-weight: 650;
+}
+
+/* --- États --------------------------------------------------------- */
+.status,
+.draft-tag,
+.match-status,
+.line-ordered,
+.line-pending {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* --- Indicateurs du tableau de bord -------------------------------- */
+.stats-grid .stat,
+.stat-card {
+  border-radius: 14px;
+  border: 1px solid var(--trait);
+}
+.stat-card strong,
+.stats-grid strong {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 760px) {
+  .brand-logo {
+    max-width: 124px;
+  }
+  .page-title h1,
+  .welcome-row h1 {
+    font-size: 24px;
+  }
+}
