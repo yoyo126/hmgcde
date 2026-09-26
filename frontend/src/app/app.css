@@ -2839,3 +2839,47 @@ button.supplier-toggle {
   width: 1%;
   white-space: nowrap;
 }
+
+/* --- 21. Lignes dépliables des listes -------------------------------- */
+/* Le détail d'une demande ou d'une commande s'ouvre sur une ligne
+   dépliée sous la sienne, au lieu de faire gonfler la ligne elle-même. */
+tr.ligne-depliee > td {
+  padding: 0 0 18px;
+  background: var(--fond-alt);
+  border-bottom: 2px solid var(--filet);
+}
+tr.ligne-depliee .request-processing,
+tr.ligne-depliee .order-detail-panel {
+  background: transparent;
+}
+.lien-ligne {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--encre);
+  font-family: var(--chiffres);
+  font-size: 15.5px;
+  font-weight: 700;
+  text-align: left;
+}
+.lien-ligne:hover {
+  color: var(--bleu);
+  text-decoration: underline;
+}
+.comptoir-table tbody tr[onclick],
+.comptoir-table tbody tr:has(> td > .lien-ligne) {
+  cursor: pointer;
+}
+.new-request-pill {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--bleu);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

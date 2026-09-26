@@ -248,54 +248,78 @@ export function PurchaseRequests({
               </p>
             </div>
           </div>
-          <div className="request-list-head">
-            <span>Demande</span>
-            <span>Demandeur</span>
-            <span>Date</span>
-            <span>Références</span>
-            <span>Statut</span>
-            <span />
-          </div>
-          {requests.map((request) => (
-            <div className="request-record" key={request.id}>
-              <button
-                className="request-list-row request-row-button"
-                onClick={() => {
-                  markPurchaseRequestSeen(request.id);
-                  setRequests(getStoredRequests());
-                  setOpenRequest(
-                    openRequest === request.id ? null : request.id,
-                  );
-                  // À l'ouverture, rien n'est présélectionné : ni lignes,
-                  // ni fournisseur. Le choix doit rester un geste conscient.
-                  setSelectedAssignmentProducts([]);
-                  setBulkSupplier("");
-                  setAssignmentGroup("");
-                }}
+          {/* Un vrai tableau, comme les deux écrans de saisie : mêmes
+              colonnes alignées, même en-tête sombre, même densité. Le
+              détail s'ouvre sur une ligne dépliée dessous, au lieu de
+              faire gonfler la ligne elle-même. */}
+          <div className="comptoir-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Demande</th>
+                  <th>Demandeur</th>
+                  <th>Date</th>
+                  <th className="chiffre">Références</th>
+                  <th>Statut</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+          {requests.map((request) => {
+            const ouvrir = () => {
+              markPurchaseRequestSeen(request.id);
+              setRequests(getStoredRequests());
+              setOpenRequest(openRequest === request.id ? null : request.id);
+              // À l'ouverture, rien n'est présélectionné : ni lignes, ni
+              // fournisseur. Le choix doit rester un geste conscient.
+              setSelectedAssignmentProducts([]);
+              setBulkSupplier("");
+              setAssignmentGroup("");
+            };
+            return (
+            <Fragment key={request.id}>
+              <tr
+                className={openRequest === request.id ? "retenue" : ""}
+                onClick={ouvrir}
               >
-                <strong>
-                  {request.id}
+                <td>
+                  <button
+                    className="lien-ligne"
+                    aria-expanded={openRequest === request.id}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      ouvrir();
+                    }}
+                  >
+                    {request.id}
+                  </button>
                   {request.seen === false && (
                     <small className="new-request-pill">Nouveau</small>
                   )}
-                </strong>
-                <span>{request.requester}</span>
-                <span>{request.date}</span>
-                <span>{request.lines.length}</span>
-                <i
-                  className={`status request-status-${request.status
-                    .toLowerCase()
-                    .replaceAll(" ", "-")}`}
-                >
-                  {request.status}
-                </i>
-                {openRequest === request.id ? (
-                  <ChevronDown size={18} />
-                ) : (
-                  <ChevronRight size={18} />
-                )}
-              </button>
+                </td>
+                <td>{request.requester}</td>
+                <td className="order-date">{request.date}</td>
+                <td className="chiffre">{request.lines.length}</td>
+                <td>
+                  <i
+                    className={`status request-status-${request.status
+                      .toLowerCase()
+                      .replaceAll(" ", "-")}`}
+                  >
+                    {request.status}
+                  </i>
+                </td>
+                <td className="chiffre">
+                  {openRequest === request.id ? (
+                    <ChevronDown size={18} />
+                  ) : (
+                    <ChevronRight size={18} />
+                  )}
+                </td>
+              </tr>
               {openRequest === request.id && (
+                <tr className="ligne-depliee">
+                  <td colSpan={6}>
                 <div className="request-processing">
                   <div className="request-processing-head">
                     <div>
@@ -451,9 +475,15 @@ export function PurchaseRequests({
                     </div>
                   )}
                 </div>
+                  </td>
+                </tr>
               )}
-            </div>
-          ))}
+            </Fragment>
+            );
+          })}
+              </tbody>
+            </table>
+          </div>
         </section>
       </div>
     );
