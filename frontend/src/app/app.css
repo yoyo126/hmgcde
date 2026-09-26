@@ -1155,10 +1155,18 @@ tr.comptoir-composition td span {
    entre l'adresse et les pastilles. */
 .user-row {
   display: grid;
-  grid-template-columns: 42px minmax(0, 22rem) 1fr auto auto;
+  grid-template-columns: 42px minmax(0, 24rem) auto auto 1fr;
   align-items: center;
-  gap: 14px;
-  max-width: 68rem;
+  gap: 16px;
+}
+/* Les pastilles se serrent sur leur texte : logée dans la colonne
+   souple, « ADMINISTRATEUR » s'étirait sur 370 px. */
+.user-row > i.status,
+.user-row > .account-state {
+  justify-self: start;
+}
+.user-row > .user-row-actions {
+  justify-self: start;
 }
 .user-row > div:nth-child(2) strong {
   display: block;
