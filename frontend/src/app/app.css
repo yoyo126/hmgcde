@@ -256,7 +256,8 @@ table {
    la « double ligne ». La cloche était redondante avec le compteur du
    menu, et la déconnexion est descendue auprès du compte. Il ne reste
    sur téléphone qu'un bouton pour ouvrir la colonne. */
-.menu-btn {
+.menu-btn,
+.close-sidebar {
   display: none;
 }
 .sidebar-signout {
@@ -278,9 +279,6 @@ table {
 /* Le bandeau de titre prolonge le marine : un seul bloc sombre. */
 .page-title,
 .welcome-row {
-  position: sticky;
-  top: 0;
-  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: space-between;
