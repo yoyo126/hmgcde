@@ -70,7 +70,6 @@ export function Sidebar({
   const can = usePermissions();
   const visibleNav = navItems.filter(({ id }) => {
     if (id === "settings") return can.canSeeSettings;
-    if (id === "new-order") return can.canManagePurchasing;
     if (id === "purchase-requests") return can.canRequest || can.canManagePurchasing;
     return true;
   });
@@ -151,7 +150,6 @@ export function MobileNav({
   const can = usePermissions();
   const visibleNav = navItems.filter(({ id }) => {
     if (id === "settings") return can.canSeeSettings;
-    if (id === "new-order") return can.canManagePurchasing;
     if (id === "purchase-requests") return can.canRequest || can.canManagePurchasing;
     return true;
   });
@@ -174,13 +172,11 @@ export function MobileNav({
             <b className="mobile-notification">{requestNotifications}</b>
           )}
           <span>
-            {label === "Nouvelle commande"
-              ? "Commander"
-              : label === "Demandes d’achat"
-                ? "Demandes"
-                : label === "Tableau de bord"
-                  ? "Accueil"
-                  : label}
+            {label === "Demandes d’achat"
+              ? "Demandes"
+              : label === "Tableau de bord"
+                ? "Accueil"
+                : label}
           </span>
         </button>
       ))}
