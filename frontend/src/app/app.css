@@ -3916,3 +3916,28 @@ tr.ligne-depliee .order-detail-panel {
 .comptoir-table th:first-child {
   width: 46%;
 }
+
+/* « Quantité globale » demande plus que les 150 px de sa colonne et
+   mordait sur « Fournisseur retenu ». Les intitulés se replient, comme
+   ceux du catalogue. */
+.request-assignment-head > span,
+.order-lines-head > span,
+.table-head > span,
+.dispatch-head > span,
+.import-table-head > span {
+  white-space: normal;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.request-assignment-head,
+.order-lines-head,
+.table-head,
+.dispatch-head,
+.import-table-head {
+  align-items: end;
+}
+/* Une demande refusée n'attend plus rien : ses lignes le disent. */
+.demande-refusee ~ .request-assignment-line .line-pending {
+  background: var(--filet-2);
+  color: var(--encre-3);
+}
