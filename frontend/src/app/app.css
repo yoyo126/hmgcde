@@ -2247,40 +2247,72 @@ tr.comptoir-composition td span {
 }
 
 /* --- 16. Impression --------------------------------------------------- */
-/* Le bon de commande part au fournisseur : rien de l'interface ne
-   l'accompagne, et les prix peuvent être retirés. */
+/* Le bon de commande part au fournisseur. Le détail d'une commande vit
+   dans la même table que la liste : masquer l'habillage ne suffisait
+   pas, toutes les autres commandes s'imprimaient en dessous. On rend
+   donc la page entière invisible et on ne fait réapparaître que le
+   document, remonté en haut de la feuille. */
+.impression-seule {
+  display: none;
+}
 @media print {
-  .sidebar,
-  .topbar,
-  .mobile-nav,
-  .mobile-overlay,
-  .page-title,
-  .welcome-row,
-  .wizard-footer,
-  .comptoir-panier,
-  .table-toolbar,
-  .product-toolbar,
-  .request-toolbar,
+  body * {
+    visibility: hidden;
+  }
+  .order-detail-panel,
+  .order-detail-panel * {
+    visibility: visible;
+  }
+  .order-detail-panel {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+  }
+  /* Ce qui ne part pas chez le fournisseur : boutons, état, aperçu du
+     courriel, et l'en-tête d'écran qui double celui du document. */
   .order-detail-actions,
+  .order-detail-head > div:last-child,
   .sent-mail-preview,
-  .etapes,
-  .back-link {
+  .compact-mail-preview,
+  .mail-preview-head,
+  .order-detail-panel .status {
     display: none !important;
   }
-  .main-shell,
-  main,
-  .screen > * {
-    margin: 0 !important;
-    padding: 0 !important;
+  .impression-seule {
+    display: flex;
+  }
+  .doc-logo {
+    max-width: 150px;
+    height: auto;
+  }
+  .doc-identite {
+    text-align: right;
+  }
+  .doc-identite strong {
+    display: block;
+    font-size: 15pt;
+  }
+  .doc-identite span {
+    color: #444;
+    font-size: 10pt;
+  }
+  html,
+  body {
+    background: #fff;
   }
   body {
     font-size: 11pt;
   }
-  .doc-table > div:first-child {
+  .order-lines-head {
     background: #e8eef8 !important;
     color: #10151f !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+  @page {
+    margin: 14mm;
   }
 }
 body.print-without-prices .order-lines-head,

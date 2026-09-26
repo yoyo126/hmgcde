@@ -23,6 +23,7 @@ import { fusionnerPrix } from "@/lib/catalog-prices";
 import { IS_DEMO } from "@/lib/demo-mode";
 import { ROLE_DESCRIPTIONS as ROLE_HELP } from "@/lib/permissions";
 import { usePermissions } from "./permissions-context";
+import { HmLogo } from "./HmLogo";
 import type { AppUser } from "@/lib/types";
 import {
   companies,
@@ -224,6 +225,17 @@ export function OrdersScreen({
                 <tr className="ligne-depliee">
                   <td colSpan={7}>
                 <div className="order-detail-panel">
+                  {/* En-tête du document imprimé : c'est ce qui part au
+                      fournisseur, il doit porter notre identité. */}
+                  <div className="doc-brand impression-seule">
+                    <HmLogo className="doc-logo" />
+                    <div className="doc-identite">
+                      <strong>{o.reference}</strong>
+                      <span>
+                        {o.supplier} · {o.date}
+                      </span>
+                    </div>
+                  </div>
                   <div className="order-detail-head">
                     <div>
                       <span>COMMANDE FOURNISSEUR</span>
