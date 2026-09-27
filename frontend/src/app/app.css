@@ -4093,3 +4093,24 @@ tr.ligne-depliee .order-detail-panel {
   font-size: 13px;
   line-height: 22px;
 }
+
+/* En saisie de tarif, le rappel d'unité sous le nom double la colonne
+   Conditionnement et allonge chaque ligne pour rien. */
+.produits-comptoir .prices-open .product-list-name small {
+  display: none;
+}
+.produits-comptoir .prices-open .product-list-name {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+}
+/* La référence et le conditionnement du fournisseur tiennent sur une
+   ligne sous le prix, au lieu de s'empiler. */
+.produits-comptoir .prices-open .price-cell small {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 13.5px;
+}
+.produits-comptoir .prices-open .price-cell {
+  line-height: 1.5;
+}

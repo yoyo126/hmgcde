@@ -537,7 +537,9 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
     editingPrices && supplierEnEdition
       ? [supplierEnEdition]
       : configuredSupplierNames;
-  const deletingProducts = editing && can.canManagePurchasing;
+  // Supprimer des produits relève du catalogue : la case à cocher et sa
+  // bannière n'ont rien à faire pendant une saisie de tarif.
+  const deletingProducts = editingCatalog;
 
   const updateProduct = (productId: number, update: (product: Product) => Product) =>
     setCatalog((current) =>
