@@ -12,7 +12,7 @@ import {
 import { PurchaseRequests } from "./PurchaseRequests";
 import { TariffImports } from "./TariffImports";
 import {
-  getNewPurchaseRequestCount,
+  getPendingPurchaseRequestCount,
   type StoredOrder,
 } from "@/lib/order-storage";
 import type { SessionUser } from "@/lib/types";
@@ -34,12 +34,15 @@ export function CRMApp({
     [menu, setMenu] = useState(false),
     [draftOrders, setDraftOrders] = useState<StoredOrder[]>([]),
     [orderToOpen, setOrderToOpen] = useState<string | null>(null),
+    // La pastille suit les demandes qui attendent encore une commande,
+    // pas celles qu'on n'a pas encore ouvertes : la lire n'est pas la
+    // traiter.
     [requestNotifications, setRequestNotifications] = useState(() =>
-      getNewPurchaseRequestCount(),
+      getPendingPurchaseRequestCount(),
     );
   useEffect(() => {
     const refresh = () =>
-      setRequestNotifications(getNewPurchaseRequestCount());
+      setRequestNotifications(getPendingPurchaseRequestCount());
     window.addEventListener("hm-purchasing-updated", refresh);
     window.addEventListener("storage", refresh);
     return () => {

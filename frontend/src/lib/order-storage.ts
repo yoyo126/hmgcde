@@ -62,6 +62,19 @@ export const getStoredRequests = (): StoredPurchaseRequest[] => store.requests;
 export const getNewPurchaseRequestCount = () =>
   store.requests.filter((request) => request.seen === false).length;
 
+/**
+ * Demandes qui attendent encore une commande. À distinguer des demandes
+ * « non lues » : ouvrir une demande la marquait comme vue et faisait
+ * disparaître la pastille, alors que personne n'y avait donné suite.
+ * C'est ce compteur-là qui doit rester allumé.
+ */
+export const getPendingPurchaseRequestCount = () =>
+  store.requests.filter(
+    (request) =>
+      request.status === "À commander" ||
+      request.status === "Partiellement commandée",
+  ).length;
+
 const notify = () => window.dispatchEvent(new Event(PURCHASING_UPDATED_EVENT));
 
 // --- Écriture -------------------------------------------------------------

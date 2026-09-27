@@ -10,7 +10,11 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { money } from "@/lib/crm-data";
-import { getStoredOrders } from "@/lib/order-storage";
+import {
+  getPendingPurchaseRequestCount,
+  getStoredRequests,
+  getStoredOrders,
+} from "@/lib/order-storage";
 import { usePermissions } from "./permissions-context";
 import type { ScreenId } from "./Sidebar";
 
@@ -26,8 +30,23 @@ export function Dashboard({
 }) {
   const can = usePermissions();
   const [orders, setOrders] = useState(() => getStoredOrders());
+  const [enAttente, setEnAttente] = useState(() =>
+    getPendingPurchaseRequestCount(),
+  );
+  const [plusAncienne, setPlusAncienne] = useState<string | null>(null);
   useEffect(() => {
-    const refresh = () => setOrders(getStoredOrders());
+    const refresh = () => {
+      setOrders(getStoredOrders());
+      setEnAttente(getPendingPurchaseRequestCount());
+      // La date de la plus vieille demande non traitée : c'est elle qui
+      // dit s'il y a urgence, pas le nombre.
+      const restantes = getStoredRequests().filter(
+        (r) =>
+          r.status === "À commander" || r.status === "Partiellement commandée",
+      );
+      setPlusAncienne(restantes.length ? restantes[restantes.length - 1].date : null);
+    };
+    refresh();
     window.addEventListener("hm-purchasing-updated", refresh);
     window.addEventListener("storage", refresh);
     return () => {
@@ -54,6 +73,28 @@ export function Dashboard({
           <PackagePlus size={18} /> Nouvelle commande
         </button>
       </div>
+      {/* Une demande en attente doit se voir depuis l'accueil : sans
+          cela, elle dort jusqu'à ce que quelqu'un pense à aller voir. */}
+      {enAttente > 0 && (
+        <button
+          className="alerte-demandes"
+          onClick={() => onNavigate("purchase-requests")}
+        >
+          <span className="alerte-pastille">{enAttente}</span>
+          <span className="alerte-texte">
+            <strong>
+              {enAttente} demande{enAttente > 1 ? "s" : ""} d’achat
+              {enAttente > 1 ? " attendent" : " attend"} une commande
+            </strong>
+            <small>
+              {plusAncienne
+                ? `La plus ancienne date du ${plusAncienne}.`
+                : "À traiter depuis l’écran Demandes d’achat."}
+            </small>
+          </span>
+          <ArrowRight size={19} />
+        </button>
+      )}
       <div className="stats-grid">
         <Stat icon={<ShoppingCart />} label="Commandes" value={String(orders.length)} note="Total enregistré" tone="blue" />
         {can.canSeePrices && (

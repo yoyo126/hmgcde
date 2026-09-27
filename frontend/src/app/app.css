@@ -3972,3 +3972,59 @@ tr.ligne-depliee .order-detail-panel {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* --- 28. Alerte des demandes en attente ------------------------------ */
+/* Une demande d'achat non traitée dort tant que personne ne pense à
+   aller voir. Elle s'annonce donc dès l'accueil, en rouge, et mène
+   directement à l'écran qui permet d'y répondre. */
+.alerte-demandes {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px var(--gouttiere);
+  border: 0;
+  border-left: 4px solid var(--rouge);
+  background: var(--rouge-pale);
+  color: var(--rouge);
+  text-align: left;
+}
+.alerte-demandes:hover {
+  background: #f9dede;
+}
+.alerte-pastille {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 50%;
+  background: var(--rouge);
+  color: #fff;
+  font-family: var(--chiffres);
+  font-size: 18px;
+  font-weight: 700;
+}
+.alerte-texte {
+  flex: 1;
+  min-width: 0;
+}
+.alerte-texte strong {
+  display: block;
+  font-size: 17px;
+  font-weight: 700;
+}
+.alerte-texte small {
+  display: block;
+  margin-top: 2px;
+  color: var(--encre-2);
+  font-size: 15px;
+}
+
+/* La pastille du menu : rouge et lisible, elle compte les demandes qui
+   attendent une commande, pas celles qu'on n'a pas encore ouvertes. */
+.nav-notification {
+  min-width: 24px;
+  font-size: 13px;
+  line-height: 24px;
+}
