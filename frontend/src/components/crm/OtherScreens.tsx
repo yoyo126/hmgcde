@@ -153,7 +153,6 @@ export function OrdersScreen({
             { cle: "", libelle: "Toutes" },
             { cle: "Brouillon", libelle: "Brouillons" },
             { cle: "Envoyée", libelle: "Envoyées" },
-            { cle: "Reçue", libelle: "Reçues" },
           ].map(({ cle, libelle }) => (
             <button
               key={libelle}
@@ -274,12 +273,7 @@ export function OrdersScreen({
                 <td>
                   <i
                     className={
-                      "status " +
-                      (o.status === "Reçue"
-                        ? "received"
-                        : o.status === "Envoyée"
-                          ? "sent"
-                          : "draft")
+                      "status " + (o.status === "Envoyée" ? "sent" : "draft")
                     }
                   >
                     {o.status}
@@ -320,12 +314,7 @@ export function OrdersScreen({
                     <div className="order-detail-actions">
                       <i
                         className={
-                          "status " +
-                          (o.status === "Reçue"
-                            ? "received"
-                            : o.status === "Envoyée"
-                              ? "sent"
-                              : "draft")
+                          "status " + (o.status === "Envoyée" ? "sent" : "draft")
                         }
                       >
                         {o.status}

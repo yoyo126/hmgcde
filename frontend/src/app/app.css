@@ -1883,7 +1883,7 @@ tr.comptoir-composition td span {
   color: var(--encre-3);
   font-size: 15px;
 }
-/* Cinq compteurs depuis que l'attente est séparée en deux. */
+/* Trois compteurs : commandes, montant, et ce qui reste à envoyer. */
 .stats-grid {
   display: grid;
   grid-auto-flow: column;

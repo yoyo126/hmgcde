@@ -2,9 +2,7 @@
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
-  CheckCircle2,
   ClipboardPlus,
-  Clock3,
   Euro,
   FileEdit,
   PackagePlus,
@@ -17,7 +15,7 @@ import { usePermissions } from "./permissions-context";
 import type { ScreenId } from "./Sidebar";
 
 const statusClass = (status: string) =>
-  status === "Reçue" ? "received" : status === "Envoyée" ? "sent" : "draft";
+  status === "Envoyée" ? "sent" : "draft";
 
 export function Dashboard({
   onNavigate,
@@ -37,13 +35,11 @@ export function Dashboard({
       window.removeEventListener("storage", refresh);
     };
   }, []);
-  // « En attente » comptait tout ce qui n'était pas reçu, brouillons
-  // compris : le chiffre valait donc le total des commandes et
-  // n'apprenait rien. Deux attentes différentes cohabitaient — celle qui
-  // dépend de nous, celle qui dépend du fournisseur.
-  const received = orders.filter((order) => order.status === "Reçue").length;
+  // Le suivi des réceptions est retiré : les livraisons arrivent chaque
+  // semaine et rien dans l'application ne marquait jamais une commande
+  // « Reçue ». Ces compteurs ne pouvaient que rester à zéro.
   const drafts = orders.filter((order) => order.status === "Brouillon").length;
-  const awaiting = orders.filter((order) => order.status === "Envoyée").length;
+  const sent = orders.filter((order) => order.status === "Envoyée").length;
   const total = orders.reduce((sum, order) => sum + order.total, 0);
 
   return (
@@ -71,17 +67,10 @@ export function Dashboard({
           tone="amber"
         />
         <Stat
-          icon={<Clock3 />}
-          label="En attente de réception"
-          value={String(awaiting)}
-          note="Envoyées au fournisseur"
-          tone="blue"
-        />
-        <Stat
-          icon={<CheckCircle2 />}
-          label="Réceptionnées"
-          value={String(received)}
-          note="Terminées"
+          icon={<Send />}
+          label="Envoyées"
+          value={String(sent)}
+          note="Parties chez le fournisseur"
           tone="violet"
         />
       </div>
@@ -121,7 +110,7 @@ export function Dashboard({
           <div className="panel-head"><div><h2>Accès rapides</h2><p>Les actions fréquentes</p></div></div>
           <Quick icon={<ClipboardPlus />} title="Demande d’achat" text="Besoin global de l’entrepôt" tone="violet" onClick={() => onNavigate("purchase-requests")} />
           <Quick icon={<PackagePlus />} title="Créer une commande" text="Répartir entre les filiales" tone="blue" onClick={() => onNavigate("new-order")} />
-          <Quick icon={<Send />} title="Suivre les commandes" text="Envois et réceptions" tone="green" onClick={() => onNavigate("orders")} />
+          <Quick icon={<Send />} title="Suivre les commandes" text="Historique et montants" tone="green" onClick={() => onNavigate("orders")} />
         </section>
       </div>
     </div>

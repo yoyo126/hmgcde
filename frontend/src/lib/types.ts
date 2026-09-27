@@ -45,6 +45,12 @@ export type Product = {
   offers: SupplierOffer[];
 };
 
+/**
+ * « Reçue » n'est plus proposée nulle part dans l'application : les
+ * livraisons arrivent chaque semaine et ne sont pas pointées. La valeur
+ * reste admise pour que les commandes déjà enregistrées ainsi se
+ * relisent sans erreur.
+ */
 export type OrderStatus = "Brouillon" | "Envoyée" | "Reçue";
 
 export type StoredOrderLine = {
