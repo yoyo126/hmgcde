@@ -4074,3 +4074,22 @@ tr.ligne-depliee .order-detail-panel {
 .produits-comptoir .price-cell small {
   text-align: right;
 }
+
+/* La pastille poussait « Demandes d'achat » sur deux lignes : 63 px de
+   haut contre 48 pour ses voisines. Le libellé tient sur une ligne, la
+   pastille se serre. */
+.sidebar nav button {
+  white-space: nowrap;
+}
+.sidebar nav button > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nav-notification {
+  flex: none;
+  min-width: 22px;
+  padding: 0 5px;
+  font-size: 13px;
+  line-height: 22px;
+}
