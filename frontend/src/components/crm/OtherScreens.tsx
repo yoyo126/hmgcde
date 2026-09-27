@@ -4,6 +4,7 @@ import {
   Box,
   ChevronDown,
   ChevronRight,
+  Euro,
   FileText,
   FileUp,
   History,
@@ -467,6 +468,11 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
     [family, setFamily] = useState("Tous"),
     [open, setOpen] = useState<number | null>(null),
     [editing, setEditing] = useState(false),
+    // Deux métiers distincts se cachaient derrière un seul bouton :
+    // saisir des tarifs, et remanier le catalogue. Les mélanger imposait
+    // d'afficher tous les champs à la fois — des lignes de 180 px pour
+    // taper un prix.
+    [modeEdition, setModeEdition] = useState<"prix" | "catalogue">("prix"),
     // En modification, on ne saisit qu'un fournisseur à la fois : sept
     // colonnes de prix côte à côte donnaient des cases de 80 px et des
     // lignes de 240 px de haut. Un tarif se saisit fournisseur par
@@ -520,8 +526,13 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
     );
   // Un profil sans droit d'écriture consulte le catalogue, sans jamais
   // basculer en modification — le serveur refuserait de toute façon.
-  const editingCatalog = editing && can.canManagePurchasing;
-  const editingPrices = editing && can.canManagePurchasing && can.canSeePrices;
+  const editingCatalog =
+    editing && modeEdition === "catalogue" && can.canManagePurchasing;
+  const editingPrices =
+    editing &&
+    modeEdition === "prix" &&
+    can.canManagePurchasing &&
+    can.canSeePrices;
   const colonnesAffichees =
     editingPrices && supplierEnEdition
       ? [supplierEnEdition]
@@ -801,11 +812,25 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
               >
                 <History size={18} /> Historique
               </button>
+              {can.canSeePrices && (
+                <button
+                  className="primary-btn"
+                  onClick={() => {
+                    setModeEdition("prix");
+                    setEditing(true);
+                  }}
+                >
+                  <Euro size={18} /> Saisir des tarifs
+                </button>
+              )}
               <button
-                className="primary-btn"
-                onClick={() => setEditing(true)}
+                className="secondary-btn"
+                onClick={() => {
+                  setModeEdition("catalogue");
+                  setEditing(true);
+                }}
               >
-                <Pencil size={18} /> Modifier
+                <Pencil size={18} /> Modifier le catalogue
               </button>
             </>
           )}
@@ -813,15 +838,20 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
       </div>
       {editing && (
         <div className="price-edit-banner">
-          <Pencil size={18} />
+          {modeEdition === "prix" ? <Euro size={18} /> : <Pencil size={18} />}
           <span>
-            <strong>Mode modification actif</strong>
-            Modifiez produits, conditionnements et sous-produits, ou
-            sélectionnez ceux à supprimer.
+            <strong>
+              {modeEdition === "prix"
+                ? "Saisie des tarifs"
+                : "Modification du catalogue"}
+            </strong>
+            {modeEdition === "prix"
+              ? "Choisissez le fournisseur dont vous saisissez le tarif : sa colonne seule reste affichée."
+              : "Noms, catégories, conditionnements et sous-produits. Cochez les produits à supprimer."}
           </span>
-          {can.canSeePrices && (
+          {modeEdition === "prix" && can.canSeePrices && (
             <label className="choix-fournisseur">
-              <span>Tarif à saisir</span>
+              <span>Tarif de</span>
               <select
                 value={supplierEnEdition}
                 onChange={(event) => setSupplierEnEdition(event.target.value)}
