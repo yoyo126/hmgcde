@@ -6,6 +6,7 @@ import {
   ClipboardPlus,
   Clock3,
   Euro,
+  FileEdit,
   PackagePlus,
   Send,
   ShoppingCart,
@@ -36,8 +37,13 @@ export function Dashboard({
       window.removeEventListener("storage", refresh);
     };
   }, []);
+  // « En attente » comptait tout ce qui n'était pas reçu, brouillons
+  // compris : le chiffre valait donc le total des commandes et
+  // n'apprenait rien. Deux attentes différentes cohabitaient — celle qui
+  // dépend de nous, celle qui dépend du fournisseur.
   const received = orders.filter((order) => order.status === "Reçue").length;
-  const waiting = orders.filter((order) => order.status !== "Reçue").length;
+  const drafts = orders.filter((order) => order.status === "Brouillon").length;
+  const awaiting = orders.filter((order) => order.status === "Envoyée").length;
   const total = orders.reduce((sum, order) => sum + order.total, 0);
 
   return (
@@ -57,8 +63,27 @@ export function Dashboard({
         {can.canSeePrices && (
           <Stat icon={<Euro />} label="Total commandé" value={money(total)} note="Toutes commandes" tone="green" />
         )}
-        <Stat icon={<Clock3 />} label="En attente" value={String(waiting)} note="À suivre" tone="amber" />
-        <Stat icon={<CheckCircle2 />} label="Réceptionnées" value={String(received)} note="Terminées" tone="violet" />
+        <Stat
+          icon={<FileEdit />}
+          label="À envoyer"
+          value={String(drafts)}
+          note="Brouillons, en attente de vous"
+          tone="amber"
+        />
+        <Stat
+          icon={<Clock3 />}
+          label="En attente de réception"
+          value={String(awaiting)}
+          note="Envoyées au fournisseur"
+          tone="blue"
+        />
+        <Stat
+          icon={<CheckCircle2 />}
+          label="Réceptionnées"
+          value={String(received)}
+          note="Terminées"
+          tone="violet"
+        />
       </div>
       <div className="dashboard-grid">
         <section className="panel recent-panel">
