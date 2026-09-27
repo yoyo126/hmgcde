@@ -467,6 +467,11 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
     [family, setFamily] = useState("Tous"),
     [open, setOpen] = useState<number | null>(null),
     [editing, setEditing] = useState(false),
+    // En modification, on ne saisit qu'un fournisseur à la fois : sept
+    // colonnes de prix côte à côte donnaient des cases de 80 px et des
+    // lignes de 240 px de haut. Un tarif se saisit fournisseur par
+    // fournisseur, c'est ainsi qu'il arrive.
+    [supplierEnEdition, setSupplierEnEdition] = useState(""),
     [selectedProducts, setSelectedProducts] = useState<number[]>([]),
     [showPriceHistory, setShowPriceHistory] = useState(false),
     [catalog, setCatalog] = useState<Product[]>(() => getCatalogProducts()),
@@ -517,6 +522,10 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
   // basculer en modification — le serveur refuserait de toute façon.
   const editingCatalog = editing && can.canManagePurchasing;
   const editingPrices = editing && can.canManagePurchasing && can.canSeePrices;
+  const colonnesAffichees =
+    editingPrices && supplierEnEdition
+      ? [supplierEnEdition]
+      : configuredSupplierNames;
   const deletingProducts = editing && can.canManagePurchasing;
 
   const updateProduct = (productId: number, update: (product: Product) => Product) =>
@@ -807,8 +816,23 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
           <Pencil size={18} />
           <span>
             <strong>Mode modification actif</strong>
-            Modifiez produits, prix, conditionnements et sous-produits, ou sélectionnez ceux à supprimer.
+            Modifiez produits, conditionnements et sous-produits, ou
+            sélectionnez ceux à supprimer.
           </span>
+          {can.canSeePrices && (
+            <label className="choix-fournisseur">
+              <span>Tarif à saisir</span>
+              <select
+                value={supplierEnEdition}
+                onChange={(event) => setSupplierEnEdition(event.target.value)}
+              >
+                <option value="">Tous les fournisseurs (comparatif)</option>
+                {configuredSupplierNames.map((nom) => (
+                  <option key={nom}>{nom}</option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
       )}
       {deletingProducts && (
@@ -1060,7 +1084,7 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                       <tr>
                         <th>Produit</th>
                         <th>Conditionnement</th>
-                        {configuredSupplierNames.map((supplier) => (
+                        {colonnesAffichees.map((supplier) => (
                           <th className="chiffre" key={supplier}>
                             {supplier}
                           </th>
@@ -1247,7 +1271,7 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                 p.offers[0]?.packaging || "À renseigner"
                               )}
                             </td>
-                            {configuredSupplierNames.map((supplier) => {
+                            {colonnesAffichees.map((supplier) => {
                               const supplierPrice = supplierPrices.find(
                                 (item) => item.supplier === supplier,
                               );
@@ -1384,7 +1408,7 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                           </tr>
                           {open === p.id && (
                             <tr className="ligne-depliee">
-                              <td colSpan={configuredSupplierNames.length + 3}>
+                              <td colSpan={colonnesAffichees.length + 3}>
                             <div className="composition-box list-composition">
                               <div className="component-title-row">
                                 <strong className="component-comparison-title">

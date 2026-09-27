@@ -4028,3 +4028,49 @@ tr.ligne-depliee .order-detail-panel {
   font-size: 13px;
   line-height: 24px;
 }
+
+/* --- 29. Modification des produits ----------------------------------- */
+/* Sept colonnes de prix côte à côte donnaient des cases de 80 px et des
+   lignes de 240 px : illisible. En modification, on choisit un
+   fournisseur et on ne saisit que sa colonne — c'est ainsi qu'un tarif
+   arrive, fournisseur par fournisseur. */
+.choix-fournisseur {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: none;
+  min-width: 0;
+}
+.choix-fournisseur > span {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--encre-2);
+}
+.choix-fournisseur select {
+  min-width: 20rem;
+  background: #fff;
+}
+/* Une seule colonne de prix : elle peut respirer. */
+.produits-comptoir .prices-open .catalog-price-input,
+.produits-comptoir .prices-open .meter-price-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+  margin: 2px 0 0 auto;
+  width: auto;
+}
+.produits-comptoir .prices-open .catalog-price-input input,
+.produits-comptoir .prices-open .meter-price-input input {
+  width: 8rem;
+  text-align: right;
+}
+.produits-comptoir .prices-open .catalog-price-input small,
+.produits-comptoir .prices-open .meter-price-input small {
+  flex: none;
+  font-size: 14px;
+  color: var(--encre-3);
+}
+.produits-comptoir .price-cell small {
+  text-align: right;
+}
