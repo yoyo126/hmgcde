@@ -40,12 +40,22 @@ export const savePrices = asyncHandler(async (req, res) => {
 });
 
 export const saveImport = asyncHandler(async (req, res) => {
-  const { overrides = {}, newProducts = [], history, changes = [] } = req.body || {};
+  const {
+    overrides = {},
+    newProducts = [],
+    history,
+    changes = [],
+    references = [],
+  } = req.body || {};
+  if (!Array.isArray(references)) {
+    throw new HttpError(400, "`references` doit être une liste.");
+  }
   await catalog.applyTariffImport({
     overrides,
     newProducts,
     history,
     changes,
+    references,
     userId: req.session.user.id,
   });
   res.json({

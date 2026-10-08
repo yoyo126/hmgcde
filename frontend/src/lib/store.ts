@@ -190,6 +190,8 @@ export const persistTariffImport = (payload: {
   newProducts: Product[];
   history: ImportHistoryItem;
   changes: unknown[];
+  /** Références fournisseur apprises : même requête que les prix, à dessein. */
+  references: unknown[];
 }) =>
   persist(
     "import de tarif",

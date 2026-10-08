@@ -13,6 +13,7 @@ import type {
   ManualPriceHistoryItem,
   PriceOverride,
   Product,
+  ReferenceApprise,
 } from "./types";
 
 export type {
@@ -20,6 +21,7 @@ export type {
   ManualPriceChange,
   ManualPriceHistoryItem,
   PriceOverride,
+  ReferenceApprise,
 } from "./types";
 export { CATALOG_CHANGED_EVENT } from "./store";
 
@@ -136,22 +138,35 @@ export const saveManualPriceChanges = ({
   void persistPriceChanges({ prices, componentPrices, changes });
 };
 
-/** Import d'un tarif fournisseur (Excel ou PDF). */
+/**
+ * Import d'un tarif fournisseur (Excel ou PDF).
+ *
+ * Prix, produits inconnus et références apprises partent dans le même
+ * enregistrement. C'est délibéré : les références étaient envoyées juste
+ * après, par un second appel qui réécrivait le produit entier tel qu'il était
+ * avant l'import. Les deux appels partaient ensemble, et celui qui arrivait en
+ * dernier gagnait : la référence était apprise, le prix revenait à sa valeur
+ * d'avant. Un tarif n'était donc appliqué qu'à moitié — seules les lignes
+ * dont la référence était déjà connue gardaient leur nouveau prix.
+ */
 export const saveTariffImport = ({
   overrides,
   newProducts,
   history,
   changes = [],
+  references = [],
 }: {
   overrides: PriceOverride;
   newProducts: Product[];
   history: ImportHistoryItem;
   changes?: ManualPriceChange[];
+  references?: ReferenceApprise[];
 }) => {
   if (newProducts.length) {
     setProducts([...store.products, ...newProducts]);
   }
   applyPricesToCache(overrides, {});
+  applyReferencesToCache(references);
   store.importHistory = [history, ...store.importHistory].slice(0, 30);
   if (changes.length) {
     store.priceHistory = [
@@ -160,7 +175,27 @@ export const saveTariffImport = ({
     ].slice(0, 50);
   }
   window.dispatchEvent(new Event(CATALOG_CHANGED_EVENT));
-  void persistTariffImport({ overrides, newProducts, history, changes });
+  void persistTariffImport({ overrides, newProducts, history, changes, references });
+};
+
+/**
+ * Pose les références apprises dans le cache, sans toucher aux prix : c'est
+ * tout l'intérêt de ne plus passer par une réécriture du produit.
+ */
+const applyReferencesToCache = (references: ReferenceApprise[]) => {
+  if (!references.length) return;
+  const parProduit = new Map(
+    references.map((apprise) => [priceKey(apprise.productId, apprise.supplier), apprise]),
+  );
+  store.products = store.products.map((product) => ({
+    ...product,
+    offers: product.offers.map((offer) => {
+      const apprise = parProduit.get(priceKey(product.id, offer.supplier));
+      return apprise
+        ? { ...offer, reference: apprise.reference, supplierName: apprise.supplierName }
+        : offer;
+    }),
+  }));
 };
 
 /**

@@ -21,11 +21,11 @@ import {
   getImportHistory,
   getManualPriceHistory,
   priceKey,
-  saveCatalogProducts,
   saveTariffImport,
   type ImportHistoryItem,
   type ManualPriceChange,
   type PriceOverride,
+  type ReferenceApprise,
 } from "@/lib/tariff-storage";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
@@ -489,10 +489,15 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
     const overrides: PriceOverride = {};
     const newProducts: Product[] = [];
     const priceChanges: ManualPriceChange[] = [];
-    // Produits dont il faut mémoriser la référence fournisseur : c'est ce qui
-    // rend les imports suivants automatiques. Sans cela, il faudrait refaire
-    // les mêmes associations à chaque tarif reçu.
-    const referencesApprises: Product[] = [];
+    // Références fournisseur à mémoriser : c'est ce qui rend les imports
+    // suivants automatiques. Sans cela, il faudrait refaire les mêmes
+    // associations à chaque tarif reçu.
+    //
+    // Elles partent avec les prix, dans le même enregistrement. Elles étaient
+    // envoyées juste après, sous la forme du produit entier tel qu'il était
+    // AVANT l'import : le second appel reposait donc l'ancien prix par-dessus
+    // le nouveau, et le tarif ne s'appliquait qu'à moitié.
+    const referencesApprises: ReferenceApprise[] = [];
 
     selected.forEach((line, index) => {
       if (line.product) {
@@ -503,12 +508,10 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
           normalize(offreConnue?.reference || "") !== normalize(line.reference);
         if (referenceInconnue) {
           referencesApprises.push({
-            ...line.product,
-            offers: line.product.offers.map((offer) =>
-              offer.supplier === supplier
-                ? { ...offer, reference: line.reference, supplierName: line.name }
-                : offer,
-            ),
+            productId: line.product.id,
+            supplier,
+            reference: line.reference,
+            supplierName: line.name,
           });
         }
         if (line.oldPrice !== line.price) {
@@ -561,12 +564,15 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
       added: selected.filter((line) => line.status === "new").length,
       ignored: lines.length - selected.length,
     };
-    saveTariffImport({ overrides, newProducts, history: item, changes: priceChanges });
-    // Les références apprises rejoignent le catalogue : au prochain tarif de
-    // ce fournisseur, ces lignes seront reconnues toutes seules.
-    if (referencesApprises.length) {
-      saveCatalogProducts(referencesApprises);
-    }
+    // Un seul enregistrement : prix, produits inconnus et références apprises.
+    // Au prochain tarif de ce fournisseur, ces lignes seront reconnues seules.
+    saveTariffImport({
+      overrides,
+      newProducts,
+      history: item,
+      changes: priceChanges,
+      references: referencesApprises,
+    });
     setHistory(getImportHistory());
     setPriceHistory(getManualPriceHistory());
     setSaved(true);

@@ -154,6 +154,22 @@ export type ManualPriceHistoryItem = {
   source?: "Manuel" | "Import tarif";
 };
 
+/**
+ * Référence fournisseur apprise pendant un import de tarif.
+ *
+ * Elle voyage avec les prix, dans le même enregistrement. La poser séparément
+ * — en réécrivant le produit entier — renvoyait au serveur le produit tel
+ * qu'il était AVANT l'import, prix compris : la référence était apprise et le
+ * prix qui venait d'être importé repassait à son ancienne valeur.
+ */
+export type ReferenceApprise = {
+  productId: number;
+  supplier: string;
+  reference: string;
+  /** Libellé du produit sur le tarif du fournisseur. */
+  supplierName: string;
+};
+
 export type ImportHistoryItem = {
   id: string;
   date: string;

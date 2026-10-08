@@ -192,6 +192,87 @@ const run = async () => {
   );
   check("l'historique des prix est alimenté", (priced.payload?.priceHistory?.length || 0) > 0);
 
+  // 8 bis. Import d'un tarif fournisseur : le prix ET la référence.
+  //        Les références apprises partaient dans une seconde requête, qui
+  //        renvoyait le produit tel qu'il était AVANT l'import. La référence
+  //        était apprise et le prix qui venait d'être importé repassait à son
+  //        ancienne valeur : un tarif ne s'appliquait qu'à moitié.
+  const offreApres = (payload) =>
+    payload?.products
+      ?.find((item) => item.id === product.id)
+      ?.offers?.find((offer) => offer.supplier === supplier);
+
+  const imported = await call("POST", "/catalog/imports", {
+    overrides: { [priceKey]: 67.9 },
+    newProducts: [],
+    history: {
+      id: crypto.randomUUID(),
+      fileName: "tarif-test.xlsx",
+      supplier,
+      changed: 1,
+      added: 0,
+      ignored: 0,
+    },
+    changes: [
+      { product: product.name, supplier, oldPrice: 42.5, newPrice: 67.9, scope: "Produit" },
+    ],
+    references: [
+      {
+        productId: product.id,
+        supplier,
+        reference: "REF-TEST-001",
+        supplierName: "LIBELLE FOURNISSEUR TEST",
+      },
+    ],
+  });
+  check("import de tarif enregistré", imported.status === 200, JSON.stringify(imported.payload));
+  const apresImport = offreApres(imported.payload);
+  check(
+    "le prix importé survit à la référence apprise",
+    apresImport?.price === 67.9,
+    `reçu ${apresImport?.price}`,
+  );
+  check(
+    "la référence fournisseur est apprise",
+    apresImport?.reference === "REF-TEST-001",
+    `reçu « ${apresImport?.reference} »`,
+  );
+  check(
+    "le libellé du fournisseur est conservé",
+    apresImport?.supplierName === "LIBELLE FOURNISSEUR TEST",
+    `reçu « ${apresImport?.supplierName} »`,
+  );
+  check("l'import figure au journal", (imported.payload?.importHistory?.length || 0) > 0);
+
+  // Un tarif suivant sans référence lisible ne doit pas effacer celle qu'on
+  // vient d'apprendre.
+  const reimport = await call("POST", "/catalog/imports", {
+    overrides: { [priceKey]: 70 },
+    newProducts: [],
+    history: {
+      id: crypto.randomUUID(),
+      fileName: "tarif-test-2.xlsx",
+      supplier,
+      changed: 1,
+      added: 0,
+      ignored: 0,
+    },
+    changes: [],
+    references: [{ productId: product.id, supplier, reference: "", supplierName: "" }],
+  });
+  const apresReimport = offreApres(reimport.payload);
+  check("second import enregistré", reimport.status === 200, JSON.stringify(reimport.payload));
+  check(
+    "le nouveau prix est en base",
+    apresReimport?.price === 70,
+    `reçu ${apresReimport?.price}`,
+  );
+  check(
+    "une référence vide n'efface pas celle qui est connue",
+    apresReimport?.reference === "REF-TEST-001",
+    `reçu « ${apresReimport?.reference} »`,
+  );
+
   // 9. Demande d'achat. Numérotée par le serveur, elle aussi.
   const request = await call("PUT", "/purchase-requests", {
     request: {

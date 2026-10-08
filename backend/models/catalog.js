@@ -330,6 +330,26 @@ const setOfferPrice = async (connection, suppliers, productId, supplierName, pri
   );
 };
 
+/**
+ * Référence fournisseur apprise à l'import.
+ *
+ * On ne touche qu'à la référence et au libellé. L'interface l'apprenait en
+ * renvoyant le produit entier à `PUT /catalog/products`, dans une seconde
+ * requête qui portait le prix d'avant l'import : la référence était apprise et
+ * le nouveau prix écrasé. Une référence vide ne remplace jamais une référence
+ * connue.
+ */
+const setOfferReference = async (connection, suppliers, productId, supplierName, reference, label) => {
+  if (!reference) return;
+  const supplierId = await ensureSupplier(connection, suppliers, supplierName);
+  await connection.execute(
+    `UPDATE hmgcde_supplier_products
+        SET reference = ?, supplier_label = ?
+      WHERE product_id = ? AND supplier_id = ?`,
+    [reference, label || "", productId, supplierId],
+  );
+};
+
 const setComponentPrice = async (connection, suppliers, productId, itemName, supplierName, price) => {
   const [components] = await connection.execute(
     `SELECT id FROM hmgcde_product_components WHERE product_id = ? AND name = ? LIMIT 1`,
@@ -406,6 +426,7 @@ export const applyTariffImport = async ({
   newProducts = [],
   history,
   changes = [],
+  references = [],
   userId,
 }) =>
   withTransaction(async (connection) => {
@@ -420,6 +441,21 @@ export const applyTariffImport = async ({
       const [productId, supplierName] = key.split(SEPARATOR);
       if (!productId || !supplierName) continue;
       await setOfferPrice(connection, suppliers, productId, supplierName, Number(value) || 0);
+    }
+
+    // Les références après les prix, dans la même transaction : le prix crée
+    // l'offre quand le fournisseur ne référençait pas encore le produit, et la
+    // référence trouve alors la ligne à compléter.
+    for (const apprise of references) {
+      if (!apprise?.productId || !apprise?.supplier) continue;
+      await setOfferReference(
+        connection,
+        suppliers,
+        apprise.productId,
+        apprise.supplier,
+        apprise.reference,
+        apprise.supplierName,
+      );
     }
 
     if (changes.length) {
