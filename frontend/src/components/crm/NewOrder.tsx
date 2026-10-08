@@ -32,6 +32,14 @@ import { getPurchasingSettings } from "@/lib/settings-storage";
 import { repartir } from "@/lib/dispatch";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
 import { NumberControl } from "./NumberControl";
+/** « 8 octobre 2026 » : le format porté par les commandes et les documents. */
+const dateEnFrancais = (date = new Date()) =>
+  new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+
 type Teams = Record<CompanyKey, number>;
 type Selected = Record<number, number>;
 type Dispatches = Record<number, Record<CompanyKey, number>>;
@@ -78,7 +86,10 @@ export function NewOrder({
     // serveur qui l'attribue. Vide tant qu'on compose, il ne sert donc qu'à
     // distinguer une correction (numéro connu) d'une création.
     [orderId, setOrderId] = useState(() => initialOrder?.id || ""),
-    [reference] = useState(() => initialOrder?.reference || orderReference());
+    [reference] = useState(() => initialOrder?.reference || orderReference()),
+    // Fixée à l'ouverture : une commande reprise garde sa date, et le bon de
+    // commande affiche celle qu'elle portera vraiment.
+    [dateCommande] = useState(() => initialOrder?.date || dateEnFrancais());
   const products = useCatalogProducts();
   const families = [...new Set(products.map((product) => product.family))];
   const totalTeams = Math.max(
@@ -211,11 +222,7 @@ export function NewOrder({
     const order: UnsavedOrder = {
       reference,
       supplier,
-      date: new Intl.DateTimeFormat("fr-FR", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }).format(new Date()),
+      date: dateCommande,
       status,
       lines: Object.entries(selected)
         .filter(([, quantity]) => quantity > 0)
@@ -825,7 +832,9 @@ export function NewOrder({
                 </div>
                 <div className="doc-meta">
                   <strong>{reference}</strong>
-                  <span>13/08/2026</span>
+                  {/* La date était écrite en dur : le bon de commande portait
+                      le 13/08/2026 quel que soit le jour. */}
+                  <span>{dateCommande}</span>
                 </div>
               </div>
               <div className="delivery-box">
