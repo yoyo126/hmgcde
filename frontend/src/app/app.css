@@ -4167,3 +4167,31 @@ tr.ligne-depliee .order-detail-panel {
   background: var(--bleu);
   color: #fff;
 }
+
+/* --- 31. Références fournisseur par tableur --------------------------- */
+/* Un aller-retour par le tableur : on exporte ses produits, on remplit les
+   références du fournisseur, on rend le fichier. */
+.references-panel .panel-head {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.references-panel .panel-head p {
+  max-width: 62ch;
+}
+.references-bilan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 var(--gouttiere) var(--gouttiere);
+  padding: 12px 14px;
+  border: 1px solid var(--filet);
+  border-radius: 4px;
+  background: var(--fond-alt);
+}
+.references-bilan p {
+  margin: 0;
+  max-width: 70ch;
+  font-size: 15px;
+}

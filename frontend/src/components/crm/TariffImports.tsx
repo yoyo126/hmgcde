@@ -12,6 +12,7 @@ import {
   FileText,
   LoaderCircle,
   PackagePlus,
+  Table2,
   UploadCloud,
 } from "lucide-react";
 import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.js?url";
@@ -29,6 +30,12 @@ import {
 } from "@/lib/tariff-storage";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
+import { nomCsv, telechargerCsv } from "@/lib/export-csv";
+import {
+  lignesReferences,
+  lireReferences,
+  type ChangementsReferences,
+} from "@/lib/references-csv";
 
 type RawLine = {
   name: string;
@@ -661,6 +668,85 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
     setSaved(true);
   };
 
+  // --- Références fournisseur par tableur ------------------------------
+  // Rattacher un devis ligne par ligne ne se fait qu'une fois par produit et
+  // par fournisseur, mais cette fois-là coûte une cinquantaine de recherches
+  // dans un menu déroulant. Le même travail se fait d'un coup d'œil dans un
+  // tableur, puis revient ici en un fichier.
+  const nomsFournisseurs = settings.suppliers.map((contact) => contact.name);
+  const [refNom, setRefNom] = useState("");
+  const [refLu, setRefLu] = useState<ChangementsReferences | null>(null);
+  const [refErreur, setRefErreur] = useState("");
+  const [refEnregistre, setRefEnregistre] = useState(false);
+  const refInputRef = useRef<HTMLInputElement>(null);
+
+  const exporterReferences = () => {
+    telechargerCsv(
+      nomCsv("references-fournisseurs"),
+      lignesReferences(catalogProducts, nomsFournisseurs),
+    );
+  };
+
+  const lireFichierReferences = async (file: File) => {
+    setRefErreur("");
+    setRefEnregistre(false);
+    setRefLu(null);
+    if (!/\.csv$/i.test(file.name)) {
+      setRefErreur("Format attendu : le fichier CSV exporté depuis cet écran.");
+      return;
+    }
+    setRefNom(file.name);
+    try {
+      const lu = lireReferences(await file.text(), catalogProducts, nomsFournisseurs);
+      setRefLu(lu);
+      if (!lu.references.length && !Object.keys(lu.overrides).length) {
+        setRefErreur("Rien n'a changé par rapport au catalogue.");
+      }
+    } catch {
+      setRefErreur("Le fichier n’a pas pu être lu.");
+    }
+  };
+
+  const validerReferences = () => {
+    if (!refLu) return;
+    const changements: ManualPriceChange[] = Object.entries(refLu.overrides).map(
+      ([cle, prix]) => {
+        const [identifiant, fournisseur] = cle.split("|||");
+        const produit = catalogProducts.find((item) => item.id === Number(identifiant));
+        const offre = produit?.offers.find((item) => item.supplier === fournisseur);
+        return {
+          product: produit?.name || identifiant,
+          supplier: fournisseur,
+          oldPrice: offre?.price || 0,
+          newPrice: prix,
+          scope: "Produit" as const,
+        };
+      },
+    );
+    saveTariffImport({
+      overrides: refLu.overrides,
+      newProducts: [],
+      history: {
+        id: crypto.randomUUID(),
+        date: new Intl.DateTimeFormat("fr-FR", {
+          dateStyle: "short",
+          timeStyle: "short",
+        }).format(new Date()),
+        fileName: refNom,
+        supplier: "Références (tableur)",
+        changed: changements.length,
+        added: 0,
+        ignored: refLu.inconnus.length,
+      },
+      changes: changements,
+      references: refLu.references,
+    });
+    setHistory(getImportHistory());
+    setPriceHistory(getManualPriceHistory());
+    setRefLu(null);
+    setRefEnregistre(true);
+  };
+
   const visibleLines = lines.filter(
     (line) => filter === "all" || line.status === filter,
   );
@@ -782,6 +868,88 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
           </div>
         </section>
       </div>
+
+      {/* Rattacher un devis se fait une fois par produit et par fournisseur.
+          Autant le faire d'un coup d'œil dans un tableur, et ne plus jamais
+          y revenir : les devis suivants se reconnaissent à la référence. */}
+      <section className="panel references-panel">
+        <div className="panel-head">
+          <div>
+            <h2>Références fournisseur par tableur</h2>
+            <p>
+              Exportez vos produits, remplissez les références du fournisseur
+              dans un tableur, rendez le fichier. Les devis suivants se
+              rattacheront tout seuls.
+            </p>
+          </div>
+          <div className="settings-actions">
+            <button className="secondary-btn" onClick={exporterReferences}>
+              <Table2 size={17} /> Exporter le catalogue
+            </button>
+            <button
+              className="primary-btn"
+              onClick={() => refInputRef.current?.click()}
+            >
+              <UploadCloud size={17} /> Rendre le fichier
+            </button>
+          </div>
+        </div>
+        <input
+          ref={refInputRef}
+          type="file"
+          accept=".csv"
+          hidden
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) void lireFichierReferences(file);
+            event.target.value = "";
+          }}
+        />
+        {refErreur && (
+          <div className="import-error">
+            <AlertTriangle />
+            {refErreur}
+          </div>
+        )}
+        {refEnregistre && (
+          <div className="import-success">
+            <CheckCircle2 />
+            Références enregistrées. Le prochain devis de ce fournisseur sera
+            reconnu sans intervention.
+          </div>
+        )}
+        {refLu && (
+          <div className="references-bilan">
+            <p>
+              <strong>{refNom}</strong> — {refLu.references.length} référence
+              {refLu.references.length > 1 ? "s" : ""} à apprendre,{" "}
+              {Object.keys(refLu.overrides).length} prix à mettre à jour.
+              {refLu.inconnus.length > 0 && (
+                <>
+                  {" "}
+                  {refLu.inconnus.length} ligne
+                  {refLu.inconnus.length > 1 ? "s" : ""} dont l’identifiant est
+                  inconnu, ignorée{refLu.inconnus.length > 1 ? "s" : ""}.
+                </>
+              )}
+              {refLu.colonnesIgnorees.length > 0 && (
+                <>
+                  {" "}
+                  Colonnes non reconnues : {refLu.colonnesIgnorees.join(", ")}.
+                </>
+              )}
+            </p>
+            <div className="settings-actions">
+              <button className="secondary-btn" onClick={() => setRefLu(null)}>
+                Annuler
+              </button>
+              <button className="primary-btn" onClick={validerReferences}>
+                <Check size={17} /> Appliquer au catalogue
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
 
       {lines.length > 0 && (
         <section className="panel import-review">

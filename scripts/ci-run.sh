@@ -59,6 +59,11 @@ step "Ventilation en euros par société"
 node --experimental-strip-types --test frontend/tests/ventilation.test.ts \
   || fail "ventilation par société"
 
+step "Références fournisseur par tableur"
+# Cet aller-retour écrit des prix et des références au catalogue.
+node --experimental-strip-types --test frontend/tests/references-csv.test.ts \
+  || fail "références fournisseur"
+
 step "Compilation de l'interface"
 npm --prefix frontend run build || fail "compilation interface"
 
