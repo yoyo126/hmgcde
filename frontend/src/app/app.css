@@ -4114,3 +4114,56 @@ tr.ligne-depliee .order-detail-panel {
 .produits-comptoir .prices-open .price-cell {
   line-height: 1.5;
 }
+
+/* --- 30. Rattachement d'une ligne de tarif ---------------------------- */
+/* L'état d'une ligne n'avait aucun style : « Nouveau produit » et « Produit
+   reconnu » s'écrivaient en italique maigre, au même endroit, et rien ne
+   disait d'un coup d'œil ce qui allait partir au catalogue. */
+.match-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.match-status.changed {
+  background: var(--vert-pale);
+  color: var(--vert);
+}
+.match-status.unchanged {
+  background: var(--filet-2);
+  color: var(--encre-2);
+}
+.match-status.new {
+  background: var(--ambre-pale);
+  color: var(--ambre);
+}
+/* Les trois produits les plus probables, rattachables d'un clic : chercher
+   dans tout le catalogue ligne par ligne prenait un temps fou. */
+.match-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 0 2px;
+}
+.match-suggestions small {
+  color: var(--encre-3);
+  font-size: 13px;
+}
+.match-suggestions button {
+  padding: 3px 9px;
+  border: 1px solid var(--bleu);
+  border-radius: 3px;
+  background: var(--bleu-pale);
+  color: var(--bleu);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+}
+.match-suggestions button:hover {
+  background: var(--bleu);
+  color: #fff;
+}

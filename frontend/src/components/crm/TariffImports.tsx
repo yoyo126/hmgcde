@@ -33,6 +33,12 @@ import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
 type RawLine = {
   name: string;
   reference: string;
+  /**
+   * Second code porté par la ligne : les devis YESSS donnent à la fois leur
+   * numéro d'article et le numéro de catalogue du constructeur. Les deux
+   * servent à retrouver le produit.
+   */
+  catalogue?: string;
   price: number;
   /** Unité de vente du fournisseur, ex. « 100 Mètr » — affichée pour contrôle. */
   unit?: string;
@@ -43,6 +49,8 @@ type ReviewLine = RawLine & {
   oldPrice: number;
   status: "changed" | "new" | "unchanged";
   selected: boolean;
+  /** Produits à proposer quand le rattachement n'est pas sûr. */
+  suggestions: Product[];
 };
 
 const normalize = (value: unknown) =>
@@ -186,12 +194,25 @@ const groupeEnLignes = (fragments: { x: number; y: number; xFin: number; texte: 
     .map(([, cellules]) => cellules.sort((a, b) => a.x - b.x));
 };
 
+/**
+ * Colonnes reconnues dans l'en-téte d'un tableau.
+ *
+ * Toute colonne absente de cette liste n'est pas ignorée : son contenu est
+ * rangé dans la colonne connue la plus proche. Un devis YESSS porte neuf
+ * colonnes, et les trois qui manquaient ici — « Catalogue », « Prix » brut
+ * et « Remises » — venaient donc se coller à la désignation et au prix net :
+ * le nom du produit arrivait préfixé d'un numéro de catalogue, et le prix
+ * brut pouvait être pris pour le prix net. D'où l'importance de les nommer,
+ * même pour ne rien en faire.
+ */
 const EN_TETES = {
   quantite: ["qte", "qté", "quantite", "quantité"],
   reference: ["article", "reference", "référence", "ref", "code"],
+  catalogue: ["catalogue", "cat.", "ref catalogue"],
   designation: ["designation", "désignation", "libelle", "libellé", "produit"],
   prixNet: ["prix net", "prixnet", "net", "prix unitaire", "pu ht", "p.u."],
-  prixBrut: ["prix brut", "prixbrut", "brut", "tarif"],
+  prixBrut: ["prix brut", "prixbrut", "brut", "tarif", "prix"],
+  remise: ["remises", "remise", "remises (%)", "remise (%)", "%"],
   unite: ["uvte", "u.vte", "unite", "unité", "cond", "conditionnement"],
   montant: ["montant", "total"],
 };
@@ -287,12 +308,23 @@ async function readPdf(file: File): Promise<RawLine[]> {
       const par = rangeParColonne(cellules, entete.colonnes);
       const designation = (par.designation || []).join(" ").trim();
       const reference = (par.reference || []).find((t) => !estNombre(t) || t.includes("-")) || "";
+      const catalogue = (par.catalogue || []).join(" ").trim();
       const nombreNet = (par.prixNet || []).find(estNombre);
       const nombreBrut = (par.prixBrut || []).find(estNombre);
       const prix = parsePrice(nombreNet ?? nombreBrut);
+      // Les titres de rubrique d'un devis (« COFFRET PAC MONO: »,
+      // « PROTECTIONS ») n'ont pas de prix : ils tombent d'eux-mêmes.
       if (!designation || designation.length < 3 || !(prix > 0)) continue;
 
-      const unite = [...(par.quantite || []).filter(estNombre).slice(0, 1), ...(par.unite || [])]
+      // L'unité de vente vient de sa colonne — « 1000 Mètr ». La quantité
+      // commandée ne s'y ajoute que si cette colonne n'a pas de nombre : sinon
+      // on lisait « 0 1000 Mètr », la quantité du devis collée devant.
+      const uniteBrute = par.unite || [];
+      const unite = (
+        uniteBrute.some(estNombre)
+          ? uniteBrute
+          : [...(par.quantite || []).filter(estNombre).slice(0, 1), ...uniteBrute]
+      )
         .join(" ")
         .trim();
 
@@ -300,6 +332,7 @@ async function readPdf(file: File): Promise<RawLine[]> {
         name: designation,
         reference: reference.trim(),
         price: prix,
+        ...(catalogue ? { catalogue } : {}),
         ...(unite ? { unit: unite } : {}),
       });
     }
@@ -333,10 +366,21 @@ const similarity = (source: RawLine, product: Product) => {
  * diam,25 gris ATF » chez YESSS ne ressemblera jamais à « Gaine ICT diamètre
  * 25 » chez nous, aucun réglage de similarité ne rattrapera cela. Le nom ne
  * sert que de suggestion, quand aucune référence n'est encore connue.
+ *
+ * Quand rien n'est sûr, on ne devine pas : on propose. Un mauvais
+ * rattachement écrit un faux prix dans le catalogue, ce qui coûte plus cher
+ * qu'un rattachement à faire à la main — et il ne se fait qu'une fois, la
+ * référence étant mémorisée ensuite.
  */
+const referencesDe = (line: RawLine) =>
+  [line.reference, line.catalogue]
+    .map((valeur) => normalize(valeur || ""))
+    .filter((valeur) => valeur.length > 2);
+
 const findProduct = (line: RawLine, catalog: Product[], supplier: string) => {
-  const reference = normalize(line.reference);
-  if (reference) {
+  const references = referencesDe(line);
+
+  for (const reference of references) {
     const parReference = catalog.find((product) =>
       product.offers.some(
         (offer) =>
@@ -345,15 +389,39 @@ const findProduct = (line: RawLine, catalog: Product[], supplier: string) => {
           normalize(offer.reference) === reference,
       ),
     );
-    if (parReference) return { product: parReference, byReference: true };
+    if (parReference) {
+      return { product: parReference, byReference: true, suggestions: [] as Product[] };
+    }
   }
+
   const candidates = catalog
     .map((product) => ({ product, score: similarity(line, product) }))
     .sort((a, b) => b.score - a.score);
-  return candidates[0]?.score >= 0.42
-    ? { product: candidates[0].product, byReference: false }
-    : { product: undefined, byReference: false };
+  if (candidates[0]?.score >= 0.42) {
+    return { product: candidates[0].product, byReference: false, suggestions: [] as Product[] };
+  }
+
+  // La même référence chez un AUTRE fournisseur est un indice fort — c'est
+  // souvent le numéro de catalogue du constructeur — mais pas une preuve :
+  // deux fournisseurs peuvent réutiliser un code. Elle est proposée, jamais
+  // appliquée seule.
+  const ailleurs = catalog.filter((product) =>
+    product.offers.some(
+      (offer) => offer.reference && references.includes(normalize(offer.reference)),
+    ),
+  );
+  const proches = candidates
+    .filter((candidate) => candidate.score >= 0.22)
+    .map((candidate) => candidate.product);
+  const suggestions = [...ailleurs, ...proches]
+    .filter((product, index, all) => all.findIndex((item) => item.id === product.id) === index)
+    .slice(0, 3);
+
+  return { product: undefined, byReference: false, suggestions };
 };
+
+/** Valeur du menu déroulant qui demande la création d'un produit. */
+const CREER = "creer";
 
 const supplierFamily = (supplier: string): Product["family"] =>
   supplier === "CLIM+"
@@ -424,30 +492,36 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
               normalize(`${line.reference} ${line.name}`),
           ) === index,
       );
-      setLines(
-        uniqueRows.map((line, index) => {
-          const { product } = findProduct(line, catalogProducts, supplier);
-          const offer = product?.offers.find(
-            (item) => item.supplier === supplier,
-          );
-          const oldPrice = product
-            ? effectivePrice(product.id, supplier, offer?.price || 0)
-            : 0;
-          const status = !product
-            ? "new"
-            : Math.abs(oldPrice - line.price) < 0.01
-              ? "unchanged"
-              : "changed";
-          return {
-            ...line,
-            id: `${index}-${line.reference}-${line.name}`,
-            product,
-            oldPrice,
-            status,
-            selected: status !== "unchanged",
-          };
-        }),
-      );
+      const relues = uniqueRows.map((line, index) => {
+        const { product, suggestions } = findProduct(line, catalogProducts, supplier);
+        const offer = product?.offers.find((item) => item.supplier === supplier);
+        const oldPrice = product
+          ? effectivePrice(product.id, supplier, offer?.price || 0)
+          : 0;
+        const status = !product
+          ? ("new" as const)
+          : Math.abs(oldPrice - line.price) < 0.01
+            ? ("unchanged" as const)
+            : ("changed" as const);
+        return {
+          ...line,
+          id: `${index}-${line.reference}-${line.name}`,
+          product,
+          oldPrice,
+          status,
+          suggestions,
+          // Une ligne qu'on n'a pas su rattacher n'est pas cochée.
+          // Elle l'était, et le menu proposait par défaut « créer un nouveau
+          // produit » : valider un devis fabriquait donc des dizaines de
+          // produits « À renseigner » qu'il fallait ensuite compléter un par
+          // un. Un import est là pour mettre à jour le prix des produits
+          // qu'on achète, pas pour avaler le catalogue du fournisseur.
+          selected: status === "changed",
+        };
+      });
+      setLines(relues);
+      // On ouvre sur ce qui compte : les prix qui bougent.
+      setFilter(relues.some((line) => line.status === "changed") ? "changed" : "all");
     } catch (caught) {
       setLines([]);
       setError(
@@ -460,15 +534,24 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
     }
   };
 
+  /**
+   * Trois issues pour une ligne : la rattacher à un produit, en créer un, ou
+   * l'ignorer. « Ignorer » et « créer » se ressemblent — aucun produit
+   * rattaché — et ne se distinguent que par la case à cocher : c'est elle
+   * qui dit si la ligne part à l'enregistrement.
+   */
   const assignProduct = (lineId: string, productId: string) => {
     setLines((current) =>
       current.map((line) => {
         if (line.id !== lineId) return line;
+        if (productId === CREER) {
+          return { ...line, product: undefined, oldPrice: 0, status: "new", selected: true };
+        }
         const product = catalogProducts.find(
           (item) => item.id === Number(productId),
         );
         if (!product) {
-          return { ...line, product: undefined, oldPrice: 0, status: "new" };
+          return { ...line, product: undefined, oldPrice: 0, status: "new", selected: false };
         }
         const offer = product.offers.find((item) => item.supplier === supplier);
         const oldPrice = effectivePrice(product.id, supplier, offer?.price || 0);
@@ -582,6 +665,12 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
     (line) => filter === "all" || line.status === filter,
   );
 
+  // Ce que la validation va faire, dit en clair : l'écran annonçait seulement
+  // « cochez les lignes à appliquer », sans jamais dire ce qui partait.
+  const aAppliquer = lines.filter((line) => line.selected && line.product).length;
+  const aCreer = lines.filter((line) => line.selected && !line.product).length;
+  const ignorees = lines.length - aAppliquer - aCreer;
+
   return (
     <div className="screen tariff-screen">
       <div className="page-title standard">
@@ -672,7 +761,7 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
             <div className="new">
               <PackagePlus />
               <strong>{counts.new}</strong>
-              <span>Nouveaux produits</span>
+              <span>Non rattachés</span>
             </div>
             <div className="same">
               <CheckCircle2 />
@@ -688,7 +777,7 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
               <Check /> Comparaison ancien / nouveau prix
             </span>
             <span>
-              <Check /> Aucun doublon ajouté automatiquement
+              <Check /> Aucun produit créé sans votre accord
             </span>
           </div>
         </section>
@@ -699,7 +788,13 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
           <div className="review-toolbar">
             <div>
               <h2>Vérification avant validation</h2>
-              <p>Cochez uniquement les lignes à appliquer au catalogue.</p>
+              <p>
+                {aAppliquer} prix mis à jour
+                {aCreer > 0 ? ` · ${aCreer} produit${aCreer > 1 ? "s" : ""} créé${aCreer > 1 ? "s" : ""}` : ""}
+                {ignorees > 0 ? ` · ${ignorees} ligne${ignorees > 1 ? "s" : ""} ignorée${ignorees > 1 ? "s" : ""}` : ""}
+                . Une ligne non rattachée est ignorée tant qu’on ne lui
+                désigne pas de produit.
+              </p>
             </div>
             <div className="review-filters">
               {(["all", "changed", "new", "unchanged"] as const).map(
@@ -714,7 +809,7 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
                       : value === "changed"
                         ? "Prix modifiés"
                         : value === "new"
-                          ? "Nouveaux"
+                          ? "Non rattachés"
                           : "Identiques"}
                   </button>
                 ),
@@ -761,21 +856,40 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
                   </span>
                   <span data-label="Concordance">
                     <i className={`match-status ${line.status}`}>
-                      {line.status === "new"
-                        ? "Nouveau produit"
-                        : line.status === "changed"
+                      {line.product
+                        ? line.status === "changed"
                           ? "Produit reconnu"
-                          : "Prix identique"}
+                          : "Prix identique"
+                        : line.selected
+                          ? "Sera créé"
+                          : "Non rattaché"}
                     </i>
+                    {/* Chercher dans soixante-quinze produits pour chaque
+                        ligne prenait un temps fou : on propose les trois plus
+                        probables, rattachables d'un clic. */}
+                    {!line.product && line.suggestions.length > 0 && (
+                      <span className="match-suggestions">
+                        <small>Serait-ce&nbsp;:</small>
+                        {line.suggestions.map((product) => (
+                          <button
+                            key={product.id}
+                            onClick={() => assignProduct(line.id, String(product.id))}
+                          >
+                            {product.name}
+                          </button>
+                        ))}
+                      </span>
+                    )}
                     <select
                       className="product-match-select"
                       aria-label={`Associer ${line.name} à un produit`}
-                      value={line.product?.id ?? ""}
+                      value={line.product?.id ?? (line.selected ? CREER : "")}
                       onChange={(event) =>
                         assignProduct(line.id, event.target.value)
                       }
                     >
-                      <option value="">Créer un nouveau produit</option>
+                      <option value="">Ignorer cette ligne</option>
+                      <option value={CREER}>Créer un nouveau produit</option>
                       {catalogProducts.map((product) => (
                         <option key={product.id} value={product.id}>
                           {product.family} · {product.name}
