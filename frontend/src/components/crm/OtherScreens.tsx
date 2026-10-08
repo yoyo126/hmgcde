@@ -51,6 +51,7 @@ import {
 import {
   createMailPreview,
   copyOrderEmail,
+  deleteStoredOrder,
   getStoredOrders,
   mailtoUrl,
   saveOrder,
@@ -68,11 +69,15 @@ import { CRM_VERSION, CRM_VERSION_HISTORY } from "@/lib/version";
 import { filtrerCommandes, totauxCommandes } from "@/lib/order-filters";
 export function OrdersScreen({
   onNavigate,
+  onEditOrder,
   initialOpenOrder,
 }: {
   onNavigate: (id: ScreenId) => void;
+  /** Rouvre une commande dans l'écran de création pour la corriger. */
+  onEditOrder: (order: StoredOrder) => void;
   initialOpenOrder?: string | null;
 }) {
+  const can = usePermissions();
   const [query, setQuery] = useState(""),
     [statusFilter, setStatusFilter] = useState(""),
     [supplierFilter, setSupplierFilter] = useState(""),
@@ -103,6 +108,21 @@ export function OrdersScreen({
       return;
     }
     window.open(mailtoUrl(email, false), "_self");
+  };
+  /**
+   * Supprime un brouillon.
+   *
+   * Une commande déjà envoyée ne s'efface pas : le fournisseur l'a reçue et
+   * elle doit rester lisible — celle-là, on la corrige.
+   */
+  const removeOrder = (order: StoredOrder) => {
+    const confirme = window.confirm(
+      `Supprimer définitivement le brouillon ${order.reference} (${order.id}) ?`,
+    );
+    if (!confirme) return;
+    deleteStoredOrder(order.id);
+    setOpenOrder(null);
+    setOrders(getStoredOrders());
   };
   const printOrder = (withoutPrices: boolean) => {
     if (withoutPrices) document.body.classList.add("print-without-prices");
@@ -332,6 +352,25 @@ export function OrdersScreen({
                       >
                         <Printer size={16} /> PDF sans prix
                       </button>
+                      {/* Une erreur de saisie était définitive : la commande
+                          ne se reprenait ni ne s'effaçait depuis l'écran. */}
+                      {can.canManagePurchasing && (
+                        <button
+                          className="secondary-btn"
+                          onClick={() => onEditOrder(o)}
+                        >
+                          <Pencil size={16} />
+                          {o.status === "Envoyée" ? "Corriger (déjà envoyée)" : "Modifier"}
+                        </button>
+                      )}
+                      {can.canManagePurchasing && o.status === "Brouillon" && (
+                        <button
+                          className="danger-btn"
+                          onClick={() => removeOrder(o)}
+                        >
+                          <Trash2 size={16} /> Supprimer
+                        </button>
+                      )}
                       <button className="primary-btn" onClick={() => openMail(o)}>
                         <Mail size={16} />
                         {o.email ? "Recopier et rouvrir Mail" : "Copier le tableau et ouvrir Mail"}

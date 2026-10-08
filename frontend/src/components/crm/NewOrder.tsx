@@ -214,16 +214,23 @@ export function NewOrder({
     ]),
   ) as Record<CompanyKey, number>;
   /**
-   * Compose la commande à enregistrer. Le numéro n'y figure que si elle en a
-   * déjà un : une création part sans numéro, et c'est le serveur qui
-   * l'attribue — le navigateur tombait sinon sur un numéro déjà pris.
+   * Compose la commande à enregistrer.
+   *
+   * `envoi` distingue les deux gestes : enregistrer, et envoyer. À
+   * l'enregistrement, une commande reprise garde son état et l'e-mail déjà
+   * parti — corriger une commande envoyée ne doit pas effacer la trace de ce
+   * que le fournisseur a reçu. À l'envoi, l'e-mail est refait.
+   *
+   * Le numéro n'y figure que si la commande en a déjà un : une création part
+   * sans numéro, et c'est le serveur qui l'attribue — le navigateur tombait
+   * sinon sur un numéro déjà pris.
    */
-  const buildOrder = (status: "Brouillon" | "Envoyée"): StoredOrder | UnsavedOrder => {
+  const buildOrder = (envoi: boolean): StoredOrder | UnsavedOrder => {
     const order: UnsavedOrder = {
       reference,
       supplier,
       date: dateCommande,
-      status,
+      status: envoi ? "Envoyée" : (initialOrder?.status ?? "Brouillon"),
       lines: Object.entries(selected)
         .filter(([, quantity]) => quantity > 0)
         .map(([id, quantity]) => {
@@ -247,8 +254,11 @@ export function NewOrder({
       total,
       sourceRequestId: initialOrder?.sourceRequestId,
     };
-    const complet =
-      status === "Envoyée" ? { ...order, email: createMailPreview(order) } : order;
+    const complet = envoi
+      ? { ...order, email: createMailPreview(order) }
+      : initialOrder?.email
+        ? { ...order, email: initialOrder.email }
+        : order;
     return orderId ? { ...complet, id: orderId } : complet;
   };
   /**
@@ -259,7 +269,7 @@ export function NewOrder({
   const createOrder = async () => {
     setSaving(true);
     try {
-      setOrderId(await saveOrder(buildOrder("Brouillon")));
+      setOrderId(await saveOrder(buildOrder(false)));
       setSent(true);
     } catch {
       // L'erreur est déjà signalée par le bandeau de l'application : on reste
@@ -269,7 +279,7 @@ export function NewOrder({
     }
   };
   const markEmailSent = async () => {
-    const order = buildOrder("Envoyée");
+    const order = buildOrder(true);
     setOrderId(await saveOrder(order));
     const copied = await copyOrderEmail(order);
     setMailOpen(true);
@@ -287,11 +297,12 @@ export function NewOrder({
             <Check size={34} />
           </div>
           <span className="eyebrow">COMMANDE ENREGISTRÉE</span>
-          <h1>Prête à être envoyée</h1>
+          <h1>{initialOrder ? "Correction enregistrée" : "Prête à être envoyée"}</h1>
           <p>
-            La commande <strong>{reference}</strong> a été créée pour{" "}
-            {supplier}. Le bon fournisseur ne contient aucune information sur
-            les équipes.
+            La commande <strong>{reference}</strong>
+            {orderId ? ` (${orderId})` : ""}{" "}
+            {initialOrder ? "a été corrigée" : "a été créée"} pour {supplier}. Le bon
+            fournisseur ne contient aucune information sur les équipes.
           </p>
           <div className="success-actions">
             {remainingDrafts > 0 && onNextDraft && (
@@ -314,7 +325,7 @@ export function NewOrder({
             <div className="sent-mail-preview compact-mail-preview">
               <strong>Le tableau complet est copié</strong>
               <span>Dans Mail, maintiens ton doigt dans le message puis choisis « Coller ».</span>
-              <span>À : {buildOrder("Envoyée").email?.to || "À renseigner dans Paramètres"}</span>
+              <span>À : {buildOrder(true).email?.to || "À renseigner dans Paramètres"}</span>
               <span>Objet : {settings.mailSubject}</span>
               <button
                 className="text-btn"
@@ -335,8 +346,12 @@ export function NewOrder({
             <ArrowLeft size={17} />
             Retour
           </button>
-          <h1>Nouvelle commande</h1>
-          <p>Créez et répartissez une commande fournisseur.</p>
+          <h1>{initialOrder ? "Modifier la commande" : "Nouvelle commande"}</h1>
+          <p>
+            {initialOrder
+              ? `${initialOrder.id} · quantités, répartition et fournisseur restent modifiables.`
+              : "Créez et répartissez une commande fournisseur."}
+          </p>
         </div>
         {/* Les étapes remontent dans le bandeau : la barre isolée qui les
             portait faisait un liseré de plus entre le titre et le tableau. */}
@@ -356,7 +371,7 @@ export function NewOrder({
               {label}
             </span>
           ))}
-          <span className="draft-tag">Brouillon</span>
+          <span className="draft-tag">{initialOrder?.status || "Brouillon"}</span>
         </div>
       </div>
       <section

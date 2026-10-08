@@ -75,6 +75,17 @@ export function CRMApp({
     setDraftOrders(orders);
     setScreen("new-order");
   };
+  /**
+   * Reprend une commande existante dans l'écran de création. Même chemin que
+   * la finalisation d'une demande d'achat : l'écran sait déjà rouvrir une
+   * commande, il n'y avait simplement aucun bouton pour y mener.
+   */
+  const editOrder = (order: StoredOrder) => {
+    if (!allowed("new-order")) return;
+    setDraftOrders([order]);
+    setScreen("new-order");
+    setMenu(false);
+  };
   const content =
     screen === "dashboard" ? (
       <Dashboard onNavigate={navigate} onOpenOrder={openOrder} />
@@ -89,7 +100,11 @@ export function CRMApp({
     ) : screen === "purchase-requests" ? (
       <PurchaseRequests onFinalize={finalizeRequest} />
     ) : screen === "orders" ? (
-      <OrdersScreen onNavigate={navigate} initialOpenOrder={orderToOpen} />
+      <OrdersScreen
+        onNavigate={navigate}
+        onEditOrder={editOrder}
+        initialOpenOrder={orderToOpen}
+      />
     ) : screen === "products" ? (
       <ProductsScreen onBack={() => navigate("settings")} />
     ) : screen === "tariff-imports" ? (
