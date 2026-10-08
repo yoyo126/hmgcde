@@ -1,6 +1,19 @@
-export const CRM_VERSION = "3.1.0";
+export const CRM_VERSION = "3.2.0";
 
 export const CRM_VERSION_HISTORY = [
+  {
+    version: "3.2.0",
+    date: "8 octobre 2026",
+    title: "Qui paie quoi, et des commandes corrigeables",
+    changes: [
+      "Répartition entre sociétés chiffrée en euros, par fournisseur et par commande",
+      "Deux exports tableur : la répartition, et le détail des commandes",
+      "Une commande se corrige, un brouillon se supprime",
+      "Deux commandes créées en même temps ne s'écrasent plus",
+      "Le bon de commande porte enfin la bonne date",
+      "Lecteur de tarifs Excel à jour, sans failles connues",
+    ],
+  },
   {
     version: "3.1.0",
     date: "26 septembre 2026",

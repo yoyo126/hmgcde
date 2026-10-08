@@ -9,6 +9,12 @@ selon leur nombre d'équipes → ajustement manuel dans le récapitulatif →
 affectation aux fournisseurs → e-mail fournisseur prêt à envoyer → suivi des
 statuts, impression avec ou sans prix, historique des prix.
 
+L'écran **Répartition** chiffre ensuite cette ventilation en euros — par
+société, par fournisseur, puis commande par commande — et l'exporte au format
+tableur : c'est la base de la refacturation entre les quatre sociétés. Ce que
+la répartition ne couvre pas y reste en « non imputé » plutôt que d'être
+réparti au jugé.
+
 ## Architecture
 
 ```
@@ -110,6 +116,13 @@ avec le CRM HM Group sans collision de noms.
 La suppression d'un produit ou d'un fournisseur est **logique** (`is_deleted`,
 `is_active`) : les commandes passées et l'historique des prix restent lisibles.
 
+Les numéros de commande et de demande (`CMD-2026-049`, `DA-2026-012`) sont
+attribués par le serveur, jamais par le navigateur : l'unicité de la colonne
+`code` a le dernier mot, et un numéro pris entre-temps fait reprendre le
+suivant. Créer (`PUT` sans `id`) et mettre à jour (`PUT` avec `id`) sont deux
+chemins distincts — une création ne peut pas écraser une commande existante,
+une mise à jour ne peut pas en inventer une.
+
 ## Comptes et rôles
 
 | Rôle | Droits |
@@ -142,7 +155,7 @@ Toutes les routes sont sous `/api` et exigent une session, sauf la connexion.
 | `POST` | `/catalog/products/delete` | Suppression logique |
 | `POST` | `/catalog/prices` | Saisie manuelle de prix |
 | `POST` | `/catalog/imports` | Import d'un tarif fournisseur |
-| `GET` | `/orders` · `PUT /orders` · `PUT /orders/batch` | Commandes |
+| `GET` | `/orders` · `PUT /orders` · `PUT /orders/batch` · `DELETE /orders/:code` | Commandes |
 | `GET` | `/purchase-requests` · `PUT /purchase-requests` | Demandes d'achat |
 | `GET` | `/settings` · `PUT /settings` | Paramètres et fournisseurs |
 | `GET` | `/users` · `POST` · `PUT /:id` · `DELETE /:id` | Comptes (admin) |
