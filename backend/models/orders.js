@@ -113,7 +113,6 @@ const parseJson = (value) => {
   }
 };
 
-
 /**
  * Premier numéro de l'année. La série ne part pas de 1 : c'est la valeur
  * héritée de la numérotation en cours, conservée telle quelle.
