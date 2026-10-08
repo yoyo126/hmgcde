@@ -4195,3 +4195,22 @@ tr.ligne-depliee .order-detail-panel {
   max-width: 70ch;
   font-size: 15px;
 }
+
+/* --- 32. Conversion de l'unité de vente ------------------------------- */
+/* Un tarif parle en unités de vente — « 1000 Mètr » — l'application en
+   conditionnements. La conversion doit se voir : un prix divisé par dix sans
+   explication ressemble à une erreur. */
+.conversion-faite,
+.conversion-douteuse {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.conversion-faite {
+  color: var(--encre-3);
+}
+.conversion-douteuse {
+  color: var(--ambre);
+  font-weight: 600;
+}

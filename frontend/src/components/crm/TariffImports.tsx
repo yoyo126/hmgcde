@@ -30,6 +30,7 @@ import {
 } from "@/lib/tariff-storage";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
+import { convertirPrix, type ResultatConversion } from "@/lib/conditionnement";
 import { nomCsv, telechargerCsv } from "@/lib/export-csv";
 import {
   lignesReferences,
@@ -58,6 +59,12 @@ type ReviewLine = RawLine & {
   selected: boolean;
   /** Produits à proposer quand le rattachement n'est pas sûr. */
   suggestions: Product[];
+  /**
+   * Prix ramené au conditionnement de ce fournisseur, et ce qu'on en sait.
+   * Un tarif parle en unités de vente — « 1000 Mètr » — l'application en
+   * conditionnements : une couronne de 100 m.
+   */
+  conversion: ResultatConversion;
 };
 
 const normalize = (value: unknown) =>
@@ -437,6 +444,35 @@ const supplierFamily = (supplier: string): Product["family"] =>
       ? "Plomberie"
       : "Électricité";
 
+/**
+ * État d'une ligne face au catalogue : ancien prix, prix ramené au
+ * conditionnement de ce fournisseur, et le statut qui en découle.
+ *
+ * La comparaison porte sur le prix CONVERTI : comparer 810,56 € le touret à
+ * 81,06 € la couronne ferait croire à une hausse de 900 %.
+ */
+const evalueLigne = (
+  line: RawLine,
+  product: Product | undefined,
+  supplier: string,
+): Pick<ReviewLine, "oldPrice" | "conversion" | "status"> => {
+  if (!product) {
+    return {
+      oldPrice: 0,
+      conversion: { etat: "indeterminee", prix: line.price, raison: "produit à rattacher" },
+      status: "new",
+    };
+  }
+  const offer = product.offers.find((item) => item.supplier === supplier);
+  const oldPrice = effectivePrice(product.id, supplier, offer?.price || 0);
+  const conversion = convertirPrix(line.price, line.unit, offer?.packaging);
+  return {
+    oldPrice,
+    conversion,
+    status: Math.abs(oldPrice - conversion.prix) < 0.01 ? "unchanged" : "changed",
+  };
+};
+
 export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
   const settings = usePurchasingSettings();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -501,20 +537,13 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
       );
       const relues = uniqueRows.map((line, index) => {
         const { product, suggestions } = findProduct(line, catalogProducts, supplier);
-        const offer = product?.offers.find((item) => item.supplier === supplier);
-        const oldPrice = product
-          ? effectivePrice(product.id, supplier, offer?.price || 0)
-          : 0;
-        const status = !product
-          ? ("new" as const)
-          : Math.abs(oldPrice - line.price) < 0.01
-            ? ("unchanged" as const)
-            : ("changed" as const);
+        const { oldPrice, conversion, status } = evalueLigne(line, product, supplier);
         return {
           ...line,
           id: `${index}-${line.reference}-${line.name}`,
           product,
           oldPrice,
+          conversion,
           status,
           suggestions,
           // Une ligne qu'on n'a pas su rattacher n'est pas cochée.
@@ -552,24 +581,27 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
       current.map((line) => {
         if (line.id !== lineId) return line;
         if (productId === CREER) {
-          return { ...line, product: undefined, oldPrice: 0, status: "new", selected: true };
+          return {
+            ...line,
+            product: undefined,
+            ...evalueLigne(line, undefined, supplier),
+            selected: true,
+          };
         }
         const product = catalogProducts.find(
           (item) => item.id === Number(productId),
         );
         if (!product) {
-          return { ...line, product: undefined, oldPrice: 0, status: "new", selected: false };
+          return {
+            ...line,
+            product: undefined,
+            ...evalueLigne(line, undefined, supplier),
+            selected: false,
+          };
         }
-        const offer = product.offers.find((item) => item.supplier === supplier);
-        const oldPrice = effectivePrice(product.id, supplier, offer?.price || 0);
-        return {
-          ...line,
-          product,
-          oldPrice,
-          status:
-            Math.abs(oldPrice - line.price) < 0.01 ? "unchanged" : "changed",
-          selected: true,
-        };
+        // Le conditionnement vient de l'offre du produit retenu : changer de
+        // produit peut donc changer la conversion.
+        return { ...line, product, ...evalueLigne(line, product, supplier), selected: true };
       }),
     );
   };
@@ -591,7 +623,9 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
 
     selected.forEach((line, index) => {
       if (line.product) {
-        overrides[priceKey(line.product.id, supplier)] = line.price;
+        // Le prix ramené au conditionnement de ce fournisseur, jamais le prix
+        // brut du tarif : c'est lui qui multipliera les quantités commandées.
+        overrides[priceKey(line.product.id, supplier)] = line.conversion.prix;
         const offreConnue = line.product.offers.find((offer) => offer.supplier === supplier);
         const referenceInconnue =
           line.reference &&
@@ -604,12 +638,12 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
             supplierName: line.name,
           });
         }
-        if (line.oldPrice !== line.price) {
+        if (line.oldPrice !== line.conversion.prix) {
           priceChanges.push({
             product: line.product.name,
             supplier,
             oldPrice: line.oldPrice,
-            newPrice: line.price,
+            newPrice: line.conversion.prix,
             scope: "Produit",
           });
         }
@@ -629,7 +663,11 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
             reference: line.reference || "À renseigner",
             brand: "À renseigner",
             price: line.price,
-            packaging: "À renseigner",
+            // Le conditionnement est celui de l'unité de vente du tarif : le
+            // prix est celui-là, et les deux doivent se correspondre, sans
+            // quoi la première commande multiplierait un prix de 100 pièces
+            // par un nombre de pièces.
+            packaging: line.unit || "À renseigner",
             packagingType: "fixed",
           },
         ],
@@ -756,6 +794,13 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
   const aAppliquer = lines.filter((line) => line.selected && line.product).length;
   const aCreer = lines.filter((line) => line.selected && !line.product).length;
   const ignorees = lines.length - aAppliquer - aCreer;
+  const converties = lines.filter(
+    (line) => line.selected && line.conversion.etat === "convertie",
+  ).length;
+  const aVerifier = lines.filter(
+    (line) =>
+      line.selected && line.product && line.conversion.etat === "indeterminee",
+  ).length;
 
   return (
     <div className="screen tariff-screen">
@@ -962,6 +1007,10 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
                 {ignorees > 0 ? ` · ${ignorees} ligne${ignorees > 1 ? "s" : ""} ignorée${ignorees > 1 ? "s" : ""}` : ""}
                 . Une ligne non rattachée est ignorée tant qu’on ne lui
                 désigne pas de produit.
+                {converties > 0 &&
+                  ` ${converties} prix ramené${converties > 1 ? "s" : ""} au conditionnement du fournisseur.`}
+                {aVerifier > 0 &&
+                  ` ${aVerifier} à vérifier : le conditionnement de ce fournisseur n’est pas renseigné.`}
               </p>
             </div>
             <div className="review-filters">
@@ -994,8 +1043,10 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
               <span>Écart</span>
             </div>
             {visibleLines.map((line) => {
+              // L'écart se mesure sur le prix converti : comparer le touret
+              // à la couronne annoncerait une hausse de 900 %.
               const delta = line.oldPrice
-                ? ((line.price - line.oldPrice) / line.oldPrice) * 100
+                ? ((line.conversion.prix - line.oldPrice) / line.oldPrice) * 100
                 : 0;
               return (
                 <div className="import-line" key={line.id}>
@@ -1069,7 +1120,18 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
                     {line.oldPrice ? money(line.oldPrice) : "—"}
                   </span>
                   <span data-label="Nouveau prix">
-                    <strong>{money(line.price)}</strong>
+                    <strong>{money(line.conversion.prix)}</strong>
+                    {line.conversion.etat === "convertie" && (
+                      <small className="conversion-faite">
+                        {money(line.price)} pour {line.conversion.depuis} →{" "}
+                        {line.conversion.vers}
+                      </small>
+                    )}
+                    {line.conversion.etat === "indeterminee" && line.product && (
+                      <small className="conversion-douteuse">
+                        Prix repris tel quel — {line.conversion.raison}
+                      </small>
+                    )}
                   </span>
                   <span
                     data-label="Écart"

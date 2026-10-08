@@ -59,6 +59,12 @@ step "Ventilation en euros par société"
 node --experimental-strip-types --test frontend/tests/ventilation.test.ts \
   || fail "ventilation par société"
 
+step "Unité de vente et conditionnement"
+# Sans cette conversion, le touret de 1000 m inscrivait son prix sur une
+# couronne de 100 m : dix fois trop, sur chaque bon de commande.
+node --experimental-strip-types --test frontend/tests/conditionnement.test.ts \
+  || fail "conversion des conditionnements"
+
 step "Références fournisseur par tableur"
 # Cet aller-retour écrit des prix et des références au catalogue.
 node --experimental-strip-types --test frontend/tests/references-csv.test.ts \
