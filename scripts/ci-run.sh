@@ -54,6 +54,11 @@ step "Filtres et totaux des commandes"
 node --experimental-strip-types --test frontend/tests/order-filters.test.ts \
   || fail "filtres et totaux des commandes"
 
+step "Ventilation en euros par société"
+# Ce calcul sert de base à la refacturation entre les quatre sociétés.
+node --experimental-strip-types --test frontend/tests/ventilation.test.ts \
+  || fail "ventilation par société"
+
 step "Compilation de l'interface"
 npm --prefix frontend run build || fail "compilation interface"
 

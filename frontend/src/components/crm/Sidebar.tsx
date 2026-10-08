@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Building2,
   LogOut,
   Box,
   ClipboardList,
@@ -35,6 +36,10 @@ export const navItems = [
   { id: "dashboard", label: "Tableau de bord", icon: BarChart3 },
   { id: "purchase-requests", label: "Demandes d’achat", icon: ClipboardPlus },
   { id: "orders", label: "Commandes", icon: ClipboardList },
+  // La répartition entre sociétés n'existait qu'en quantités, au creux d'une
+  // commande. En euros, c'est une question à elle seule — celle que pose la
+  // comptabilité — et elle mérite son entrée.
+  { id: "ventilation", label: "Répartition", icon: Building2 },
   { id: "settings", label: "Paramètres", icon: Settings },
 ] as const;
 /** L'écran de création reste une destination, sans entrée de menu. */
@@ -70,6 +75,7 @@ export function Sidebar({
   const can = usePermissions();
   const visibleNav = navItems.filter(({ id }) => {
     if (id === "settings") return can.canSeeSettings;
+    if (id === "ventilation") return can.canSeePrices;
     if (id === "purchase-requests") return can.canRequest || can.canManagePurchasing;
     return true;
   });
@@ -150,6 +156,7 @@ export function MobileNav({
   const can = usePermissions();
   const visibleNav = navItems.filter(({ id }) => {
     if (id === "settings") return can.canSeeSettings;
+    if (id === "ventilation") return can.canSeePrices;
     if (id === "purchase-requests") return can.canRequest || can.canManagePurchasing;
     return true;
   });
@@ -176,7 +183,9 @@ export function MobileNav({
               ? "Demandes"
               : label === "Tableau de bord"
                 ? "Accueil"
-                : label}
+                : label === "Répartition"
+                  ? "Sociétés"
+                  : label}
           </span>
         </button>
       ))}

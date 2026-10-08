@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
+  Building2,
   ClipboardPlus,
   Euro,
   FileEdit,
@@ -152,6 +153,10 @@ export function Dashboard({
           <Quick icon={<ClipboardPlus />} title="Demande d’achat" text="Besoin global de l’entrepôt" tone="violet" onClick={() => onNavigate("purchase-requests")} />
           <Quick icon={<PackagePlus />} title="Créer une commande" text="Répartir entre les filiales" tone="blue" onClick={() => onNavigate("new-order")} />
           <Quick icon={<Send />} title="Suivre les commandes" text="Historique et montants" tone="green" onClick={() => onNavigate("orders")} />
+          {/* La question de la comptabilité : qui paie quoi. */}
+          {can.canSeePrices && (
+            <Quick icon={<Building2 />} title="Répartition par société" text="Ce que chaque société a consommé" tone="amber" onClick={() => onNavigate("ventilation")} />
+          )}
         </section>
       </div>
     </div>

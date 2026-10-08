@@ -10,6 +10,7 @@ import {
   UsersScreen,
 } from "./OtherScreens";
 import { PurchaseRequests } from "./PurchaseRequests";
+import { Ventilation } from "./Ventilation";
 import { TariffImports } from "./TariffImports";
 import {
   getPendingPurchaseRequestCount,
@@ -55,6 +56,7 @@ export function CRMApp({
     if (id === "users") return can.canManageUsers;
     if (id === "settings" || id === "tariff-imports") return can.canSeeSettings;
     if (id === "new-order") return can.canManagePurchasing;
+    if (id === "ventilation") return can.canSeePrices;
     if (id === "purchase-requests") return can.canRequest || can.canManagePurchasing;
     return true;
   };
@@ -99,6 +101,8 @@ export function CRMApp({
       />
     ) : screen === "purchase-requests" ? (
       <PurchaseRequests onFinalize={finalizeRequest} />
+    ) : screen === "ventilation" ? (
+      <Ventilation />
     ) : screen === "orders" ? (
       <OrdersScreen
         onNavigate={navigate}
