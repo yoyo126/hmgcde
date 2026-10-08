@@ -82,6 +82,18 @@ const readFileAsArrayBuffer = (file: File) => {
   });
 };
 
+/**
+ * Lecture d'un tarif Excel.
+ *
+ * La bibliothèque vient de cdn.sheetjs.com et non du registre npm : la
+ * dernière version publiée sur npm (0.18.5) traîne deux failles connues, et
+ * son éditeur ne publie plus que sur son propre site. Les fichiers lus ici
+ * arrivent des fournisseurs, donc de l'extérieur : c'est exactement le cas
+ * où la version corrigée compte.
+ *
+ * Elle lit aussi les vieux classeurs .xls, que les fournisseurs envoient
+ * encore — raison pour laquelle elle n'est pas remplacée par une autre.
+ */
 async function readExcel(file: File): Promise<RawLine[]> {
   const XLSX = await import("xlsx");
   const workbook = XLSX.read(await readFileAsArrayBuffer(file), { type: "array" });

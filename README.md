@@ -33,6 +33,11 @@ Prérequis : **Node 20.11+** et **MySQL 8**.
 npm run install:all
 ```
 
+Le lecteur de tarifs Excel (`xlsx`) est installé depuis `cdn.sheetjs.com`,
+pas depuis npm : la dernière version publiée sur le registre traîne deux
+failles connues et son éditeur ne publie plus que sur son propre site.
+L'installation a donc besoin d'un accès à ce domaine.
+
 Puis la configuration du backend :
 
 ```bash
