@@ -167,10 +167,50 @@ test("une cellule contenant un point-virgule survit à l'aller-retour", () => {
   assert.deepEqual(resultat.overrides, {});
 });
 
-test("un fichier vide ou sans colonne ID ne fait rien", () => {
+test("à défaut d'identifiant, le code suffit", () => {
+  // Un fichier préparé ailleurs ne connaît pas les identifiants de la base,
+  // mais il connaît les codes produit.
+  const resultat = lireReferences(
+    "Code;YESS ELECTRIQUE réf\r\nHM-0012;0083-0455bis",
+    CATALOGUE,
+    FOURNISSEURS,
+  );
+  assert.equal(resultat.references[0].productId, 12);
+  assert.equal(resultat.references[0].reference, "0083-0455bis");
+});
+
+test("le code se reconnaît sans égard à la casse", () => {
+  const resultat = lireReferences(
+    "Code;REXEL réf\r\nhm-0013;RX-99",
+    CATALOGUE,
+    FOURNISSEURS,
+  );
+  assert.equal(resultat.references[0].productId, 13);
+});
+
+test("l'identifiant prime sur le code quand les deux sont là", () => {
+  const resultat = lireReferences(
+    "ID;Code;REXEL réf\r\n13;HM-0012;RX-77",
+    CATALOGUE,
+    FOURNISSEURS,
+  );
+  assert.equal(resultat.references[0].productId, 13);
+});
+
+test("un code inconnu est signalé, pas appliqué au hasard", () => {
+  const resultat = lireReferences(
+    "Code;REXEL réf\r\nHM-9999;RX-1",
+    CATALOGUE,
+    FOURNISSEURS,
+  );
+  assert.deepEqual(resultat.inconnus, ["HM-9999"]);
+  assert.deepEqual(resultat.references, []);
+});
+
+test("un fichier vide ou sans colonne clé ne fait rien", () => {
   assert.deepEqual(lireReferences("", CATALOGUE, FOURNISSEURS).references, []);
   assert.deepEqual(
-    lireReferences("Produit;Prix\r\nGaine;12,00", CATALOGUE, FOURNISSEURS).overrides,
+    lireReferences("Produit;Prix HT\r\nGaine;12,00", CATALOGUE, FOURNISSEURS).overrides,
     {},
   );
 });

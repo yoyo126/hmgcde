@@ -15,9 +15,11 @@ import type { PriceOverride, Product, ReferenceApprise } from "./types";
  * l'application en un seul import. Les devis suivants sont alors reconnus
  * tout seuls.
  *
- * Le rattachement se fait sur la colonne ID : l'identifiant du produit en
- * base, pas son nom. Aucune devinette, contrairement à la lecture d'un tarif
- * fournisseur — un fichier qu'on a soi-même préparé n'a pas à être deviné.
+ * Le rattachement se fait sur la colonne ID — l'identifiant du produit en
+ * base — ou, à défaut, sur la colonne Code (« HM-0012 »). Jamais sur le nom :
+ * un fichier qu'on a soi-même préparé n'a pas à être deviné. Le code sert
+ * quand le fichier a été préparé ailleurs que depuis cet écran, sans
+ * connaître les identifiants de la base.
  *
  * Ce calcul décide des prix et des références écrits au catalogue : il vit à
  * part et il est vérifié automatiquement (frontend/tests/references-csv.test.ts).
@@ -103,7 +105,8 @@ export const lireReferences = (
 
   const entetes = lignes[0].map((cellule) => cellule.trim());
   const colonneId = entetes.findIndex((entete) => entete.toUpperCase() === "ID");
-  if (colonneId < 0) return vide;
+  const colonneCode = entetes.findIndex((entete) => entete.toLowerCase() === "code");
+  if (colonneId < 0 && colonneCode < 0) return vide;
 
   // Les colonnes d'un fournisseur sont nommées « <FOURNISSEUR> réf » et
   // « <FOURNISSEUR> prix HT ». On les retrouve par le nom du fournisseur,
@@ -111,7 +114,8 @@ export const lireReferences = (
   const colonnes = new Map<string, { reference?: number; prix?: number }>();
   const colonnesIgnorees: string[] = [];
   entetes.forEach((entete, index) => {
-    if (index === colonneId || COLONNES_FIXES.includes(entete)) return;
+    if (index === colonneId || index === colonneCode) return;
+    if (COLONNES_FIXES.includes(entete)) return;
     const fournisseur = fournisseurs.find(
       (nom) => entete === `${nom} ${REF}` || entete === `${nom} ${PRIX}`,
     );
@@ -126,15 +130,25 @@ export const lireReferences = (
   });
 
   const parId = new Map(produits.map((produit) => [produit.id, produit]));
+  const parCode = new Map(
+    produits
+      .filter((produit) => produit.code)
+      .map((produit) => [produit.code!.trim().toLowerCase(), produit]),
+  );
   const references: ReferenceApprise[] = [];
   const overrides: PriceOverride = {};
   const inconnus: string[] = [];
 
   for (const valeurs of lignes.slice(1)) {
-    const identifiant = (valeurs[colonneId] || "").trim();
-    const produit = parId.get(Number(identifiant));
+    const identifiant = colonneId < 0 ? "" : (valeurs[colonneId] || "").trim();
+    const code = colonneCode < 0 ? "" : (valeurs[colonneCode] || "").trim();
+    const produit =
+      (identifiant ? parId.get(Number(identifiant)) : undefined) ||
+      (code ? parCode.get(code.toLowerCase()) : undefined);
     if (!produit) {
-      if (identifiant) inconnus.push(identifiant);
+      // On signale plutôt que d'appliquer au hasard : écrire un prix sur le
+      // mauvais produit coûte plus cher qu'une ligne à reprendre.
+      if (identifiant || code) inconnus.push(identifiant || code);
       continue;
     }
 
