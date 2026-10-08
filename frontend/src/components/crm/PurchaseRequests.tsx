@@ -19,7 +19,6 @@ import {
   markPurchaseRequestSeen,
   refusePurchaseRequest,
   reopenPurchaseRequest,
-  nextRequestId,
   savePurchaseRequest,
   updatePurchaseRequestQuantity,
   type StoredPurchaseRequest,
@@ -122,10 +121,13 @@ export function PurchaseRequests({
   const change = (id: number, value: number) =>
     setQuantities((current) => ({ ...current, [id]: Math.max(0, value) }));
 
-  const submitRequest = () => {
-    const id = nextRequestId();
-    savePurchaseRequest({
-      id,
+  /**
+   * Envoie la demande, puis affiche son numéro — dans cet ordre : le numéro
+   * est attribué par le serveur, le navigateur ne l'invente plus (il tombait
+   * sur un numéro déjà pris dès que deux personnes saisissaient ensemble).
+   */
+  const submitRequest = async () => {
+    const id = await savePurchaseRequest({
       requester: "Entrepôt HM Group",
       date: new Intl.DateTimeFormat("fr-FR", {
         day: "numeric",
@@ -153,7 +155,7 @@ export function PurchaseRequests({
    * ligne par ligne : pour un autre fournisseur, on recommence — ce qui
    * laisse la demande en « partiellement commandée » entre-temps.
    */
-  const placeAssignedOrders = (request: StoredPurchaseRequest) => {
+  const placeAssignedOrders = async (request: StoredPurchaseRequest) => {
     if (!bulkSupplier || !selectedAssignmentProducts.length) return;
     const affectation = Object.fromEntries(
       request.lines
@@ -163,7 +165,7 @@ export function PurchaseRequests({
         )
         .map((line) => [line.productId, bulkSupplier]),
     );
-    const orders = createOrdersFromRequest(request, affectation);
+    const orders = await createOrdersFromRequest(request, affectation);
     setRequests(getStoredRequests());
     setSelectedAssignmentProducts([]);
     setBulkSupplier("");

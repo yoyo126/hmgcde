@@ -45,14 +45,12 @@ router.get("/catalog/history", requireAuth, catalog.history);
 
 // --- Commandes ------------------------------------------------------------
 router.get("/orders", requireAuth, orders.list);
-router.get("/orders/next-code", requireAuth, orders.nextCode);
 router.put("/orders", requireWriteAccess, orders.save);
 router.put("/orders/batch", requireWriteAccess, orders.saveMany);
 router.delete("/orders/:code", requireWriteAccess, orders.remove);
 
 // --- Demandes d'achat -----------------------------------------------------
 router.get("/purchase-requests", requireAuth, purchaseRequests.list);
-router.get("/purchase-requests/next-code", requireAuth, purchaseRequests.nextCode);
 router.put("/purchase-requests", requireRequestAccess, purchaseRequests.save);
 router.delete("/purchase-requests/:code", requireWriteAccess, purchaseRequests.remove);
 

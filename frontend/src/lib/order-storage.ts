@@ -1,9 +1,13 @@
 import { companies } from "./crm-data";
+import { IS_DEMO } from "./demo-mode";
 import { getPurchasingSettings, supplierRecipients } from "./settings-storage";
 import {
   PURCHASING_UPDATED_EVENT,
+  persistNewOrder,
+  persistNewOrders,
+  persistNewRequest,
   persistOrder,
-  persistOrders,
+  persistOrderDeletion,
   persistRequest,
   store,
 } from "./store";
@@ -13,6 +17,8 @@ import type {
   SentEmail,
   StoredOrder,
   StoredPurchaseRequest,
+  UnsavedOrder,
+  UnsavedPurchaseRequest,
 } from "./types";
 
 export type {
@@ -23,6 +29,8 @@ export type {
   StoredOrder,
   StoredOrderLine,
   StoredPurchaseRequest,
+  UnsavedOrder,
+  UnsavedPurchaseRequest,
 } from "./types";
 
 /**
@@ -79,16 +87,52 @@ const notify = () => window.dispatchEvent(new Event(PURCHASING_UPDATED_EVENT));
 
 // --- Écriture -------------------------------------------------------------
 
-export const saveOrder = (order: StoredOrder) => {
-  store.orders = [order, ...store.orders.filter((item) => item.id !== order.id)];
+/**
+ * Enregistre une commande et renvoie son numéro.
+ *
+ * Une commande sans numéro est une création : c'est le serveur qui la
+ * numérote, lui seul voyant toutes les commandes. Le navigateur s'en
+ * chargeait à partir de ce qu'il avait en mémoire — deux personnes qui
+ * créaient une commande en même temps obtenaient le même numéro, et
+ * l'enregistrement de la seconde écrasait la première, lignes et
+ * répartition comprises.
+ *
+ * Une commande déjà numérotée est une mise à jour : le cache suit tout de
+ * suite et la base est synchronisée derrière, comme avant.
+ */
+export const saveOrder = async (order: StoredOrder | UnsavedOrder): Promise<string> => {
+  const code = ("id" in order && order.id) || (IS_DEMO ? numeroDemoCommande() : "");
+  if (!code) return persistNewOrder(order);
+
+  const complete = { ...order, id: code } as StoredOrder;
+  store.orders = [complete, ...store.orders.filter((item) => item.id !== code)];
   notify();
-  void persistOrder(order);
+  void persistOrder(complete);
+  return code;
 };
 
-export const savePurchaseRequest = (request: StoredPurchaseRequest) => {
-  store.requests = [request, ...store.requests.filter((item) => item.id !== request.id)];
+/** Même règle pour une demande d'achat. */
+export const savePurchaseRequest = async (
+  request: StoredPurchaseRequest | UnsavedPurchaseRequest,
+): Promise<string> => {
+  const code = ("id" in request && request.id) || (IS_DEMO ? numeroDemoDemande() : "");
+  if (!code) return persistNewRequest(request);
+
+  const complete = { ...request, id: code } as StoredPurchaseRequest;
+  store.requests = [complete, ...store.requests.filter((item) => item.id !== code)];
   notify();
-  void persistRequest(request);
+  void persistRequest(complete);
+  return code;
+};
+
+/**
+ * Supprime une commande. Réservée aux brouillons par l'écran qui l'appelle :
+ * une commande partie chez le fournisseur se corrige, elle ne s'efface pas.
+ */
+export const deleteStoredOrder = (code: string) => {
+  store.orders = store.orders.filter((item) => item.id !== code);
+  notify();
+  void persistOrderDeletion(code);
 };
 
 export const markPurchaseRequestSeen = (requestId: string) => {
@@ -148,36 +192,41 @@ export const updatePurchaseRequestQuantity = (
 };
 
 /**
- * Numéros suivants. Ils sont calculés sur le cache pour que l'écran affiche
- * un numéro tout de suite ; le serveur reste l'autorité et corrige au besoin
- * lors de l'enregistrement.
+ * Numérotation du mode démonstration.
+ *
+ * L'aperçu publié sur GitHub Pages n'a pas de serveur pour attribuer les
+ * numéros : il les calcule donc dans le navigateur, ce qui est sans risque
+ * puisqu'un seul navigateur écrit, chacun avec ses propres données. Partout
+ * ailleurs, c'est le serveur qui numérote.
  */
-export const nextOrderId = () => {
-  const year = new Date().getFullYear();
-  const highest = store.orders.reduce((max, order) => {
-    const number = Number(order.id.split("-").pop()) || 0;
-    return Math.max(max, number);
-  }, 48);
-  return `CMD-${year}-${String(highest + 1).padStart(3, "0")}`;
+const numeroLocal = (prefixe: string, existants: string[], premier: number) => {
+  const annee = new Date().getFullYear();
+  const dernier = existants.reduce(
+    (max, id) => Math.max(max, Number(id.split("-").pop()) || 0),
+    premier - 1,
+  );
+  return `${prefixe}-${annee}-${String(dernier + 1).padStart(3, "0")}`;
 };
 
-export const nextRequestId = () => {
-  const year = new Date().getFullYear();
-  const highest = store.requests.reduce((max, request) => {
-    const number = Number(request.id.split("-").pop()) || 0;
-    return Math.max(max, number);
-  }, 11);
-  return `DA-${year}-${String(highest + 1).padStart(3, "0")}`;
-};
+const numeroDemoCommande = () =>
+  numeroLocal("CMD", store.orders.map((order) => order.id), 49);
+
+const numeroDemoDemande = () =>
+  numeroLocal("DA", store.requests.map((request) => request.id), 12);
 
 /**
  * Éclate une demande d'achat en commandes : une par fournisseur affecté.
  * La demande passe ensuite en « Partiellement commandée » ou « Commandée ».
+ *
+ * Les commandes partent sans numéro, comme toute création : c'est le serveur
+ * qui les numérote, d'un seul coup, et qui garantit qu'aucune ne retombe sur
+ * le numéro d'une autre. La demande n'est mise à jour qu'ensuite, pour
+ * qu'elle ne passe pas « Commandée » sur des commandes qui n'existent pas.
  */
-export const createOrdersFromRequest = (
+export const createOrdersFromRequest = async (
   request: StoredPurchaseRequest,
   assignments: Record<number, string>,
-) => {
+): Promise<StoredOrder[]> => {
   const catalog = getCatalogProducts();
   const assignedLines = request.lines.filter(
     (line) => assignments[line.productId] && !line.ordered,
@@ -191,10 +240,7 @@ export const createOrdersFromRequest = (
     year: "numeric",
   }).format(new Date());
 
-  const createdOrders: StoredOrder[] = [];
-  let sequence = Number(nextOrderId().split("-").pop()) || 49;
-
-  suppliers.forEach((supplier) => {
+  const nouvelles: UnsavedOrder[] = suppliers.map((supplier) => {
     const lines = assignedLines
       .filter((line) => assignments[line.productId] === supplier)
       .map((line) => {
@@ -210,16 +256,15 @@ export const createOrdersFromRequest = (
         };
       });
 
-    createdOrders.push({
-      id: `CMD-${new Date().getFullYear()}-${String(sequence++).padStart(3, "0")}`,
+    return {
       reference: orderReference(),
       supplier,
       date: today,
-      status: "Brouillon",
+      status: "Brouillon" as const,
       total: lines.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0),
       lines,
       sourceRequestId: request.id,
-    });
+    };
   });
 
   const updatedLines = request.lines.map((line) => ({
@@ -236,17 +281,21 @@ export const createOrdersFromRequest = (
         : "À commander"
   ) as StoredPurchaseRequest["status"];
 
-  // Cache d'abord, pour que l'écran enchaîne sans attendre le réseau.
-  store.orders = [...createdOrders, ...store.orders];
-  const updatedRequest = { ...request, lines: updatedLines, status };
-  store.requests = [
-    updatedRequest,
-    ...store.requests.filter((item) => item.id !== request.id),
-  ];
-  notify();
+  // Les commandes d'abord : la demande ne change d'état qu'une fois les
+  // numéros attribués et les commandes bien enregistrées.
+  const createdOrders: StoredOrder[] = [];
+  if (IS_DEMO) {
+    for (const nouvelle of nouvelles) {
+      createdOrders.push({ ...nouvelle, id: await saveOrder(nouvelle) });
+    }
+  } else if (nouvelles.length) {
+    const codes = await persistNewOrders(nouvelles);
+    nouvelles.forEach((nouvelle, index) => {
+      createdOrders.push({ ...nouvelle, id: codes[index] });
+    });
+  }
 
-  if (createdOrders.length) void persistOrders(createdOrders);
-  void persistRequest(updatedRequest);
+  await savePurchaseRequest({ ...request, lines: updatedLines, status });
 
   return createdOrders;
 };
@@ -257,7 +306,7 @@ export const emptyDispatch = (): Record<CompanyKey, number> =>
 // --- E-mails fournisseurs -------------------------------------------------
 
 export const createMailPreview = (
-  order: Pick<StoredOrder, "id" | "reference" | "supplier" | "lines">,
+  order: Pick<StoredOrder, "reference" | "supplier" | "lines">,
 ): SentEmail => {
   const settings = getPurchasingSettings();
   const companyLabels = Object.fromEntries(
@@ -297,7 +346,7 @@ const escapeHtml = (value: string | number) =>
  * Copie la commande dans le presse-papiers, en HTML (tableau prêt à coller
  * dans un e-mail) et en texte, avec une colonne par société servie.
  */
-export const copyOrderEmail = async (order: StoredOrder) => {
+export const copyOrderEmail = async (order: Pick<StoredOrder, "reference" | "lines">) => {
   const settings = getPurchasingSettings();
   const catalog = getCatalogProducts();
   const companyColumns = companies.map((company) => ({

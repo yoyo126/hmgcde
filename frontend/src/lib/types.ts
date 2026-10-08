@@ -82,6 +82,16 @@ export type StoredOrder = {
   email?: SentEmail;
 };
 
+/**
+ * Commande que le serveur n'a pas encore numérotée.
+ *
+ * Le numéro est attribué à l'enregistrement, par le serveur : il est le seul
+ * à voir toutes les commandes. Le navigateur l'inventait à partir de ce qu'il
+ * avait en mémoire, et deux personnes qui commandaient en même temps
+ * obtenaient le même — la seconde commande écrasait la première.
+ */
+export type UnsavedOrder = Omit<StoredOrder, "id">;
+
 export type RequestStatus =
   | "À commander"
   | "Partiellement commandée"
@@ -108,6 +118,9 @@ export type StoredPurchaseRequest = {
   refusalReason?: string;
   refusedAt?: string;
 };
+
+/** Même règle que pour les commandes : le serveur numérote. */
+export type UnsavedPurchaseRequest = Omit<StoredPurchaseRequest, "id">;
 
 export type SupplierContact = {
   name: string;

@@ -80,11 +80,10 @@ const run = async () => {
   );
 
   // 7. Création d'une commande avec répartition entre les sociétés.
-  const { payload: next } = await call("GET", "/orders/next-code");
+  //    La commande part sans numéro : c'est le serveur qui la numérote.
   const product = data.products[0];
   const supplier = product.offers[0].supplier;
   const order = {
-    id: next.code,
     reference: "Commande de test automatique",
     supplier,
     date: "12 août 2026",
@@ -104,7 +103,10 @@ const run = async () => {
   const saved = await call("PUT", "/orders", { order });
   check("commande enregistrée", saved.status === 200, JSON.stringify(saved.payload));
 
-  const stored = saved.payload?.orders?.find((item) => item.id === next.code);
+  const code = saved.payload?.code;
+  check("le serveur attribue le numéro", /^CMD-\d{4}-\d{3,}$/.test(code || ""), `reçu « ${code} »`);
+
+  const stored = saved.payload?.orders?.find((item) => item.id === code);
   check("la commande est relue depuis la base", Boolean(stored));
   check("la répartition par société est conservée", stored?.lines?.[0]?.dispatch?.cpte === 4,
     JSON.stringify(stored?.lines?.[0]?.dispatch));
@@ -114,6 +116,63 @@ const run = async () => {
     "la date est renvoyée en français",
     /^\d{1,2} [\p{L}éûô]+ \d{4}$/u.test(stored?.date || ""),
     `reçu « ${stored?.date} »`,
+  );
+
+  // 7 bis. Deux créations lancées en même temps ne doivent jamais se
+  //        télescoper. Le numéro était calculé par le navigateur : deux
+  //        personnes qui commandaient en même temps obtenaient le même, et
+  //        l'enregistrement de la seconde écrasait la première.
+  const avant = saved.payload?.orders?.length || 0;
+  const lancees = [1, 2, 3, 4, 5];
+  const simultanees = await Promise.all(
+    lancees.map((n) =>
+      call("PUT", "/orders", {
+        order: { ...order, reference: `Commande simultanée ${n}`, total: 10 * n },
+      }),
+    ),
+  );
+  check(
+    "cinq commandes créées en même temps sont toutes acceptées",
+    simultanees.every((reponse) => reponse.status === 200),
+    simultanees.map((reponse) => reponse.status).join(", "),
+  );
+  const codesSimultanes = simultanees.map((reponse) => reponse.payload?.code);
+  check(
+    "chacune reçoit son propre numéro",
+    new Set(codesSimultanes).size === lancees.length,
+    codesSimultanes.join(", "),
+  );
+  const relecture = await call("GET", "/orders");
+  const toutes = relecture.payload?.orders || [];
+  check(
+    "aucune commande n'a été écrasée",
+    toutes.length === avant + lancees.length,
+    `${toutes.length} commandes pour ${avant + lancees.length} attendues`,
+  );
+  check(
+    "les cinq commandes se relisent une à une",
+    lancees.every((n) =>
+      toutes.some((item) => item.reference === `Commande simultanée ${n}`),
+    ),
+  );
+
+  // 7 ter. Une commande existante se corrige, et un numéro inconnu est refusé
+  //        au lieu d'être créé par un écran resté ouvert.
+  const corrigee = await call("PUT", "/orders", {
+    order: { ...order, id: code, reference: "Commande de test corrigée", total: 150 },
+  });
+  check("une commande existante se corrige", corrigee.status === 200, JSON.stringify(corrigee.payload));
+  check("le numéro ne change pas à la correction", corrigee.payload?.code === code);
+  check(
+    "la correction est bien en base",
+    corrigee.payload?.orders?.find((item) => item.id === code)?.reference ===
+      "Commande de test corrigée",
+  );
+  const inconnue = await call("PUT", "/orders", { order: { ...order, id: "CMD-1999-001" } });
+  check(
+    "une commande inconnue est refusée au lieu d'être recréée",
+    inconnue.status === 404,
+    `statut ${inconnue.status}`,
   );
 
   // 8. Modification d'un prix : le catalogue et l'historique doivent suivre.
@@ -133,11 +192,9 @@ const run = async () => {
   );
   check("l'historique des prix est alimenté", (priced.payload?.priceHistory?.length || 0) > 0);
 
-  // 9. Demande d'achat.
-  const { payload: nextRequest } = await call("GET", "/purchase-requests/next-code");
+  // 9. Demande d'achat. Numérotée par le serveur, elle aussi.
   const request = await call("PUT", "/purchase-requests", {
     request: {
-      id: nextRequest.code,
       requester: "Entrepôt HM Group",
       date: "12 août 2026",
       status: "À commander",
@@ -146,9 +203,15 @@ const run = async () => {
     },
   });
   check("demande d'achat enregistrée", request.status === 200, JSON.stringify(request.payload));
+  const codeDemande = request.payload?.code;
+  check(
+    "le serveur attribue le numéro de demande",
+    /^DA-\d{4}-\d{3,}$/.test(codeDemande || ""),
+    `reçu « ${codeDemande} »`,
+  );
   check(
     "la demande est relue avec ses lignes",
-    request.payload?.requests?.find((item) => item.id === nextRequest.code)?.lines?.length === 1,
+    request.payload?.requests?.find((item) => item.id === codeDemande)?.lines?.length === 1,
   );
 
   // 10. Paramètres : textes d'e-mail et nombre d'équipes.
@@ -194,10 +257,8 @@ const run = async () => {
     check("le demandeur ne reçoit pas l'historique des prix",
       (view.payload?.priceHistory || []).length === 0);
 
-    const { payload: code } = await call("GET", "/purchase-requests/next-code");
     const own = await call("PUT", "/purchase-requests", {
       request: {
-        id: code.code,
         requester: "Chef d'équipe",
         date: "12 août 2026",
         status: "À commander",

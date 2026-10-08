@@ -1,4 +1,5 @@
 import { query, withTransaction } from "../db/pool.js";
+import { attribuerNumero } from "./numerotation.js";
 
 /**
  * Commandes fournisseurs.
@@ -7,6 +8,12 @@ import { query, withTransaction } from "../db/pool.js";
  * base garde en plus un identifiant technique. Les lignes et leur répartition
  * entre les sociétés sont réécrites en bloc à chaque enregistrement, comme le
  * faisait l'ancien localStorage.
+ *
+ * Création et mise à jour sont deux chemins distincts, et c'est volontaire :
+ * l'enregistrement se faisait avant en « INSERT … ON DUPLICATE KEY UPDATE »,
+ * si bien qu'une commande arrivant avec un numéro déjà pris écrasait celle
+ * qui le portait. Une création ne peut plus toucher une commande existante
+ * (voir numerotation.js), et une mise à jour ne peut plus en créer une.
  */
 
 const displayDate = (value) =>
@@ -106,102 +113,162 @@ const parseJson = (value) => {
   }
 };
 
+
 /**
- * Prochain code disponible. Calculé côté serveur : deux filiales qui créent une
- * commande en même temps ne peuvent plus tomber sur le même numéro.
+ * Premier numéro de l'année. La série ne part pas de 1 : c'est la valeur
+ * héritée de la numérotation en cours, conservée telle quelle.
+ */
+const PREMIER_NUMERO = 49;
+
+/**
+ * Prochain numéro disponible, lu en base.
+ *
+ * Le dernier numéro est cherché à la valeur et non à l'ordre alphabétique :
+ * « CMD-2026-1000 » se classe avant « CMD-2026-999 » entre chaînes, ce qui
+ * aurait fait resservir indéfiniment un numéro déjà pris passé la 999e
+ * commande de l'année.
  */
 export const nextOrderCode = async () => {
   const year = new Date().getFullYear();
   const rows = await query(
-    `SELECT code FROM hmgcde_orders WHERE code LIKE ? ORDER BY code DESC LIMIT 1`,
+    `SELECT MAX(CAST(SUBSTRING_INDEX(code, '-', -1) AS UNSIGNED)) AS dernier
+       FROM hmgcde_orders
+      WHERE code LIKE ?`,
     [`CMD-${year}-%`],
   );
-  const highest = rows.length ? Number(rows[0].code.split("-").pop()) || 0 : 48;
-  return `CMD-${year}-${String(highest + 1).padStart(3, "0")}`;
+  const dernier = Math.max(Number(rows[0]?.dernier) || 0, PREMIER_NUMERO - 1);
+  return `CMD-${year}-${String(dernier + 1).padStart(3, "0")}`;
 };
 
-export const saveOrder = async (order) =>
-  withTransaction(async (connection) => {
-    const [suppliers] = await connection.execute(
-      "SELECT id FROM hmgcde_suppliers WHERE name = ?",
-      [order.supplier || ""],
+/** Fournisseur et demande d'origine, traduits en identifiants de base. */
+const resoudreLiens = async (connection, order) => {
+  const [suppliers] = await connection.execute(
+    "SELECT id FROM hmgcde_suppliers WHERE name = ?",
+    [order.supplier || ""],
+  );
+  const [requests] = order.sourceRequestId
+    ? await connection.execute("SELECT id FROM hmgcde_purchase_requests WHERE code = ?", [
+        order.sourceRequestId,
+      ])
+    : [[]];
+  return { supplierId: suppliers[0]?.id ?? null, requestId: requests[0]?.id ?? null };
+};
+
+/**
+ * Réécrit les lignes et leur répartition. L'interface envoie toujours la
+ * commande complète, jamais un delta : on remplace tout.
+ */
+const ecrireLignes = async (connection, orderId, lignes = []) => {
+  const [companies] = await connection.execute("SELECT id, code FROM hmgcde_companies");
+  const companyIdByCode = new Map(companies.map((row) => [row.code, row.id]));
+
+  await connection.execute("DELETE FROM hmgcde_order_lines WHERE order_id = ?", [orderId]);
+
+  for (const [index, line] of lignes.entries()) {
+    const [result] = await connection.execute(
+      `INSERT INTO hmgcde_order_lines
+         (order_id, product_id, name, packaging, quantity, unit_price, components_json, position)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        orderId,
+        line.productId ?? null,
+        line.name,
+        line.packaging || "",
+        Number(line.quantity) || 0,
+        Number(line.unitPrice) || 0,
+        line.components?.length ? JSON.stringify(line.components) : null,
+        index,
+      ],
     );
-    const [requests] = order.sourceRequestId
-      ? await connection.execute("SELECT id FROM hmgcde_purchase_requests WHERE code = ?", [
-          order.sourceRequestId,
-        ])
-      : [[]];
-    const [companies] = await connection.execute("SELECT id, code FROM hmgcde_companies");
-    const companyIdByCode = new Map(companies.map((row) => [row.code, row.id]));
+    for (const [companyCode, quantity] of Object.entries(line.dispatch || {})) {
+      const companyId = companyIdByCode.get(companyCode);
+      if (!companyId) continue;
+      await connection.execute(
+        `INSERT INTO hmgcde_order_line_dispatch (order_line_id, company_id, quantity)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE quantity = VALUES(quantity)`,
+        [result.insertId, companyId, Number(quantity) || 0],
+      );
+    }
+  }
+};
 
-    const values = [
-      order.id,
-      order.reference || "",
-      suppliers[0]?.id ?? null,
-      order.supplier || "",
-      toSqlDate(order.date),
-      order.status || "Brouillon",
-      Number(order.total) || 0,
-      requests[0]?.id ?? null,
-      order.email?.sentAt ?? null,
-      order.email?.to ?? null,
-      order.email?.subject ?? null,
-      order.email?.body ?? null,
-    ];
-
-    await connection.execute(
+/**
+ * Insère une commande sous le numéro proposé. L'insertion est sèche : si le
+ * numéro est déjà pris, la base refuse et l'erreur remonte — c'est ce qui
+ * permet à `attribuerNumero` de reprendre le numéro suivant plutôt que
+ * d'écraser la commande d'un collègue.
+ */
+const insererCommande = (order, code) =>
+  withTransaction(async (connection) => {
+    const { supplierId, requestId } = await resoudreLiens(connection, order);
+    const [result] = await connection.execute(
       `INSERT INTO hmgcde_orders
          (code, reference, supplier_id, supplier_name, order_date, status, total,
           source_request_id, email_sent_at, email_to, email_subject, email_body)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-         reference = VALUES(reference), supplier_id = VALUES(supplier_id),
-         supplier_name = VALUES(supplier_name), order_date = VALUES(order_date),
-         status = VALUES(status), total = VALUES(total),
-         source_request_id = VALUES(source_request_id),
-         email_sent_at = VALUES(email_sent_at), email_to = VALUES(email_to),
-         email_subject = VALUES(email_subject), email_body = VALUES(email_body),
-         id = LAST_INSERT_ID(id)`,
-      values,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        code,
+        order.reference || "",
+        supplierId,
+        order.supplier || "",
+        toSqlDate(order.date),
+        order.status || "Brouillon",
+        Number(order.total) || 0,
+        requestId,
+        order.email?.sentAt ?? null,
+        order.email?.to ?? null,
+        order.email?.subject ?? null,
+        order.email?.body ?? null,
+      ],
     );
+    await ecrireLignes(connection, result.insertId, order.lines);
+    return code;
+  });
 
-    const [current] = await connection.execute("SELECT id FROM hmgcde_orders WHERE code = ?", [
+/**
+ * Crée une commande et renvoie le numéro que le serveur lui a attribué.
+ * C'est le seul chemin de création : l'interface n'envoie plus de numéro.
+ */
+export const createOrder = (order) =>
+  attribuerNumero(nextOrderCode, (code) => insererCommande(order, code));
+
+/**
+ * Met à jour une commande existante. Renvoie `null` si le numéro est inconnu :
+ * une commande supprimée entre-temps ne doit pas être ressuscitée par un
+ * écran resté ouvert.
+ */
+export const updateOrder = (order) =>
+  withTransaction(async (connection) => {
+    const [rows] = await connection.execute("SELECT id FROM hmgcde_orders WHERE code = ?", [
       order.id,
     ]);
-    const orderId = current[0].id;
+    if (!rows.length) return null;
+    const orderId = rows[0].id;
 
-    // Les lignes sont remplacées intégralement : l'interface envoie toujours la
-    // commande complète, jamais un delta.
-    await connection.execute("DELETE FROM hmgcde_order_lines WHERE order_id = ?", [orderId]);
-
-    for (const [index, line] of (order.lines || []).entries()) {
-      const [result] = await connection.execute(
-        `INSERT INTO hmgcde_order_lines
-           (order_id, product_id, name, packaging, quantity, unit_price, components_json, position)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          orderId,
-          line.productId ?? null,
-          line.name,
-          line.packaging || "",
-          Number(line.quantity) || 0,
-          Number(line.unitPrice) || 0,
-          line.components?.length ? JSON.stringify(line.components) : null,
-          index,
-        ],
-      );
-      for (const [companyCode, quantity] of Object.entries(line.dispatch || {})) {
-        const companyId = companyIdByCode.get(companyCode);
-        if (!companyId) continue;
-        await connection.execute(
-          `INSERT INTO hmgcde_order_line_dispatch (order_line_id, company_id, quantity)
-           VALUES (?, ?, ?)
-           ON DUPLICATE KEY UPDATE quantity = VALUES(quantity)`,
-          [result.insertId, companyId, Number(quantity) || 0],
-        );
-      }
-    }
-
+    const { supplierId, requestId } = await resoudreLiens(connection, order);
+    await connection.execute(
+      `UPDATE hmgcde_orders
+          SET reference = ?, supplier_id = ?, supplier_name = ?, order_date = ?,
+              status = ?, total = ?, source_request_id = ?,
+              email_sent_at = ?, email_to = ?, email_subject = ?, email_body = ?
+        WHERE id = ?`,
+      [
+        order.reference || "",
+        supplierId,
+        order.supplier || "",
+        toSqlDate(order.date),
+        order.status || "Brouillon",
+        Number(order.total) || 0,
+        requestId,
+        order.email?.sentAt ?? null,
+        order.email?.to ?? null,
+        order.email?.subject ?? null,
+        order.email?.body ?? null,
+        orderId,
+      ],
+    );
+    await ecrireLignes(connection, orderId, order.lines);
     return order.id;
   });
 

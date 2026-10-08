@@ -22,10 +22,10 @@ import {
   createMailPreview,
   copyOrderEmail,
   mailtoUrl,
-  nextOrderId,
   orderReference,
   saveOrder,
   type StoredOrder,
+  type UnsavedOrder,
 } from "@/lib/order-storage";
 import type { ScreenId } from "./Sidebar";
 import { getPurchasingSettings } from "@/lib/settings-storage";
@@ -73,7 +73,11 @@ export function NewOrder({
     [mailOpen, setMailOpen] = useState(false),
     [editingRecap, setEditingRecap] = useState(false),
     [showTeams, setShowTeams] = useState(false),
-    [orderId] = useState(() => initialOrder?.id || nextOrderId()),
+    [saving, setSaving] = useState(false),
+    // Le numéro n'est connu qu'une fois la commande enregistrée : c'est le
+    // serveur qui l'attribue. Vide tant qu'on compose, il ne sert donc qu'à
+    // distinguer une correction (numéro connu) d'une création.
+    [orderId, setOrderId] = useState(() => initialOrder?.id || ""),
     [reference] = useState(() => initialOrder?.reference || orderReference());
   const products = useCatalogProducts();
   const families = [...new Set(products.map((product) => product.family))];
@@ -198,9 +202,13 @@ export function NewOrder({
       ),
     ]),
   ) as Record<CompanyKey, number>;
-  const buildOrder = (status: "Brouillon" | "Envoyée"): StoredOrder => {
-    const order: StoredOrder = {
-      id: orderId,
+  /**
+   * Compose la commande à enregistrer. Le numéro n'y figure que si elle en a
+   * déjà un : une création part sans numéro, et c'est le serveur qui
+   * l'attribue — le navigateur tombait sinon sur un numéro déjà pris.
+   */
+  const buildOrder = (status: "Brouillon" | "Envoyée"): StoredOrder | UnsavedOrder => {
+    const order: UnsavedOrder = {
       reference,
       supplier,
       date: new Intl.DateTimeFormat("fr-FR", {
@@ -232,17 +240,30 @@ export function NewOrder({
       total,
       sourceRequestId: initialOrder?.sourceRequestId,
     };
-    return status === "Envoyée"
-      ? { ...order, email: createMailPreview(order) }
-      : order;
+    const complet =
+      status === "Envoyée" ? { ...order, email: createMailPreview(order) } : order;
+    return orderId ? { ...complet, id: orderId } : complet;
   };
-  const createOrder = () => {
-    saveOrder(buildOrder("Brouillon"));
-    setSent(true);
+  /**
+   * Enregistre la commande, puis affiche l'écran de confirmation — dans cet
+   * ordre : le numéro vient du serveur, et annoncer une commande créée que la
+   * base n'a pas reçue serait un mensonge.
+   */
+  const createOrder = async () => {
+    setSaving(true);
+    try {
+      setOrderId(await saveOrder(buildOrder("Brouillon")));
+      setSent(true);
+    } catch {
+      // L'erreur est déjà signalée par le bandeau de l'application : on reste
+      // sur le récapitulatif, la commande n'est pas perdue.
+    } finally {
+      setSaving(false);
+    }
   };
   const markEmailSent = async () => {
     const order = buildOrder("Envoyée");
-    saveOrder(order);
+    setOrderId(await saveOrder(order));
     const copied = await copyOrderEmail(order);
     setMailOpen(true);
     if (!copied) {
@@ -966,14 +987,18 @@ export function NewOrder({
               <button
                 className="primary-btn"
                 onClick={createOrder}
-                disabled={!dispatchValid || !supplier}
+                disabled={!dispatchValid || !supplier || saving}
               >
                 <Check size={17} />
-                {!supplier
-                  ? "Choisir un fournisseur"
-                  : dispatchValid
-                    ? "Créer la commande"
-                    : "Corriger la répartition"}
+                {saving
+                  ? "Enregistrement…"
+                  : !supplier
+                    ? "Choisir un fournisseur"
+                    : dispatchValid
+                      ? orderId
+                        ? "Enregistrer la commande"
+                        : "Créer la commande"
+                      : "Corriger la répartition"}
               </button>
             )}
           </div>

@@ -9,6 +9,8 @@ import type {
   SessionUser,
   StoredOrder,
   StoredPurchaseRequest,
+  UnsavedOrder,
+  UnsavedPurchaseRequest,
 } from "./types";
 
 /**
@@ -212,24 +214,94 @@ export const setRequests = (requests: StoredPurchaseRequest[]) => {
   emit(PURCHASING_UPDATED_EVENT);
 };
 
+/** Mise à jour d'une commande déjà numérotée. */
 export const persistOrder = (order: StoredOrder) =>
   persist(
     `enregistrement de la commande ${order.id}`,
-    () => api.put<{ orders: StoredOrder[] }>("/orders", { order }),
+    async () => {
+      const { orders } = await api.put<{ code: string; orders: StoredOrder[] }>("/orders", {
+        order,
+      });
+      return { orders };
+    },
     [PURCHASING_UPDATED_EVENT],
   );
 
-export const persistOrders = (orders: StoredOrder[]) =>
-  persist(
-    "enregistrement des commandes",
-    () => api.put<{ orders: StoredOrder[] }>("/orders/batch", { orders }),
-    [PURCHASING_UPDATED_EVENT],
-  );
-
+/** Mise à jour d'une demande déjà numérotée. */
 export const persistRequest = (request: StoredPurchaseRequest) =>
   persist(
     `enregistrement de la demande ${request.id}`,
-    () => api.put<{ requests: StoredPurchaseRequest[] }>("/purchase-requests", { request }),
+    async () => {
+      const { requests } = await api.put<{
+        code: string;
+        requests: StoredPurchaseRequest[];
+      }>("/purchase-requests", { request });
+      return { requests };
+    },
+    [PURCHASING_UPDATED_EVENT],
+  );
+
+/**
+ * Créations.
+ *
+ * Elles ne passent pas par `persist` : le numéro est attribué par le serveur,
+ * donc il faut sa réponse avant de pouvoir afficher quoi que ce soit, et une
+ * erreur doit remonter à l'écran — il ne peut pas annoncer une commande
+ * enregistrée quand la base n'a rien reçu. C'est aussi pour cela qu'aucun
+ * numéro provisoire n'est affiché entre-temps : il changerait aussitôt.
+ *
+ * Le mode démonstration n'a pas de serveur : il numérote lui-même et ne
+ * passe jamais par ici (voir order-storage.ts).
+ */
+export const persistNewOrder = async (order: UnsavedOrder) => {
+  try {
+    const { code, orders } = await api.put<{ code: string; orders: StoredOrder[] }>("/orders", {
+      order,
+    });
+    state.orders = orders;
+    emit(PURCHASING_UPDATED_EVENT);
+    return code;
+  } catch (error) {
+    reportApiError("création de la commande", error);
+    throw error;
+  }
+};
+
+/** Éclatement d'une demande d'achat : une commande par fournisseur, d'un coup. */
+export const persistNewOrders = async (orders: UnsavedOrder[]) => {
+  try {
+    const result = await api.put<{ codes: string[]; orders: StoredOrder[] }>("/orders/batch", {
+      orders,
+    });
+    state.orders = result.orders;
+    emit(PURCHASING_UPDATED_EVENT);
+    return result.codes;
+  } catch (error) {
+    reportApiError("création des commandes", error);
+    throw error;
+  }
+};
+
+export const persistNewRequest = async (request: UnsavedPurchaseRequest) => {
+  try {
+    const { code, requests } = await api.put<{
+      code: string;
+      requests: StoredPurchaseRequest[];
+    }>("/purchase-requests", { request });
+    state.requests = requests;
+    emit(PURCHASING_UPDATED_EVENT);
+    return code;
+  } catch (error) {
+    reportApiError("création de la demande d'achat", error);
+    throw error;
+  }
+};
+
+/** Suppression d'une commande : la base fait foi, le cache adopte sa réponse. */
+export const persistOrderDeletion = (code: string) =>
+  persist(
+    `suppression de la commande ${code}`,
+    () => api.delete<{ orders: StoredOrder[] }>(`/orders/${encodeURIComponent(code)}`),
     [PURCHASING_UPDATED_EVENT],
   );
 

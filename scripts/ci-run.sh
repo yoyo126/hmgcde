@@ -42,6 +42,12 @@ step "Conservation des prix saisis"
 node --experimental-strip-types --test frontend/tests/catalog-prices.test.ts \
   || fail "conservation des prix saisis"
 
+step "Numérotation des commandes et des demandes"
+# Deux commandes créées en même temps ne doivent pas porter le même numéro :
+# l'une écrasait silencieusement l'autre.
+node --test backend/tests/numerotation.test.js \
+  || fail "numérotation des commandes"
+
 step "Filtres et totaux des commandes"
 # Ces filtres répondent à « combien avons-nous commandé chez untel » :
 # ils portent des montants.
