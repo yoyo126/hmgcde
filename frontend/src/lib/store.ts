@@ -187,6 +187,8 @@ export const persistPriceChanges = (payload: {
 
 export const persistTariffImport = (payload: {
   overrides: Record<string, number>;
+  /** Prix au mètre des produits vendus à la longueur : un repère, pas un prix. */
+  meterPrices: Record<string, number>;
   newProducts: Product[];
   history: ImportHistoryItem;
   changes: unknown[];

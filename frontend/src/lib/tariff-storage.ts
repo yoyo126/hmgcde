@@ -151,12 +151,14 @@ export const saveManualPriceChanges = ({
  */
 export const saveTariffImport = ({
   overrides,
+  meterPrices = {},
   newProducts,
   history,
   changes = [],
   references = [],
 }: {
   overrides: PriceOverride;
+  meterPrices?: PriceOverride;
   newProducts: Product[];
   history: ImportHistoryItem;
   changes?: ManualPriceChange[];
@@ -166,6 +168,7 @@ export const saveTariffImport = ({
     setProducts([...store.products, ...newProducts]);
   }
   applyPricesToCache(overrides, {});
+  applyMeterPricesToCache(meterPrices);
   applyReferencesToCache(references);
   store.importHistory = [history, ...store.importHistory].slice(0, 30);
   if (changes.length) {
@@ -175,7 +178,31 @@ export const saveTariffImport = ({
     ].slice(0, 50);
   }
   window.dispatchEvent(new Event(CATALOG_CHANGED_EVENT));
-  void persistTariffImport({ overrides, newProducts, history, changes, references });
+  void persistTariffImport({
+    overrides,
+    meterPrices,
+    newProducts,
+    history,
+    changes,
+    references,
+  });
+};
+
+/**
+ * Pose les prix au mètre dans le cache. Ils n'entrent pas dans
+ * `applyPricesToCache` parce qu'ils ne remplacent pas le prix : ils
+ * l'éclairent, et une offre peut très bien avoir l'un sans l'autre.
+ */
+const applyMeterPricesToCache = (meterPrices: PriceOverride) => {
+  const entrees = new Map<string, number>(Object.entries(meterPrices));
+  if (!entrees.size) return;
+  store.products = store.products.map((product) => ({
+    ...product,
+    offers: product.offers.map((offer) => {
+      const prix = entrees.get(priceKey(product.id, offer.supplier));
+      return prix === undefined ? offer : { ...offer, meterPrice: prix };
+    }),
+  }));
 };
 
 /**

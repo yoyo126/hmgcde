@@ -4,6 +4,7 @@ import {
   analyseConditionnement,
   analyseUniteDeVente,
   convertirPrix,
+  prixAuMetre,
 } from "../src/lib/conditionnement.ts";
 
 /**
@@ -121,4 +122,20 @@ test("la conversion dit d'où elle vient et où elle va", () => {
   if (resultat.etat !== "convertie") throw new Error("conversion attendue");
   assert.equal(resultat.depuis, "1000 Mètr");
   assert.equal(resultat.vers, "Couronne de 100 m");
+});
+
+test("le prix au mètre se calcule sans connaître le conditionnement", () => {
+  // C'est le repère le plus simple pour un câble, et il ne dépend que de
+  // l'unité de vente du fournisseur.
+  assert.equal(prixAuMetre(810.56, "1000 Mètr"), 0.8106);
+  assert.equal(prixAuMetre(40, "100 Mètr"), 0.4);
+  assert.equal(prixAuMetre(2382.52, "1000 Mètr"), 2.3825);
+  assert.equal(prixAuMetre(12.5, "Mètr"), 12.5);
+});
+
+test("un produit qui ne se vend pas à la longueur n'a pas de prix au mètre", () => {
+  assert.equal(prixAuMetre(60, "100 Pièce"), null);
+  assert.equal(prixAuMetre(5, "1 Pièce"), null);
+  assert.equal(prixAuMetre(5, ""), null);
+  assert.equal(prixAuMetre(5, undefined), null);
 });

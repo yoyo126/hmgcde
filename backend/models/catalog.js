@@ -331,6 +331,23 @@ const setOfferPrice = async (connection, suppliers, productId, supplierName, pri
 };
 
 /**
+ * Prix au mètre d'une offre.
+ *
+ * Il ne remplace pas le prix : il l'éclaire. Deux fournisseurs ne vendent
+ * jamais la même longueur de couronne, mais le prix au mètre se compare
+ * toujours — c'est le repère que l'on cherche sur un câble. L'offre doit
+ * exister : les prix sont posés avant, et c'est eux qui la créent au besoin.
+ */
+const setOfferMeterPrice = async (connection, suppliers, productId, supplierName, prix) => {
+  const supplierId = await ensureSupplier(connection, suppliers, supplierName);
+  await connection.execute(
+    `UPDATE hmgcde_supplier_products SET meter_price = ?
+      WHERE product_id = ? AND supplier_id = ?`,
+    [prix, productId, supplierId],
+  );
+};
+
+/**
  * Référence fournisseur apprise à l'import.
  *
  * On ne touche qu'à la référence et au libellé. L'interface l'apprenait en
@@ -423,6 +440,7 @@ export const applyPriceChanges = async ({ prices = {}, componentPrices = {}, cha
  */
 export const applyTariffImport = async ({
   overrides = {},
+  meterPrices = {},
   newProducts = [],
   history,
   changes = [],
@@ -441,6 +459,14 @@ export const applyTariffImport = async ({
       const [productId, supplierName] = key.split(SEPARATOR);
       if (!productId || !supplierName) continue;
       await setOfferPrice(connection, suppliers, productId, supplierName, Number(value) || 0);
+    }
+
+    // Le prix au mètre après les prix, pour la même raison qu'eux : c'est le
+    // prix qui crée l'offre quand elle n'existe pas encore.
+    for (const [key, value] of Object.entries(meterPrices)) {
+      const [productId, supplierName] = key.split(SEPARATOR);
+      if (!productId || !supplierName) continue;
+      await setOfferMeterPrice(connection, suppliers, productId, supplierName, Number(value) || 0);
     }
 
     // Les références après les prix, dans la même transaction : le prix crée

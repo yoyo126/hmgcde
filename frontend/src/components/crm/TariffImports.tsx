@@ -30,7 +30,11 @@ import {
 } from "@/lib/tariff-storage";
 import { useCatalogProducts } from "@/lib/use-catalog-products";
 import { usePurchasingSettings } from "@/lib/use-purchasing-settings";
-import { convertirPrix, type ResultatConversion } from "@/lib/conditionnement";
+import {
+  convertirPrix,
+  prixAuMetre,
+  type ResultatConversion,
+} from "@/lib/conditionnement";
 import { nomCsv, telechargerCsv } from "@/lib/export-csv";
 import {
   lignesReferences,
@@ -65,6 +69,12 @@ type ReviewLine = RawLine & {
    * conditionnements : une couronne de 100 m.
    */
   conversion: ResultatConversion;
+  /**
+   * Prix au mètre, pour ce qui se vend à la longueur. C'est le repère que
+   * l'on cherche sur un câble : deux fournisseurs ne proposent jamais la même
+   * longueur de couronne, mais le prix au mètre se compare toujours.
+   */
+  prixMetre: number | null;
 };
 
 const normalize = (value: unknown) =>
@@ -455,12 +465,16 @@ const evalueLigne = (
   line: RawLine,
   product: Product | undefined,
   supplier: string,
-): Pick<ReviewLine, "oldPrice" | "conversion" | "status"> => {
+): Pick<ReviewLine, "oldPrice" | "conversion" | "status" | "prixMetre"> => {
+  // Le prix au mètre se tire de l'unité de vente seule : il tient même quand
+  // le produit n'est pas encore rattaché ou le conditionnement inconnu.
+  const prixMetre = prixAuMetre(line.price, line.unit);
   if (!product) {
     return {
       oldPrice: 0,
       conversion: { etat: "indeterminee", prix: line.price, raison: "produit à rattacher" },
       status: "new",
+      prixMetre,
     };
   }
   const offer = product.offers.find((item) => item.supplier === supplier);
@@ -470,6 +484,7 @@ const evalueLigne = (
     oldPrice,
     conversion,
     status: Math.abs(oldPrice - conversion.prix) < 0.01 ? "unchanged" : "changed",
+    prixMetre,
   };
 };
 
@@ -609,6 +624,9 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
   const validateImport = () => {
     const selected = lines.filter((line) => line.selected);
     const overrides: PriceOverride = {};
+    // Les prix au mètre voyagent à part : ils n'ont de sens que pour ce qui se
+    // vend à la longueur, et ils ne remplacent jamais le prix.
+    const meterPrices: PriceOverride = {};
     const newProducts: Product[] = [];
     const priceChanges: ManualPriceChange[] = [];
     // Références fournisseur à mémoriser : c'est ce qui rend les imports
@@ -626,6 +644,9 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
         // Le prix ramené au conditionnement de ce fournisseur, jamais le prix
         // brut du tarif : c'est lui qui multipliera les quantités commandées.
         overrides[priceKey(line.product.id, supplier)] = line.conversion.prix;
+        if (line.prixMetre !== null) {
+          meterPrices[priceKey(line.product.id, supplier)] = line.prixMetre;
+        }
         const offreConnue = line.product.offers.find((offer) => offer.supplier === supplier);
         const referenceInconnue =
           line.reference &&
@@ -663,6 +684,7 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
             reference: line.reference || "À renseigner",
             brand: "À renseigner",
             price: line.price,
+            ...(line.prixMetre !== null ? { meterPrice: line.prixMetre } : {}),
             // Le conditionnement est celui de l'unité de vente du tarif : le
             // prix est celui-là, et les deux doivent se correspondre, sans
             // quoi la première commande multiplierait un prix de 100 pièces
@@ -696,6 +718,7 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
     // Au prochain tarif de ce fournisseur, ces lignes seront reconnues seules.
     saveTariffImport({
       overrides,
+      meterPrices,
       newProducts,
       history: item,
       changes: priceChanges,
@@ -1121,6 +1144,11 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
                   </span>
                   <span data-label="Nouveau prix">
                     <strong>{money(line.conversion.prix)}</strong>
+                    {line.prixMetre !== null && (
+                      <small className="prix-metre">
+                        {line.prixMetre.toFixed(2).replace(".", ",")} €/m
+                      </small>
+                    )}
                     {line.conversion.etat === "convertie" && (
                       <small className="conversion-faite">
                         {money(line.price)} pour {line.conversion.depuis} →{" "}

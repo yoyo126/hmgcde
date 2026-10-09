@@ -4214,3 +4214,13 @@ tr.ligne-depliee .order-detail-panel {
   color: var(--ambre);
   font-weight: 600;
 }
+/* Le prix au mètre d'un câble : le repère qu'on cherche en premier, deux
+   fournisseurs ne proposant jamais la même longueur de couronne. */
+.prix-metre {
+  display: block;
+  margin-top: 2px;
+  color: var(--bleu);
+  font-family: var(--chiffres);
+  font-size: 13px;
+  font-weight: 600;
+}

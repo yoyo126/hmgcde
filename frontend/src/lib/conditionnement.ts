@@ -146,3 +146,21 @@ export const convertirPrix = (
 
 /** Le prix à retenir, quel que soit l'état de la conversion. */
 export const prixRetenu = (resultat: ResultatConversion) => resultat.prix;
+
+/**
+ * Prix au mètre d'un tarif vendu à la longueur.
+ *
+ * Il ne dépend que de l'unité de vente du fournisseur, pas du
+ * conditionnement : il se calcule donc même quand le conditionnement n'est
+ * pas renseigné. Et c'est le repère le plus simple qui existe pour un câble
+ * — deux fournisseurs ne proposent jamais la même longueur de couronne, mais
+ * le prix au mètre se compare toujours.
+ *
+ * Quatre décimales : la colonne qui le reçoit en garde autant, et un câble
+ * à 0,8106 €/m ne doit pas s'arrondir à 0,81 avant d'être enregistré.
+ */
+export const prixAuMetre = (prix: number, uniteDeVente?: string) => {
+  const vente = analyseUniteDeVente(uniteDeVente);
+  if (!vente || vente.famille !== "longueur" || !vente.quantite) return null;
+  return Math.round((prix / vente.quantite) * 10000) / 10000;
+};
