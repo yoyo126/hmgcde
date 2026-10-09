@@ -5,6 +5,7 @@ import {
   analyseUniteDeVente,
   convertirPrix,
   prixAuMetre,
+  prixAuMetreDeLOffre,
 } from "../src/lib/conditionnement.ts";
 
 /**
@@ -138,4 +139,21 @@ test("un produit qui ne se vend pas à la longueur n'a pas de prix au mètre", (
   assert.equal(prixAuMetre(5, "1 Pièce"), null);
   assert.equal(prixAuMetre(5, ""), null);
   assert.equal(prixAuMetre(5, undefined), null);
+});
+
+test("le prix au mètre se déduit aussi d'une offre déjà enregistrée", () => {
+  // Sans cela, il fallait attendre un import pour voir le moindre €/m.
+  assert.equal(prixAuMetreDeLOffre(81.06, "Couronne de 100 m"), 0.8106);
+  assert.equal(prixAuMetreDeLOffre(119.13, "Couronne de 50 m"), 2.3826);
+  assert.equal(prixAuMetreDeLOffre(25.05, "Couronne de 20 m"), 1.2525);
+});
+
+test("une offre qui ne se compte pas en mètres n'a pas de prix au mètre", () => {
+  assert.equal(prixAuMetreDeLOffre(20, "Boîte de 100"), null);
+  assert.equal(prixAuMetreDeLOffre(5, "Pièce"), null);
+  assert.equal(prixAuMetreDeLOffre(5, "À renseigner"), null);
+  // Une couronne sans longueur ne dit pas combien de mètres elle porte.
+  assert.equal(prixAuMetreDeLOffre(5, "Couronne"), null);
+  // Et un prix nul ne vaut pas 0 €/m : il n'est pas encore saisi.
+  assert.equal(prixAuMetreDeLOffre(0, "Couronne de 100 m"), null);
 });

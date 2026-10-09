@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { fusionnerPrix } from "@/lib/catalog-prices";
+import { prixAuMetreDeLOffre } from "@/lib/conditionnement";
 import { IS_DEMO } from "@/lib/demo-mode";
 import { ROLE_DESCRIPTIONS as ROLE_HELP } from "@/lib/permissions";
 import { usePermissions } from "./permissions-context";
@@ -1434,10 +1435,19 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                         <small>€/m</small>
                                       </label>
                                     ) : (
-                                      <small>
-                                        {offer.meterPrice
-                                          ? `${offer.meterPrice.toFixed(2).replace(".", ",")} €/m`
-                                          : "Prix/m à renseigner"}
+                                      // Le prix au mètre saisi à la main d'abord :
+                                      // il peut porter un tarif négocié. À défaut
+                                      // il se déduit du conditionnement, pour
+                                      // être là sans attendre un import.
+                                      <small className="prix-metre">
+                                        {(() => {
+                                          const metre =
+                                            offer.meterPrice ||
+                                            prixAuMetreDeLOffre(price, offer.packaging);
+                                          return metre
+                                            ? `${metre.toFixed(2).replace(".", ",")} €/m`
+                                            : "Prix/m à renseigner";
+                                        })()}
                                       </small>
                                     ))}
                                   {/* Une gaine, un conduit, un multicouche se
@@ -1445,11 +1455,18 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                       les câbles : dès qu'un prix au mètre est
                                       connu, il se montre. C'est le repère le
                                       plus simple pour comparer. */}
-                                  {offer && p.subfamily !== "Câbles" && offer.meterPrice ? (
-                                    <small className="prix-metre">
-                                      {offer.meterPrice.toFixed(2).replace(".", ",")} €/m
-                                    </small>
-                                  ) : null}
+                                  {offer && p.subfamily !== "Câbles"
+                                    ? (() => {
+                                        const metre =
+                                          offer.meterPrice ||
+                                          prixAuMetreDeLOffre(price, offer.packaging);
+                                        return metre ? (
+                                          <small className="prix-metre">
+                                            {metre.toFixed(2).replace(".", ",")} €/m
+                                          </small>
+                                        ) : null;
+                                      })()
+                                    : null}
                                   {offer && p.subfamily !== "Câbles" &&
                                     (editingCatalog ? (
                                       <input

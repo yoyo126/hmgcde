@@ -148,6 +148,22 @@ export const convertirPrix = (
 export const prixRetenu = (resultat: ResultatConversion) => resultat.prix;
 
 /**
+ * Prix au mètre déduit d'une offre déjà enregistrée : son prix divisé par la
+ * longueur de son conditionnement.
+ *
+ * C'est ce qui permet de l'afficher partout et tout de suite, sans attendre
+ * un import : une couronne de 100 m à 81,06 €, c'est 0,81 €/m, et le calcul
+ * suit la moindre correction de prix. Le prix au mètre saisi à la main garde
+ * la priorité — il peut porter un tarif négocié que le conditionnement
+ * ignore.
+ */
+export const prixAuMetreDeLOffre = (prix: number, conditionnement?: string) => {
+  const cible = analyseConditionnement(conditionnement);
+  if (!cible || cible.famille !== "longueur" || !cible.quantite || !prix) return null;
+  return Math.round((prix / cible.quantite) * 10000) / 10000;
+};
+
+/**
  * Prix au mètre d'un tarif vendu à la longueur.
  *
  * Il ne dépend que de l'unité de vente du fournisseur, pas du
