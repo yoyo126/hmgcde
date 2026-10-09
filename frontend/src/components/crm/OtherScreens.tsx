@@ -1440,6 +1440,16 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                           : "Prix/m à renseigner"}
                                       </small>
                                     ))}
+                                  {/* Une gaine, un conduit, un multicouche se
+                                      vendent au mètre sans être classés dans
+                                      les câbles : dès qu'un prix au mètre est
+                                      connu, il se montre. C'est le repère le
+                                      plus simple pour comparer. */}
+                                  {offer && p.subfamily !== "Câbles" && offer.meterPrice ? (
+                                    <small className="prix-metre">
+                                      {offer.meterPrice.toFixed(2).replace(".", ",")} €/m
+                                    </small>
+                                  ) : null}
                                   {offer && p.subfamily !== "Câbles" &&
                                     (editingCatalog ? (
                                       <input
