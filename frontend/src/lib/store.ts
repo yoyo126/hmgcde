@@ -187,6 +187,8 @@ export const persistPriceChanges = (payload: {
 
 export const persistTariffImport = (payload: {
   overrides: Record<string, number>;
+  /** Prix des éléments d'un ensemble : un coffret vaut la somme de son contenu. */
+  componentPrices: Record<string, number>;
   /** Prix au mètre des produits vendus à la longueur : un repère, pas un prix. */
   meterPrices: Record<string, number>;
   newProducts: Product[];

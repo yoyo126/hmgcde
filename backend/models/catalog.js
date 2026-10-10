@@ -440,6 +440,7 @@ export const applyPriceChanges = async ({ prices = {}, componentPrices = {}, cha
  */
 export const applyTariffImport = async ({
   overrides = {},
+  componentPrices = {},
   meterPrices = {},
   newProducts = [],
   history,
@@ -459,6 +460,16 @@ export const applyTariffImport = async ({
       const [productId, supplierName] = key.split(SEPARATOR);
       if (!productId || !supplierName) continue;
       await setOfferPrice(connection, suppliers, productId, supplierName, Number(value) || 0);
+    }
+
+    // Le contenu des ensembles. Un coffret n'a pas de prix à lui : il vaut la
+    // somme de ce qu'il contient. Sans cette boucle, un tarif fournisseur ne
+    // pouvait pas chiffrer un coffret du tout — il restait à zéro quel que
+    // soit le nombre d'imports.
+    for (const [key, value] of Object.entries(componentPrices)) {
+      const [productId, itemName, supplierName] = key.split(SEPARATOR);
+      if (!productId || !itemName || !supplierName) continue;
+      await setComponentPrice(connection, suppliers, productId, itemName, supplierName, Number(value) || 0);
     }
 
     // Le prix au mètre après les prix, pour la même raison qu'eux : c'est le

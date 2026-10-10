@@ -202,8 +202,14 @@ const run = async () => {
       ?.find((item) => item.id === product.id)
       ?.offers?.find((offer) => offer.supplier === supplier);
 
+  // Un coffret n'a pas de prix à lui : il vaut son contenu. Un tarif doit donc
+  // pouvoir chiffrer ce contenu, sinon l'ensemble reste à zéro pour toujours.
+  const elementCoffret = bundle?.contents?.[0]?.name;
+  const cleElement = `${bundle?.id}|||${elementCoffret}|||${supplier}`;
+
   const imported = await call("POST", "/catalog/imports", {
     overrides: { [priceKey]: 67.9 },
+    componentPrices: elementCoffret ? { [cleElement]: 3.25 } : {},
     newProducts: [],
     history: {
       id: crypto.randomUUID(),
@@ -243,6 +249,15 @@ const run = async () => {
     `reçu « ${apresImport?.supplierName} »`,
   );
   check("l'import figure au journal", (imported.payload?.importHistory?.length || 0) > 0);
+  const coffretApres = imported.payload?.products?.find((item) => item.id === bundle?.id);
+  check(
+    "un import peut chiffrer le contenu d'un coffret",
+    coffretApres?.contents?.find((item) => item.name === elementCoffret)
+      ?.supplierPrices?.[supplier] === 3.25,
+    JSON.stringify(
+      coffretApres?.contents?.find((item) => item.name === elementCoffret)?.supplierPrices,
+    ),
+  );
 
   // Un tarif suivant sans référence lisible ne doit pas effacer celle qu'on
   // vient d'apprendre.

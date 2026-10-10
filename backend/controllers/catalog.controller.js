@@ -42,6 +42,7 @@ export const savePrices = asyncHandler(async (req, res) => {
 export const saveImport = asyncHandler(async (req, res) => {
   const {
     overrides = {},
+    componentPrices = {},
     meterPrices = {},
     newProducts = [],
     history,
@@ -53,6 +54,7 @@ export const saveImport = asyncHandler(async (req, res) => {
   }
   await catalog.applyTariffImport({
     overrides,
+    componentPrices,
     meterPrices,
     newProducts,
     history,

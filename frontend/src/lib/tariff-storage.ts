@@ -151,6 +151,7 @@ export const saveManualPriceChanges = ({
  */
 export const saveTariffImport = ({
   overrides,
+  componentPrices = {},
   meterPrices = {},
   newProducts,
   history,
@@ -158,6 +159,7 @@ export const saveTariffImport = ({
   references = [],
 }: {
   overrides: PriceOverride;
+  componentPrices?: PriceOverride;
   meterPrices?: PriceOverride;
   newProducts: Product[];
   history: ImportHistoryItem;
@@ -167,7 +169,7 @@ export const saveTariffImport = ({
   if (newProducts.length) {
     setProducts([...store.products, ...newProducts]);
   }
-  applyPricesToCache(overrides, {});
+  applyPricesToCache(overrides, componentPrices);
   applyMeterPricesToCache(meterPrices);
   applyReferencesToCache(references);
   store.importHistory = [history, ...store.importHistory].slice(0, 30);
@@ -180,6 +182,7 @@ export const saveTariffImport = ({
   window.dispatchEvent(new Event(CATALOG_CHANGED_EVENT));
   void persistTariffImport({
     overrides,
+    componentPrices,
     meterPrices,
     newProducts,
     history,
