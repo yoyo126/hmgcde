@@ -37,7 +37,7 @@ export function Login({ onSignedIn }: { onSignedIn: (user: SessionUser) => void 
             résumer en dessous alourdissait une page qui n'a qu'une chose à
             demander. Le titre reste là pour les lecteurs d'écran, qui ne
             voient pas le logo. */}
-        <HmLogo className="login-logo" />
+        <HmLogo className="login-logo" anime />
         <h1 className="visuellement-cache">Achats filiales HM Group</h1>
 
         <label className="login-field">
