@@ -21,6 +21,13 @@ const required = (name) => {
 export const config = {
   env: process.env.NODE_ENV || "development",
   port: Number(process.env.PORT || 3001),
+  /**
+   * Interface d'écoute. Par défaut la boucle locale : sur un serveur partagé,
+   * écouter sur toutes les interfaces exposerait l'API directement sur son
+   * port, donc en clair et sans passer par le proxy qui porte le HTTPS.
+   * À ne changer que pour un cas précis, et en connaissance de cause.
+   */
+  host: process.env.HOST || "127.0.0.1",
   // Dossier des fichiers compilés du frontend, servis par Express en production.
   frontendDist: process.env.FRONTEND_DIST || path.join(projectRoot, "frontend", "dist"),
   db: {

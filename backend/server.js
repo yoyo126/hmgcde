@@ -14,8 +14,10 @@ const start = async () => {
   console.log(`✓ Base de données ${config.db.database} accessible sur ${config.db.host}.`);
 
   const app = createApp();
-  const server = app.listen(config.port, () => {
-    console.log(`✓ API Achats filiales HM Group sur http://127.0.0.1:${config.port} (${config.env})`);
+  const server = app.listen(config.port, config.host, () => {
+    console.log(
+      `✓ API Achats filiales HM Group sur http://${config.host}:${config.port} (${config.env})`,
+    );
   });
 
   const shutdown = (signal) => {

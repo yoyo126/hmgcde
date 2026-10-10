@@ -39,6 +39,11 @@ export const createApp = () => {
     }),
   );
 
+  // La connexion n'a besoin que de deux champs : inutile d'accepter douze
+  // mégaoctets de quelqu'un qui n'est pas encore identifié. Monté avant le
+  // lecteur général, qui passera son tour sur ces routes.
+  app.use("/api/auth", express.json({ limit: "16kb" }));
+
   // Les imports de tarifs passent par le navigateur, mais les catalogues
   // envoyés en JSON peuvent être volumineux.
   app.use(express.json({ limit: "12mb" }));
