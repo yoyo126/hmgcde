@@ -346,7 +346,7 @@ const escapeHtml = (value: string | number) =>
  * Copie la commande dans le presse-papiers, en HTML (tableau prêt à coller
  * dans un e-mail) et en texte, avec une colonne par société servie.
  */
-export const copyOrderEmail = async (order: Pick<StoredOrder, "reference" | "lines">) => {
+export const copyOrderEmail = async (order: StoredOrder | UnsavedOrder) => {
   const settings = getPurchasingSettings();
   const catalog = getCatalogProducts();
   const companyColumns = companies.map((company) => ({

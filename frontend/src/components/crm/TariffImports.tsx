@@ -550,16 +550,14 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
               normalize(`${line.reference} ${line.name}`),
           ) === index,
       );
-      const relues = uniqueRows.map((line, index) => {
+      const relues: ReviewLine[] = uniqueRows.map((line, index) => {
         const { product, suggestions } = findProduct(line, catalogProducts, supplier);
-        const { oldPrice, conversion, status } = evalueLigne(line, product, supplier);
+        const evalue = evalueLigne(line, product, supplier);
         return {
           ...line,
           id: `${index}-${line.reference}-${line.name}`,
           product,
-          oldPrice,
-          conversion,
-          status,
+          ...evalue,
           suggestions,
           // Une ligne qu'on n'a pas su rattacher n'est pas cochée.
           // Elle l'était, et le menu proposait par défaut « créer un nouveau
@@ -567,7 +565,7 @@ export function TariffImports({ onBack }: { onBack?: () => void } = {}) {
           // produits « À renseigner » qu'il fallait ensuite compléter un par
           // un. Un import est là pour mettre à jour le prix des produits
           // qu'on achète, pas pour avaler le catalogue du fournisseur.
-          selected: status === "changed",
+          selected: evalue.status === "changed",
         };
       });
       setLines(relues);
