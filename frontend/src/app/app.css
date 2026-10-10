@@ -4422,15 +4422,26 @@ tr.ligne-depliee .order-detail-panel {
   position: relative;
   width: 210px;
   max-width: 62vw;
+  /* L'enveloppe découpe le reflet sur l'écran de connexion ; ici il n'y a pas
+     de reflet, et la lueur doit pouvoir déborder. */
+  overflow: visible;
 }
 .ouverture-logo::before {
   content: "";
   position: absolute;
   inset: -22% -12%;
+  /* Un pseudo-élément positionné se peint au-dessus du contenu dans le flux :
+     sans ces deux plans, la lueur passerait devant le logo au lieu de
+     l'épaissir par-derrière. */
+  z-index: 0;
   border-radius: 50%;
   background: radial-gradient(closest-side, rgba(86, 150, 232, 0.3), transparent 72%);
   animation: ouverture-lueur 1500ms ease-out 180ms both;
   pointer-events: none;
+}
+.ouverture-logo .hm-logo {
+  position: relative;
+  z-index: 1;
 }
 .ouverture-barre {
   width: 190px;
