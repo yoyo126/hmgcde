@@ -1,6 +1,20 @@
-export const CRM_VERSION = "3.2.0";
+export const CRM_VERSION = "3.3.0";
 
 export const CRM_VERSION_HISTORY = [
+  {
+    version: "3.3.0",
+    date: "10 octobre 2026",
+    title: "Les tarifs fournisseurs s’appliquent pour de bon",
+    changes: [
+      "Un import de tarif ne s’appliquait qu’à moitié : il s’applique en entier",
+      "Le prix d’un tarif est ramené au conditionnement de ce fournisseur",
+      "Un câble, une gaine, un conduit portent toujours leur prix au mètre",
+      "Un devis non rattaché ne fabrique plus de produits « À renseigner »",
+      "Les trois produits les plus probables sont proposés d’un clic",
+      "Les références fournisseur se préparent dans un tableur, une fois pour toutes",
+      "Les neuf colonnes d’un devis sont lues, numéro de catalogue compris",
+    ],
+  },
   {
     version: "3.2.0",
     date: "8 octobre 2026",
