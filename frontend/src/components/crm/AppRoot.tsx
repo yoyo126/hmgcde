@@ -18,7 +18,7 @@ import { Login } from "./Login";
  * à-coup. L'animation couvre le travail réel, et le complète quand il va
  * plus vite qu'elle.
  */
-const DUREE_OUVERTURE = 1150;
+const DUREE_OUVERTURE = 800;
 
 const pause = (millisecondes: number) =>
   new Promise((resolve) => setTimeout(resolve, millisecondes));

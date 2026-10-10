@@ -4436,7 +4436,7 @@ tr.ligne-depliee .order-detail-panel {
   z-index: 0;
   border-radius: 50%;
   background: radial-gradient(closest-side, rgba(86, 150, 232, 0.3), transparent 72%);
-  animation: ouverture-lueur 1500ms ease-out 180ms both;
+  animation: ouverture-lueur 1000ms ease-out 120ms both;
   pointer-events: none;
 }
 .ouverture-logo .hm-logo {
@@ -4456,12 +4456,12 @@ tr.ligne-depliee .order-detail-panel {
   height: 100%;
   background: var(--bleu);
   transform-origin: left center;
-  animation: ouverture-progres 1150ms cubic-bezier(0.37, 0, 0.26, 1) both;
+  animation: ouverture-progres 800ms cubic-bezier(0.37, 0, 0.26, 1) both;
 }
 .ouverture p {
   margin: 0;
   font-size: 15px;
-  animation: connexion-element 520ms cubic-bezier(0.22, 0.61, 0.36, 1) 520ms both;
+  animation: connexion-element 420ms cubic-bezier(0.22, 0.61, 0.36, 1) 320ms both;
 }
 @keyframes ouverture-progres {
   from {
