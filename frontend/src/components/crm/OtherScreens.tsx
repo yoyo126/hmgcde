@@ -8,6 +8,7 @@ import {
   FileText,
   FileUp,
   History,
+  KeyRound,
   Mail,
   Pencil,
   Plus,
@@ -1737,6 +1738,16 @@ export function UsersScreen({ onBack }: { onBack?: () => void } = {}) {
     [loading, setLoading] = useState(true),
     [error, setError] = useState<string | null>(null),
     [adding, setAdding] = useState(false),
+    // Le compte en cours de modification. L'API savait depuis toujours changer
+    // l'identifiant, le nom et le rôle d'un compte : l'écran ne l'offrait
+    // nulle part, et il fallait supprimer puis recréer pour corriger une
+    // simple faute de frappe.
+    [editionId, setEditionId] = useState<number | null>(null),
+    [edition, setEdition] = useState({
+      email: "",
+      name: "",
+      role: "acheteur" as AppUser["role"],
+    }),
     [draft, setDraft] = useState({
       email: "",
       name: "",
@@ -1795,6 +1806,30 @@ export function UsersScreen({ onBack }: { onBack?: () => void } = {}) {
   const removeUser = (user: AppUser) => {
     if (!window.confirm(`Supprimer définitivement le compte ${user.email} ?`)) return;
     void run(() => api.delete<{ users: AppUser[] }>(`/users/${user.id}`));
+  };
+
+  const ouvrirEdition = (user: AppUser) => {
+    setError(null);
+    setAdding(false);
+    setEditionId(user.id);
+    setEdition({ email: user.email, name: user.name, role: user.role });
+  };
+
+  const enregistrerEdition = async (user: AppUser) => {
+    // On n'envoie que ce qui a changé : réécrire un champ à l'identique le
+    // ferait repasser par la validation sans raison.
+    const modifications: Record<string, unknown> = {};
+    if (edition.email.trim() !== user.email) modifications.email = edition.email.trim();
+    if (edition.name !== user.name) modifications.name = edition.name;
+    if (edition.role !== user.role) modifications.role = edition.role;
+    if (!Object.keys(modifications).length) {
+      setEditionId(null);
+      return;
+    }
+    const done = await run(() =>
+      api.put<{ users: AppUser[] }>(`/users/${user.id}`, modifications),
+    );
+    if (done) setEditionId(null);
   };
 
   const changePassword = (user: AppUser) => {
@@ -1862,35 +1897,83 @@ export function UsersScreen({ onBack }: { onBack?: () => void } = {}) {
             </div>
           )}
 
-          {users.map((user) => (
-            <div className="user-row" key={user.id}>
-              <div className="avatar large">{userInitials(user)}</div>
-              <div>
-                <strong>{user.name || user.email}</strong>
-                <span>
-                  <Mail size={14} />
-                  {user.email}
+          {users.map((user) =>
+            editionId === user.id ? (
+              <div className="user-draft user-edition" key={user.id}>
+                <label className="champ-edition">
+                  <span>Identifiant</span>
+                  <input
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    value={edition.email}
+                    onChange={(event) => setEdition({ ...edition, email: event.target.value })}
+                    placeholder="admin, ou prenom@hmgroup.fr"
+                  />
+                </label>
+                <label className="champ-edition">
+                  <span>Nom et prénom</span>
+                  <input
+                    value={edition.name}
+                    onChange={(event) => setEdition({ ...edition, name: event.target.value })}
+                  />
+                </label>
+                <label className="champ-edition">
+                  <span>Rôle</span>
+                  <select
+                    value={edition.role}
+                    onChange={(event) =>
+                      setEdition({ ...edition, role: event.target.value as AppUser["role"] })
+                    }
+                  >
+                    <option value="admin">Administrateur</option>
+                    <option value="acheteur">Achats et commandes</option>
+                    <option value="demandeur">Demandes d’achat</option>
+                    <option value="lecteur">Lecture seule</option>
+                  </select>
+                </label>
+                <small className="role-help">{ROLE_HELP[edition.role]}</small>
+                <div className="user-edition-actions">
+                  <button className="secondary-btn" onClick={() => setEditionId(null)}>
+                    <X size={16} /> Annuler
+                  </button>
+                  <button className="primary-btn" onClick={() => void enregistrerEdition(user)}>
+                    <Save size={16} /> Enregistrer
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="user-row" key={user.id}>
+                <div className="avatar large">{userInitials(user)}</div>
+                <div>
+                  <strong>{user.name || user.email}</strong>
+                  <span>
+                    <Mail size={14} />
+                    {user.email}
+                  </span>
+                </div>
+                <i className={"status " + (user.role === "admin" ? "sent" : "draft")}>
+                  {ROLE_LABELS[user.role]}
+                </i>
+                <span className={"account-state " + (user.active ? "active" : "")}>
+                  {user.active ? "Actif" : "Suspendu"}
                 </span>
+                <div className="user-row-actions">
+                  <button onClick={() => ouvrirEdition(user)} title="Modifier le compte">
+                    <Pencil size={16} />
+                  </button>
+                  <button onClick={() => void changePassword(user)} title="Changer le mot de passe">
+                    <KeyRound size={16} />
+                  </button>
+                  <button onClick={() => void toggleActive(user)} title={user.active ? "Suspendre" : "Réactiver"}>
+                    <ShieldCheck size={16} />
+                  </button>
+                  <button onClick={() => removeUser(user)} title="Supprimer">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
-              <i className={"status " + (user.role === "admin" ? "sent" : "draft")}>
-                {ROLE_LABELS[user.role]}
-              </i>
-              <span className={"account-state " + (user.active ? "active" : "")}>
-                {user.active ? "Actif" : "Suspendu"}
-              </span>
-              <div className="user-row-actions">
-                <button onClick={() => void changePassword(user)} title="Changer le mot de passe">
-                  <Pencil size={16} />
-                </button>
-                <button onClick={() => void toggleActive(user)} title={user.active ? "Suspendre" : "Réactiver"}>
-                  <ShieldCheck size={16} />
-                </button>
-                <button onClick={() => removeUser(user)} title="Supprimer">
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))}
+            ),
+          )}
         </section>
       </div>
       {/* Les trois rôles, en pleine largeur sous la liste. Serrés dans
