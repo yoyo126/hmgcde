@@ -33,12 +33,12 @@ export function Login({ onSignedIn }: { onSignedIn: (user: SessionUser) => void 
   return (
     <div className="login-shell">
       <form className="login-card" onSubmit={submit}>
+        {/* Le logo porte déjà le nom de l'outil : le répéter en titre et le
+            résumer en dessous alourdissait une page qui n'a qu'une chose à
+            demander. Le titre reste là pour les lecteurs d'écran, qui ne
+            voient pas le logo. */}
         <HmLogo className="login-logo" />
-        <h1>Achats filiales</h1>
-        <p className="login-intro">
-          Commandes et répartition pour CPTE&nbsp;Conseil, HM&nbsp;Pose, HM&nbsp;Instal et
-          HM&nbsp;PAC.
-        </p>
+        <h1 className="visuellement-cache">Achats filiales HM Group</h1>
 
         <label className="login-field">
           <span>Identifiant</span>
