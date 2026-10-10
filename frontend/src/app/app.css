@@ -4349,7 +4349,10 @@ tr.ligne-depliee .order-detail-panel {
   width: 100%;
   animation: logo-arrivee 760ms cubic-bezier(0.22, 0.61, 0.36, 1) 80ms both;
 }
-.hm-logo-anime::after {
+/* Le reflet n'est visible que là où il croise le bleu : il ne vaut donc que
+   sur le fond blanc de la carte. Sur le marine de l'ouverture, une bande
+   claire traverserait le vide et ressemblerait à un défaut d'affichage. */
+.login-card .hm-logo-anime::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -4390,11 +4393,98 @@ tr.ligne-depliee .order-detail-panel {
   animation: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .hm-logo-anime .hm-logo,
-  .hm-logo-anime::after {
+  .hm-logo-anime .hm-logo {
     animation: none;
   }
-  .hm-logo-anime::after {
+  .login-card .hm-logo-anime::after {
     display: none;
+  }
+}
+
+/* --- 36. Ouverture après la connexion ---------------------------------- */
+/* Le passage de la connexion à l'accueil se faisait d'un coup. L'application
+   s'ouvre maintenant sur son logo, le temps que les données arrivent. Fond
+   marine, comme l'écran de connexion : la continuité fait le lien. */
+.ouverture {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 20px;
+  padding: 24px;
+  background: var(--marine);
+  color: var(--sur-marine);
+  text-align: center;
+}
+/* Une lueur sourde derrière le logo : sur fond sombre, elle donne au logo
+   l'épaisseur qu'un reflet lui donnerait sur fond clair. */
+.ouverture-logo {
+  position: relative;
+  width: 210px;
+  max-width: 62vw;
+}
+.ouverture-logo::before {
+  content: "";
+  position: absolute;
+  inset: -22% -12%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(86, 150, 232, 0.3), transparent 72%);
+  animation: ouverture-lueur 1500ms ease-out 180ms both;
+  pointer-events: none;
+}
+.ouverture-barre {
+  width: 190px;
+  max-width: 60vw;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+.ouverture-barre span {
+  display: block;
+  height: 100%;
+  background: var(--bleu);
+  transform-origin: left center;
+  animation: ouverture-progres 1150ms cubic-bezier(0.37, 0, 0.26, 1) both;
+}
+.ouverture p {
+  margin: 0;
+  font-size: 15px;
+  animation: connexion-element 520ms cubic-bezier(0.22, 0.61, 0.36, 1) 520ms both;
+}
+@keyframes ouverture-progres {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes ouverture-lueur {
+  from {
+    opacity: 0;
+    transform: scale(0.75);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.55;
+    transform: none;
+  }
+}
+/* L'accueil se pose au lieu d'apparaître sèchement. */
+.app-shell {
+  animation: connexion-element 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ouverture-logo::before,
+  .ouverture-barre span,
+  .ouverture p,
+  .app-shell {
+    animation: none;
+  }
+  .ouverture-barre span {
+    transform: none;
   }
 }

@@ -6,7 +6,22 @@ import { hydrate, resetStore, store } from "@/lib/store";
 import type { SessionUser } from "@/lib/types";
 import { PermissionsProvider } from "./permissions-context";
 import { CRMApp } from "./CRMApp";
+import { HmLogo } from "./HmLogo";
 import { Login } from "./Login";
+
+/**
+ * Durée de l'ouverture, après une connexion réussie.
+ *
+ * Le chargement des données tient souvent en deux ou trois dixièmes de
+ * seconde : sans cette attente, l'application surgirait avant qu'on ait vu
+ * quoi que ce soit, et le passage de la connexion à l'accueil serait un
+ * à-coup. L'animation couvre le travail réel, et le complète quand il va
+ * plus vite qu'elle.
+ */
+const DUREE_OUVERTURE = 1150;
+
+const pause = (millisecondes: number) =>
+  new Promise((resolve) => setTimeout(resolve, millisecondes));
 
 type Phase = "loading" | "signed-out" | "ready" | "error";
 
@@ -19,13 +34,19 @@ export function AppRoot() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // Vrai seulement après une connexion réussie : au tout premier chargement,
+  // on ne sait pas encore si l'on va vers l'accueil ou vers la connexion, et
+  // une ouverture en fanfare avant un écran de connexion n'aurait pas de sens.
+  const [ouverture, setOuverture] = useState(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (apresConnexion = false) => {
+    setOuverture(apresConnexion);
     setPhase("loading");
+    const attente = apresConnexion ? pause(DUREE_OUVERTURE) : Promise.resolve();
     try {
       // L'aperçu de démonstration n'a pas de serveur : ni session, ni connexion.
       if (IS_DEMO) {
-        await hydrate();
+        await Promise.all([hydrate(), attente]);
         setUser(DEMO_USER);
         setPhase("ready");
         return;
@@ -37,7 +58,7 @@ export function AppRoot() {
         setPhase("signed-out");
         return;
       }
-      await hydrate();
+      await Promise.all([hydrate(), attente]);
       setUser(store.user ?? session.user);
       setPhase("ready");
     } catch (failure) {
@@ -83,6 +104,20 @@ export function AppRoot() {
   }, []);
 
   if (phase === "loading") {
+    // Après la connexion, l'application s'ouvre sur son logo plutôt que sur un
+    // disque qui tourne. Au premier chargement, le disque suffit : on ne sait
+    // pas encore où l'on va.
+    if (ouverture) {
+      return (
+        <div className="ouverture">
+          <HmLogo className="ouverture-logo" clair anime />
+          <div className="ouverture-barre">
+            <span />
+          </div>
+          <p>Ouverture de l’espace achats…</p>
+        </div>
+      );
+    }
     return (
       <div className="app-loading">
         <div className="app-loading-dot" />
@@ -104,7 +139,7 @@ export function AppRoot() {
   }
 
   if (phase === "signed-out" || !user) {
-    return <Login onSignedIn={() => void load()} />;
+    return <Login onSignedIn={() => void load(true)} />;
   }
 
   return (
