@@ -92,6 +92,11 @@ Les migrations s'appliquent au démarrage du serveur (désactivable avec
 `AUTO_MIGRATE=false`). Un déploiement se résume donc à récupérer le code,
 recompiler l'interface et redémarrer le service.
 
+Sur le VPS, c'est ce que fait `./deploy.sh`. La première mise en ligne est
+décrite pas à pas dans [deploiement/README.md](deploiement/README.md), et les
+règles de cohabitation avec les autres outils du serveur dans
+[CLAUDE.md](CLAUDE.md).
+
 ## Base de données
 
 Toutes les tables sont préfixées `hmgcde_`, afin de pouvoir un jour cohabiter
