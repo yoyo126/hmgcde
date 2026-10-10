@@ -4565,3 +4565,87 @@ tr.ligne-depliee .order-detail-panel {
 .comparatif-vide {
   color: var(--encre-3);
 }
+
+/* --- 40. Notifications du navigateur ----------------------------------- */
+.notifications-panel {
+  padding-bottom: 18px;
+}
+.notifications-tete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 16px var(--gouttiere);
+  border-bottom: 1px solid var(--filet-2);
+}
+.notifications-tete > div:not(.settings-actions) {
+  flex: 1 1 260px;
+}
+.notifications-tete strong {
+  display: block;
+  font-size: 16px;
+}
+.notifications-tete small {
+  display: block;
+  margin-top: 2px;
+  color: var(--encre-2);
+  font-size: 14px;
+}
+.notifications-pastille {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--filet-2);
+  color: var(--encre-3);
+}
+.notifications-pastille.active {
+  background: var(--vert-pale);
+  color: var(--vert);
+}
+/* L'étape iPhone : une contrainte d'Apple, pas un défaut de l'application. */
+.notifications-avis {
+  display: flex;
+  gap: 11px;
+  margin: 14px var(--gouttiere) 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--ambre);
+  background: var(--ambre-pale);
+  color: var(--ambre);
+  font-size: 14.5px;
+}
+.notifications-avis strong {
+  display: block;
+  margin-bottom: 3px;
+}
+.notifications-liste {
+  padding: 16px var(--gouttiere) 0;
+}
+.notifications-liste h2 {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+.notifications-appareil {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--filet-2);
+  color: var(--encre-2);
+}
+.notifications-appareil strong {
+  display: block;
+  color: var(--encre);
+  font-size: 15px;
+}
+.notifications-appareil small {
+  color: var(--encre-3);
+  font-size: 13px;
+}
+.notifications-etat,
+.notifications-note {
+  margin: 14px var(--gouttiere) 0;
+  color: var(--encre-3);
+  font-size: 14px;
+}

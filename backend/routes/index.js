@@ -11,6 +11,7 @@ import * as bootstrap from "../controllers/bootstrap.controller.js";
 import * as catalog from "../controllers/catalog.controller.js";
 import * as orders from "../controllers/orders.controller.js";
 import * as purchaseRequests from "../controllers/purchase-requests.controller.js";
+import * as notifications from "../controllers/notifications.controller.js";
 import * as settings from "../controllers/settings.controller.js";
 import * as users from "../controllers/users.controller.js";
 
@@ -53,6 +54,12 @@ router.delete("/orders/:code", requireWriteAccess, orders.remove);
 router.get("/purchase-requests", requireAuth, purchaseRequests.list);
 router.put("/purchase-requests", requireRequestAccess, purchaseRequests.save);
 router.delete("/purchase-requests/:code", requireWriteAccess, purchaseRequests.remove);
+
+// --- Notifications du navigateur -----------------------------------------
+router.get("/notifications", requireAuth, notifications.etat);
+router.post("/notifications/abonnements", requireAuth, notifications.abonner);
+router.post("/notifications/abonnements/retrait", requireAuth, notifications.desabonner);
+router.post("/notifications/essai", requireAuth, notifications.essai);
 
 // --- Paramètres et sociétés ----------------------------------------------
 router.get("/settings", requireAuth, settings.read);

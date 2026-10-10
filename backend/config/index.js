@@ -43,6 +43,15 @@ export const config = {
     // 12 h : une journée de travail, sans forcer une reconnexion à midi.
     maxAge: Number(process.env.SESSION_MAX_AGE || 12 * 60 * 60 * 1000),
   },
+  /**
+   * Notifications du navigateur. Sans ces clés, la fonction se tait : le
+   * serveur démarre normalement et l'interface ne propose pas de s'abonner.
+   */
+  push: {
+    publicKey: process.env.PUSH_PUBLIC_KEY || "",
+    privateKey: process.env.PUSH_PRIVATE_KEY || "",
+    sujet: process.env.PUSH_SUJET || "mailto:achats@crm-hmgroup.fr",
+  },
   seed: {
     adminEmail: process.env.SEED_ADMIN_EMAIL || "admin@hmgroup.fr",
     adminPassword: process.env.SEED_ADMIN_PASSWORD || "",

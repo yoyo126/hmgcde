@@ -13,7 +13,8 @@
     "migrate": "node db/migrate.js",
     "seed": "node db/seed.js",
     "setup": "node db/migrate.js && node db/seed.js",
-    "create-user": "node scripts/create-user.js"
+    "create-user": "node scripts/create-user.js",
+    "cles-push": "node scripts/cles-push.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -23,6 +24,7 @@
     "express-rate-limit": "^7.5.0",
     "express-session": "^1.18.1",
     "helmet": "^8.0.0",
-    "mysql2": "^3.11.5"
+    "mysql2": "^3.11.5",
+    "web-push": "^3.6.7"
   }
 }

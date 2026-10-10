@@ -10,6 +10,7 @@ import {
   UsersScreen,
 } from "./OtherScreens";
 import { Comparatif } from "./Comparatif";
+import { Notifications } from "./Notifications";
 import { PurchaseRequests } from "./PurchaseRequests";
 import { Ventilation } from "./Ventilation";
 import { TariffImports } from "./TariffImports";
@@ -111,6 +112,8 @@ export function CRMApp({
         onEditOrder={editOrder}
         initialOpenOrder={orderToOpen}
       />
+    ) : screen === "notifications" ? (
+      <Notifications onBack={() => navigate("settings")} />
     ) : screen === "comparatif" ? (
       <Comparatif onBack={() => navigate("settings")} />
     ) : screen === "products" ? (

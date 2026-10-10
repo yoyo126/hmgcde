@@ -2,6 +2,7 @@ import { Fragment, useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowLeftRight,
+  Bell,
   Box,
   ChevronDown,
   ChevronRight,
@@ -2185,6 +2186,11 @@ export function SettingsScreen({
           <span><FileUp size={22} /></span>
           <strong>Tarifs et historique</strong>
           <small>Imports Excel/PDF et évolution des prix</small>
+        </button>
+        <button onClick={() => onNavigate("notifications")}>
+          <span><Bell size={22} /></span>
+          <strong>Notifications</strong>
+          <small>Être prévenu d’une demande d’achat</small>
         </button>
         <button onClick={() => onNavigate("users")}>
           <span><Users size={22} /></span>

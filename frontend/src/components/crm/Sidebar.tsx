@@ -4,6 +4,7 @@ import {
   LogOut,
   Box,
   ArrowLeftRight,
+  Bell,
   ClipboardList,
   ClipboardPlus,
   FileUp,
@@ -51,6 +52,7 @@ export const settingsItems = [
   { id: "products", label: "Produits", icon: Box },
   { id: "comparatif", label: "Comparatif fournisseurs", icon: ArrowLeftRight },
   { id: "tariff-imports", label: "Import tarifs", icon: FileUp },
+  { id: "notifications", label: "Notifications", icon: Bell },
   { id: "users", label: "Utilisateurs", icon: Users },
 ] as const;
 export type ScreenId =

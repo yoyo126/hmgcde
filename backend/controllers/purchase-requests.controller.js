@@ -1,4 +1,5 @@
 import { asyncHandler, HttpError } from "../middleware/errors.js";
+import * as notifications from "../models/notifications.js";
 import * as requests from "../models/purchase-requests.js";
 
 export const list = asyncHandler(async (req, res) => {
@@ -23,7 +24,26 @@ export const save = asyncHandler(async (req, res) => {
       `Demande d'achat ${request.id} introuvable : elle a peut-être été supprimée.`,
     );
   }
-  res.json({ code, requests: await requests.listRequests() });
+  const liste = await requests.listRequests();
+  res.json({ code, requests: liste });
+
+  // Après la réponse, et seulement pour une création : une demande qui dort
+  // sur l'écran d'accueil n'alerte personne, il faut être connecté pour la
+  // voir. L'envoi ne doit pas retarder l'enregistrement, ni le faire échouer.
+  if (!request.id) {
+    const creee = liste.find((item) => item.id === code);
+    const lignes = creee?.lines?.length ?? 0;
+    notifications
+      .notifier({
+        titre: "Nouvelle demande d’achat",
+        corps: `${creee?.requester || "Un demandeur"} — ${lignes} produit${
+          lignes > 1 ? "s" : ""
+        } à commander (${code})`,
+        lien: "/",
+        sauf: req.session.user.id,
+      })
+      .catch((error) => console.error("[push] notification impossible :", error?.message));
+  }
 });
 
 export const remove = asyncHandler(async (req, res) => {
