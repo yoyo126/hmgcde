@@ -65,6 +65,12 @@ step "Unité de vente et conditionnement"
 node --experimental-strip-types --test frontend/tests/conditionnement.test.ts \
   || fail "conversion des conditionnements"
 
+step "Comparatif des tarifs fournisseurs"
+# Le « meilleur prix » comparait des prix bruts : il désignait le mauvais
+# fournisseur dès que les conditionnements différaient.
+node --experimental-strip-types --test frontend/tests/comparatif.test.ts \
+  || fail "comparatif des tarifs"
+
 step "Références fournisseur par tableur"
 # Cet aller-retour écrit des prix et des références au catalogue.
 node --experimental-strip-types --test frontend/tests/references-csv.test.ts \

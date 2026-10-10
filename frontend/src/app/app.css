@@ -4518,3 +4518,17 @@ tr.ligne-depliee .order-detail-panel {
 .ecran-sans-prix .order-total-card {
   display: none;
 }
+
+/* --- 38. Prix unitaire dans le comparatif ------------------------------ */
+/* Le chiffre qui se compare d'un fournisseur à l'autre : chacun a son
+   conditionnement, seul l'euro du mètre ou de la pièce est commun. */
+.prix-unitaire {
+  display: block;
+  color: var(--bleu);
+  font-family: var(--chiffres);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.price-cell.best-price .prix-unitaire {
+  color: var(--vert);
+}

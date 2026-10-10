@@ -24,6 +24,7 @@ import {
 import { api, ApiError } from "@/lib/api";
 import { fusionnerPrix } from "@/lib/catalog-prices";
 import { prixAuMetreDeLOffre } from "@/lib/conditionnement";
+import { comparer, libelleUnitaire } from "@/lib/comparatif";
 import { IS_DEMO } from "@/lib/demo-mode";
 import { ROLE_DESCRIPTIONS as ROLE_HELP } from "@/lib/permissions";
 import { usePermissions } from "./permissions-context";
@@ -1209,12 +1210,24 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                           computed: computed > 0,
                         };
                       });
-                      const knownPrices = supplierPrices
-                        .map((item) => item.price)
-                        .filter((price) => price > 0);
-                      const bestPrice = knownPrices.length
-                        ? Math.min(...knownPrices)
-                        : 0;
+                      // Le meilleur prix se juge à l'unité, jamais au
+                      // conditionnement : une couronne de 50 m à 45 € paraît
+                      // moins chère qu'une de 100 m à 81 €, alors qu'elle coûte
+                      // 0,90 €/m contre 0,81. Le calcul vit dans
+                      // @/lib/comparatif et est vérifié automatiquement.
+                      const comparatif = comparer(
+                        supplierPrices.map((item) => ({
+                          fournisseur: item.supplier,
+                          prix: item.price,
+                          conditionnement: item.offer?.packaging || "",
+                        })),
+                      );
+                      const unitaires = new Map(
+                        comparatif.offres.map((offre) => [offre.fournisseur, offre]),
+                      );
+                      const offreMeilleure = comparatif.meilleur
+                        ? unitaires.get(comparatif.meilleur)
+                        : undefined;
                       return (
                         <Fragment key={`${p.id}-${priceRevision}`}>
                           <tr
@@ -1331,11 +1344,20 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                 onClick={() => togglePrices(p.id)}
                               >
                                 <span>
-                                  {can.canSeePrices && bestPrice
-                                    ? `Meilleur prix ${money(bestPrice)}`
-                                    : "Prix à saisir"}
+                                  {!can.canSeePrices
+                                    ? "Fournisseurs"
+                                    : offreMeilleure && offreMeilleure.unitaire !== null
+                                      ? `${comparatif.meilleur} · ${libelleUnitaire(
+                                          offreMeilleure.unitaire,
+                                          offreMeilleure.unite!,
+                                        )}`
+                                      : comparatif.chiffrees
+                                        ? "Comparaison à l’unité impossible"
+                                        : "Prix à saisir"}
                                   <small>
-                                    {supplierPrices.length} fournisseurs
+                                    {comparatif.obstacle
+                                      ? comparatif.obstacle
+                                      : `${comparatif.chiffrees} prix sur ${supplierPrices.length} fournisseurs`}
                                   </small>
                                 </span>
                                 <ChevronDown size={18} />
@@ -1380,7 +1402,7 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                       ? "price-cell unavailable"
                                       : !editingPrices &&
                                           price &&
-                                          price === bestPrice
+                                          supplier === comparatif.meilleur
                                         ? "price-cell best-price"
                                         : editingPrices
                                           ? "price-cell editing"
@@ -1429,6 +1451,17 @@ export function ProductsScreen({ onBack }: { onBack?: () => void } = {}) {
                                       {offer?.reference || "Tarif importé"}
                                     </small>
                                   )}
+                                  {/* Le chiffre qui se compare d'un
+                                      fournisseur à l'autre, quel que soit le
+                                      conditionnement de chacun. */}
+                                  {(() => {
+                                    const u = unitaires.get(supplier);
+                                    return u && u.unitaire !== null && u.unite ? (
+                                      <small className="prix-unitaire">
+                                        {libelleUnitaire(u.unitaire, u.unite)}
+                                      </small>
+                                    ) : null;
+                                  })()}
                                   {offer && p.subfamily === "Câbles" &&
                                     (editingPrices ? (
                                       <label className="meter-price-input">
