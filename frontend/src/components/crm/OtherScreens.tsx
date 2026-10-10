@@ -1826,8 +1826,10 @@ export function UsersScreen({ onBack }: { onBack?: () => void } = {}) {
           {adding && (
             <div className="user-draft">
               <input
-                type="email"
-                placeholder="prenom@hmgroup.fr"
+                type="text"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder="Identifiant : admin, ou prenom@hmgroup.fr"
                 value={draft.email}
                 onChange={(event) => setDraft({ ...draft, email: event.target.value })}
               />

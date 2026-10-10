@@ -317,6 +317,32 @@ const run = async () => {
   check("compte demandeur créé", created.status === 200 || created.status === 201,
     JSON.stringify(created.payload));
 
+  // L'identifiant n'a pas à être une adresse : l'application n'écrit jamais
+  // aux comptes, et exiger une adresse obligeait à inventer des boîtes qui
+  // n'existent pas, comme « admin@hmgroup.fr ».
+  const nomSimple = await call("POST", "/users", {
+    email: "magasinier",
+    name: "Magasinier",
+    password: "magasin-hm-2026",
+    role: "lecteur",
+  });
+  check(
+    "un identifiant simple est accepté",
+    nomSimple.status === 200 || nomSimple.status === 201,
+    JSON.stringify(nomSimple.payload),
+  );
+  const tropCourt = await call("POST", "/users", {
+    email: "ab",
+    name: "Trop court",
+    password: "motdepasse-hm-2026",
+    role: "lecteur",
+  });
+  check(
+    "un identifiant de moins de trois caractères est refusé",
+    tropCourt.status === 400,
+    `statut ${tropCourt.status}`,
+  );
+
   await call("POST", "/auth/logout");
   const asRequester = await call("POST", "/auth/login", {
     email: "demandeur@hmgroup.fr",

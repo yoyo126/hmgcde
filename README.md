@@ -137,9 +137,11 @@ une mise à jour ne peut pas en inventer une.
 | `lecteur` | Consultation seule |
 
 L'authentification est une session Express classique stockée en MySQL, avec
-mots de passe hachés en bcrypt. **L'e-mail est la clé unique des comptes** :
-c'est le pivot prévu pour partager un jour l'authentification avec le CRM
-HM Group.
+mots de passe hachés en bcrypt. **L'identifiant est la clé unique des
+comptes** : une adresse e-mail, ou un nom simple comme « admin ».
+L'application n'écrit jamais aux comptes — exiger une adresse obligeait à
+inventer des boîtes qui n'existent pas. C'est le pivot prévu pour partager un
+jour l'authentification avec le CRM HM Group.
 
 Créer ou réinitialiser un compte en ligne de commande :
 

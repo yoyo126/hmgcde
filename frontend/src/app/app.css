@@ -675,7 +675,6 @@ textarea,
 select,
 .search-box,
 .comptoir-recherche,
-.login-field,
 .family-select,
 .product-match-select,
 .supplier-field select,
@@ -2024,10 +2023,25 @@ tr.comptoir-composition td span {
   max-width: 150px;
   margin: 0 auto 18px;
 }
+/* `.login-field` est le <label>, pas le champ : il figurait dans la liste des
+   contrôles encadrés et héritait d'une hauteur de 40 px, si bien que
+   l'intitulé et la saisie se chevauchaient à l'intérieur. Le champ qu'il
+   contient est déjà habillé par `input[type=...]`. */
 .login-field {
   display: block;
   width: 100%;
   margin-bottom: 12px;
+}
+.login-field span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--encre-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+.login-field input {
+  display: block;
+  width: 100%;
 }
 .login-intro {
   margin-bottom: 16px;

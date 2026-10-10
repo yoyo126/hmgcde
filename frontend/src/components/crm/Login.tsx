@@ -41,14 +41,18 @@ export function Login({ onSignedIn }: { onSignedIn: (user: SessionUser) => void 
         </p>
 
         <label className="login-field">
-          <span>Adresse e-mail</span>
+          <span>Identifiant</span>
+          {/* Un nom simple suffit : l'application n'écrit jamais aux comptes,
+              l'identifiant ne sert qu'à reconnaître la personne. */}
           <input
-            type="email"
+            type="text"
             autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="prenom@hmgroup.fr"
+            placeholder="admin, ou prenom@hmgroup.fr"
           />
         </label>
 
