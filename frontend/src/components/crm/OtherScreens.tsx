@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import {
   ArrowLeft,
+  ArrowLeftRight,
   Box,
   ChevronDown,
   ChevronRight,
@@ -2174,6 +2175,11 @@ export function SettingsScreen({
           <span><Box size={22} /></span>
           <strong>Produits et ensembles</strong>
           <small>Produits, coffrets, cartons, kits et sous-produits</small>
+        </button>
+        <button onClick={() => onNavigate("comparatif")}>
+          <span><ArrowLeftRight size={22} /></span>
+          <strong>Comparatif fournisseurs</strong>
+          <small>Qui est le moins cher, à l’unité</small>
         </button>
         <button onClick={() => onNavigate("tariff-imports")}>
           <span><FileUp size={22} /></span>

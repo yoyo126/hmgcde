@@ -9,6 +9,7 @@ import {
   SettingsScreen,
   UsersScreen,
 } from "./OtherScreens";
+import { Comparatif } from "./Comparatif";
 import { PurchaseRequests } from "./PurchaseRequests";
 import { Ventilation } from "./Ventilation";
 import { TariffImports } from "./TariffImports";
@@ -57,6 +58,7 @@ export function CRMApp({
     if (id === "settings" || id === "tariff-imports") return can.canSeeSettings;
     if (id === "new-order") return can.canManagePurchasing;
     if (id === "ventilation") return can.canSeePrices;
+    if (id === "comparatif") return can.canSeePrices;
     if (id === "purchase-requests") return can.canRequest || can.canManagePurchasing;
     return true;
   };
@@ -109,6 +111,8 @@ export function CRMApp({
         onEditOrder={editOrder}
         initialOpenOrder={orderToOpen}
       />
+    ) : screen === "comparatif" ? (
+      <Comparatif onBack={() => navigate("settings")} />
     ) : screen === "products" ? (
       <ProductsScreen onBack={() => navigate("settings")} />
     ) : screen === "tariff-imports" ? (

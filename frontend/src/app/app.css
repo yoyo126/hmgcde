@@ -4532,3 +4532,36 @@ tr.ligne-depliee .order-detail-panel {
 .price-cell.best-price .prix-unitaire {
   color: var(--vert);
 }
+
+/* --- 39. Écran comparatif ---------------------------------------------- */
+/* Le prix unitaire en premier, parce que c'est lui qu'on compare ; le prix
+   et le conditionnement en dessous, parce que c'est eux qu'on commande. */
+.comparatif-unitaire {
+  display: block;
+  font-family: var(--chiffres);
+  font-size: 15px;
+  white-space: nowrap;
+}
+.comparatif-unitaire.sans-unite {
+  color: var(--ambre);
+  font-family: var(--police);
+  font-size: 13px;
+  font-weight: 600;
+}
+.comptoir-table td.chiffre small {
+  display: block;
+  margin-top: 2px;
+  color: var(--encre-3);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.comparatif-meilleur {
+  background: var(--vert-pale);
+}
+.comparatif-meilleur .comparatif-unitaire {
+  color: var(--vert);
+  font-weight: 700;
+}
+.comparatif-vide {
+  color: var(--encre-3);
+}

@@ -3,6 +3,7 @@ import {
   Building2,
   LogOut,
   Box,
+  ArrowLeftRight,
   ClipboardList,
   ClipboardPlus,
   FileUp,
@@ -48,6 +49,7 @@ export const hiddenNavItems = [
 ] as const;
 export const settingsItems = [
   { id: "products", label: "Produits", icon: Box },
+  { id: "comparatif", label: "Comparatif fournisseurs", icon: ArrowLeftRight },
   { id: "tariff-imports", label: "Import tarifs", icon: FileUp },
   { id: "users", label: "Utilisateurs", icon: Users },
 ] as const;
