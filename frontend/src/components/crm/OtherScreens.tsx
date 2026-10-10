@@ -137,17 +137,24 @@ export function OrdersScreen({
     window.setTimeout(cleanup, 60000);
   };
   return (
-    <div className="screen">
+    // Sans droit aux prix, l'écran retire les colonnes de montants au lieu
+    // d'afficher des zéros : le serveur ne les envoie pas, et « 0,00 € »
+    // laisserait croire à une commande sans valeur.
+    <div className={"screen" + (can.canSeePrices ? "" : " ecran-sans-prix")}>
       <div className="page-title standard">
         <div>
           <span className="eyebrow">SUIVI</span>
           <h1>Commandes</h1>
           <p>Consultez les commandes, leur contenu et les e-mails envoyés.</p>
         </div>
-        <button className="primary-btn" onClick={() => onNavigate("new-order")}>
-          <Plus size={18} />
-          Nouvelle commande
-        </button>
+        {/* Proposer une action que le serveur refusera n'aide personne : la
+            création d'une commande est réservée aux profils achats. */}
+        {can.canManagePurchasing && (
+          <button className="primary-btn" onClick={() => onNavigate("new-order")}>
+            <Plus size={18} />
+            Nouvelle commande
+          </button>
+        )}
       </div>
       <section className="panel table-panel">
         <div className="table-toolbar">
@@ -232,9 +239,9 @@ export function OrdersScreen({
               {totaux.nombre} commande{totaux.nombre > 1 ? "s" : ""}
               {filtreActif ? " (filtrées)" : ""}
             </span>
-            <strong>{money(totaux.montant)}</strong>
+            {can.canSeePrices && <strong>{money(totaux.montant)}</strong>}
           </div>
-          {totaux.parFournisseur.length > 1 && (
+          {can.canSeePrices && totaux.parFournisseur.length > 1 && (
             <div className="total-fournisseurs">
               {totaux.parFournisseur.map((ligne) => (
                 <span key={ligne.fournisseur}>
@@ -259,7 +266,7 @@ export function OrdersScreen({
                 <th>Fournisseur</th>
                 <th>Date</th>
                 <th className="chiffre">Produits</th>
-                <th className="chiffre">Total HT</th>
+                {can.canSeePrices && <th className="chiffre">Total HT</th>}
                 <th>Statut</th>
                 <th />
               </tr>
@@ -290,9 +297,11 @@ export function OrdersScreen({
                 <td>{o.supplier}</td>
                 <td className="order-date">{o.date}</td>
                 <td className="chiffre">{o.lines.length}</td>
-                <td className="chiffre">
-                  <strong className="order-total">{money(o.total)}</strong>
-                </td>
+                {can.canSeePrices && (
+                  <td className="chiffre">
+                    <strong className="order-total">{money(o.total)}</strong>
+                  </td>
+                )}
                 <td>
                   <i
                     className={
@@ -312,7 +321,7 @@ export function OrdersScreen({
               </tr>
               {openOrder === o.id && (
                 <tr className="ligne-depliee">
-                  <td colSpan={7}>
+                  <td colSpan={can.canSeePrices ? 7 : 6}>
                 <div className="order-detail-panel">
                   {/* En-tête du document imprimé : c'est ce qui part au
                       fournisseur, il doit porter notre identité. */}
@@ -342,17 +351,25 @@ export function OrdersScreen({
                       >
                         {o.status}
                       </i>
-                      <button
-                        className="secondary-btn"
-                        onClick={() => printOrder(false)}
-                      >
-                        <Printer size={16} /> PDF avec prix
-                      </button>
+                      {/* Le bon sans prix est imprimable par tous, y compris
+                          le demandeur : c'est le document qui part au
+                          fournisseur ou sert à préparer la livraison. Celui
+                          avec les prix n'a de sens que pour qui les voit —
+                          sinon il imprimerait une colonne de zéros. */}
+                      {can.canSeePrices && (
+                        <button
+                          className="secondary-btn"
+                          onClick={() => printOrder(false)}
+                        >
+                          <Printer size={16} /> PDF avec prix
+                        </button>
+                      )}
                       <button
                         className="secondary-btn"
                         onClick={() => printOrder(true)}
                       >
-                        <Printer size={16} /> PDF sans prix
+                        <Printer size={16} />
+                        {can.canSeePrices ? "PDF sans prix" : "Imprimer le bon"}
                       </button>
                       {/* Une erreur de saisie était définitive : la commande
                           ne se reprenait ni ne s'effaçait depuis l'écran. */}
@@ -373,10 +390,14 @@ export function OrdersScreen({
                           <Trash2 size={16} /> Supprimer
                         </button>
                       )}
-                      <button className="primary-btn" onClick={() => openMail(o)}>
-                        <Mail size={16} />
-                        {o.email ? "Recopier et rouvrir Mail" : "Copier le tableau et ouvrir Mail"}
-                      </button>
+                      {/* L'envoi enregistre la commande : le serveur le
+                          refuserait à qui n'a pas les droits d'écriture. */}
+                      {can.canManagePurchasing && (
+                        <button className="primary-btn" onClick={() => openMail(o)}>
+                          <Mail size={16} />
+                          {o.email ? "Recopier et rouvrir Mail" : "Copier le tableau et ouvrir Mail"}
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="order-lines-view">

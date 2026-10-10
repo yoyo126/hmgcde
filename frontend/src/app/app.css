@@ -4499,3 +4499,17 @@ tr.ligne-depliee .order-detail-panel {
     transform: none;
   }
 }
+
+/* --- 37. Commandes vues sans droit aux prix ---------------------------- */
+/* Le serveur n'envoie aucun montant au profil « demandeur ». Les afficher
+   quand même donnerait « 0,00 € » partout, ce qui se lit comme une commande
+   sans valeur plutôt que comme une information qu'on n'a pas. Même mécanique
+   qu'à l'impression sans prix : la grille passe à trois colonnes. */
+.ecran-sans-prix .order-lines-head,
+.ecran-sans-prix .order-line-view {
+  grid-template-columns: minmax(260px, 2fr) 1.2fr 0.65fr;
+}
+.ecran-sans-prix .price-column,
+.ecran-sans-prix .order-total-card {
+  display: none;
+}
