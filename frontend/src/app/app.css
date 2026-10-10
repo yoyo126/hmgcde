@@ -297,8 +297,13 @@ input[type="number"]::-webkit-inner-spin-button {
    la « double ligne ». La cloche était redondante avec le compteur du
    menu, et la déconnexion est descendue auprès du compte. Il ne reste
    sur téléphone qu'un bouton pour ouvrir la colonne. */
+/* Trois éléments réservés au petit écran, masqués ici et réactivés par le
+   seuil téléphone. La barre du bas manquait à cette liste : faute de règle,
+   elle ne se plaçait pas, elle se posait simplement en fin de page — un
+   bandeau de boutons sous le contenu, et une fenêtre à faire défiler. */
 .menu-btn,
-.close-sidebar {
+.close-sidebar,
+.mobile-nav {
   display: none;
 }
 .sidebar-signout {
