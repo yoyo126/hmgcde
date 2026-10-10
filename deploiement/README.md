@@ -113,18 +113,17 @@ sur cette machine.
 ## 8. Sauvegarde quotidienne
 
 ```bash
-cp /home/achats/app/deploiement/sauvegarde.sh /home/achats/sauvegarde.sh
-chmod +x /home/achats/sauvegarde.sh
 printf '[mysqldump]\nuser=achats_hmgroup\npassword=…\n' > /home/achats/.my.cnf
 chmod 600 /home/achats/.my.cnf
-/home/achats/sauvegarde.sh   # un essai, pour vérifier
-crontab -e                   # sous l'utilisateur achats
+/home/achats/app/deploiement/sauvegarde.sh   # un essai, pour vérifier
+crontab -e                                   # sous l'utilisateur achats
 ```
 
-La ligne de cron :
+La ligne de cron — elle appelle le script **dans le dépôt**, pour qu'une
+correction arrive par le déploiement et non à la main :
 
 ```
-15 3 * * * /home/achats/sauvegarde.sh >> /home/achats/logs/sauvegarde.log 2>&1
+15 3 * * * /home/achats/app/deploiement/sauvegarde.sh >> /home/achats/logs/sauvegarde.log 2>&1
 ```
 
 Dump de `achats_hmgroup` seule, compressé, 14 jours de rétention, et le script

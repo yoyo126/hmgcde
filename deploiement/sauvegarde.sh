@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 #
 # Sauvegarde quotidienne de la base de l'outil Achats, et d'elle seule.
-# À installer dans /home/achats/sauvegarde.sh, lancé par le cron de
-# l'utilisateur « achats ».
+#
+# Lancé par le cron de l'utilisateur « achats », depuis le dépôt lui-même et
+# non depuis une copie : ainsi une correction apportée ici arrive sur le
+# serveur au prochain déploiement, au lieu de dormir dans un fichier oublié.
 #
 # Les identifiants viennent de /home/achats/.my.cnf (chmod 600) :
 #
@@ -23,9 +25,14 @@ mkdir -p "$DOSSIER"
 fichier="$DOSSIER/$BASE-$(date +%Y-%m-%d_%H%M).sql.gz"
 
 # --single-transaction : pas de verrou sur les tables, le service continue de
-# répondre pendant le dump.
+#   répondre pendant le dump.
+# --no-tablespaces : sans cette option, mysqldump réclame le privilège global
+#   PROCESS, que ce compte n'a délibérément pas — c'est ce qui l'empêche de
+#   voir les autres bases du serveur. Le dump aboutissait quand même, mais en
+#   affichant une erreur chaque nuit : une alerte qui crie pour rien est une
+#   alerte qu'on finit par ignorer, et qui masquera la vraie le jour venu.
 mysqldump --defaults-extra-file="$IDENTIFIANTS" \
-  --single-transaction --quick --routines --events \
+  --single-transaction --quick --routines --events --no-tablespaces \
   "$BASE" | gzip -9 > "$fichier"
 
 # Un dump vide est un échec silencieux : on le refuse plutôt que de le garder.
