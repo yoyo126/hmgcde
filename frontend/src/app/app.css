@@ -2192,6 +2192,9 @@ tr.comptoir-composition td span {
     flex: 1;
     min-height: 0;
   }
+  /* Le bouton reste en place pendant que le bandeau sombre défile : en
+     blanc translucide sur fond blanc, il disparaissait dès la deuxième
+     ligne de la liste. Il porte donc sa propre couleur. */
   .menu-btn {
     position: fixed;
     top: 8px;
@@ -2201,9 +2204,9 @@ tr.comptoir-composition td span {
     place-items: center;
     width: 42px;
     height: 42px;
-    border: 0;
+    border: 1px solid rgba(255, 255, 255, 0.22);
     border-radius: 4px;
-    background: rgba(255, 255, 255, 0.12);
+    background: var(--marine);
     color: #dbe6f6;
   }
   .page-title,

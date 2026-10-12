@@ -583,6 +583,17 @@ export function PurchaseRequests({
             </Fragment>
             );
           })}
+              {/* Sans cela, l'écran s'ouvrait sur un titre puis sur rien :
+                  on ne savait pas s'il n'y avait aucune demande ou si la
+                  liste n'avait pas fini de charger. */}
+              {!requests.length && (
+                <tr>
+                  <td colSpan={6} className="comptoir-vide">
+                    Aucune demande pour l’instant. Elles arrivent ici dès
+                    qu’un dépôt en envoie une.
+                  </td>
+                </tr>
+              )}
               </tbody>
             </table>
           </div>
