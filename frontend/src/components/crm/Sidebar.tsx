@@ -173,7 +173,7 @@ export function MobileNav({
             active === id ||
             (id === "settings" &&
               settingsItems.some((item) => item.id === active))
-              ? "active"
+              ? "current"
               : ""
           }
           onClick={() => onChange(id)}

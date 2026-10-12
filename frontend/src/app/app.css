@@ -530,7 +530,9 @@ main {
 .panel-head h2,
 .settings-form-head h2,
 .wizard-heading h2,
-.import-panel-title h2 {
+.import-panel-title h2,
+.request-intro h2,
+.request-processing-head h3 {
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -2169,8 +2171,26 @@ tr.comptoir-composition td span {
     opacity: 1;
     pointer-events: auto;
   }
+  /* Le cadre tient dans la fenêtre au lieu de la dépasser. « 100vh »
+     mesure la fenêtre barres d'outils rétractées : sur iPhone la page était
+     toujours plus haute que la partie visible, et la barre du bas, collée à
+     ce fond-là, se retrouvait derrière la barre d'adresse de Safari — il
+     fallait faire défiler pour l'atteindre. Le cadre prend désormais la
+     hauteur réellement visible, ne défile plus lui-même, et confie le
+     défilement au contenu. La barre du bas redevient un élément ordinaire
+     posé en fin de colonne : elle ne peut plus passer sous quoi que ce
+     soit, et la fenêtre ne bouge plus quand on fait défiler. */
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
   .main-shell {
     margin-left: 0;
+    flex: 1;
+    min-height: 0;
   }
   .menu-btn {
     position: fixed;
@@ -2199,13 +2219,13 @@ tr.comptoir-composition td span {
     margin-right: 14px;
   }
   main {
-    padding-bottom: 76px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 0;
   }
   .mobile-nav {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: static;
     z-index: 30;
     display: grid;
     grid-auto-flow: column;
@@ -2369,6 +2389,15 @@ tr.comptoir-composition td span {
   }
   .main-shell {
     margin-left: 0;
+  }
+  /* Sans cela, le cadre à hauteur de fenêtre ne sortirait qu'une page. */
+  .app-shell {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+  main {
+    overflow: visible;
   }
   main,
   .screen,
@@ -2885,7 +2914,9 @@ button.supplier-toggle {
      sur deux rangs. Le sous-titre saute, les étapes défilent sur un
      seul rang, le brouillon n'a rien d'utile à dire ici. */
   .page-title p,
-  .welcome-row p {
+  .welcome-row p,
+  .request-intro p,
+  .request-processing-head p {
     display: none;
   }
   .page-title .draft-tag,
@@ -3659,7 +3690,9 @@ tr.ligne-depliee .order-detail-panel {
 .settings-form-head h2,
 .import-panel-title h2,
 .wizard-heading h2,
-.rights-tete h2 {
+.rights-tete h2,
+.request-intro h2,
+.request-processing-head h3 {
   font-size: 20px;
 }
 .settings-form-card p,
@@ -4655,28 +4688,25 @@ tr.ligne-depliee .order-detail-panel {
    pixels. Mais le bouton d'envoi vivait dedans — on pouvait tout
    sélectionner sans jamais pouvoir valider. Cette barre le rend à l'écran.
 
-   Elle descend jusqu'au bas de la fenêtre et réserve en bas la hauteur de la
-   barre de navigation : son contenu reste donc au-dessus d'elle, sans
-   dépendre d'une hauteur exacte au pixel près. */
-:root {
-  --barre-mobile: 60px;
-}
+   Elle est collante, pas fixe : elle se pose au bas de la zone qui défile,
+   donc juste au-dessus de la barre de navigation, sans avoir à en deviner
+   la hauteur. Arrivé en fin de liste, elle reprend sa place naturelle. */
 .demande-pied {
   display: none;
 }
 @media (max-width: 760px) {
   .demande-pied {
-    position: fixed;
-    left: 0;
-    right: 0;
+    position: sticky;
     bottom: 0;
-    z-index: 29;
+    z-index: 19;
+    /* Les blocs de l'écran sont rentrés de 14 px ; un pied de page, non. */
+    margin-left: 0;
+    margin-right: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px var(--gouttiere)
-      calc(10px + var(--barre-mobile) + env(safe-area-inset-bottom, 0px));
+    padding: 10px var(--gouttiere);
     border-top: 1px solid var(--filet);
     background: #fff;
     box-shadow: 0 -8px 20px rgba(16, 21, 31, 0.12);
@@ -4694,9 +4724,5 @@ tr.ligne-depliee .order-detail-panel {
   .demande-pied .primary-btn {
     flex: 1 1 auto;
     max-width: 64%;
-  }
-  /* Sans cela, les dernières lignes du catalogue passent sous la barre. */
-  .comptoir-avec-panier {
-    padding-bottom: calc(68px + var(--barre-mobile) + env(safe-area-inset-bottom, 0px));
   }
 }

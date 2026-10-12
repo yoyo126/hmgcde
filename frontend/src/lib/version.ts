@@ -1,6 +1,19 @@
-export const CRM_VERSION = "3.3.0";
+export const CRM_VERSION = "3.4.0";
 
 export const CRM_VERSION_HISTORY = [
+  {
+    version: "3.4.0",
+    date: "12 octobre 2026",
+    title: "Comparer, être prévenu, travailler depuis son téléphone",
+    changes: [
+      "Un écran de comparatif met les fournisseurs à la même unité avant de les départager",
+      "Une notification arrive sur l’ordinateur ou le téléphone à chaque nouvelle demande",
+      "Sur téléphone, une demande s’envoie depuis une barre toujours visible",
+      "Sur téléphone, le bas de l’écran ne se cache plus derrière la barre d’adresse",
+      "Sur téléphone, l’onglet ouvert se distingue des autres",
+      "Un import de tarif chiffre aussi le contenu d’un coffret",
+    ],
+  },
   {
     version: "3.3.0",
     date: "10 octobre 2026",
