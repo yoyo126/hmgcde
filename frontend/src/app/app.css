@@ -2187,6 +2187,23 @@ tr.comptoir-composition td span {
     height: 100dvh;
     overflow: hidden;
   }
+  /* Le bandeau d'alerte est posé au-dessus du cadre, hors de lui : sans
+     cela la page redeviendrait plus haute que la fenêtre dès qu'une
+     alerte s'affiche, et la barre du bas repasserait sous la barre
+     d'adresse. Le cadre prend donc la place qui reste. L'écran de
+     connexion, lui, garde son défilement : il n'a pas de cadre. */
+  #root:has(> .app-shell) {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  #root:has(> .app-shell) > .app-shell {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+  }
   .main-shell {
     margin-left: 0;
     flex: 1;
@@ -2394,7 +2411,9 @@ tr.comptoir-composition td span {
     margin-left: 0;
   }
   /* Sans cela, le cadre à hauteur de fenêtre ne sortirait qu'une page. */
-  .app-shell {
+  .app-shell,
+  #root:has(> .app-shell),
+  #root:has(> .app-shell) > .app-shell {
     display: block;
     height: auto;
     overflow: visible;
