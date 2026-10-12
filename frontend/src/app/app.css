@@ -4649,3 +4649,54 @@ tr.ligne-depliee .order-detail-panel {
   color: var(--encre-3);
   font-size: 14px;
 }
+
+/* --- 41. Valider une demande depuis un téléphone ----------------------- */
+/* Le panier est masqué sous 760 px : vide, il occupait les 400 premiers
+   pixels. Mais le bouton d'envoi vivait dedans — on pouvait tout
+   sélectionner sans jamais pouvoir valider. Cette barre le rend à l'écran.
+
+   Elle descend jusqu'au bas de la fenêtre et réserve en bas la hauteur de la
+   barre de navigation : son contenu reste donc au-dessus d'elle, sans
+   dépendre d'une hauteur exacte au pixel près. */
+:root {
+  --barre-mobile: 60px;
+}
+.demande-pied {
+  display: none;
+}
+@media (max-width: 760px) {
+  .demande-pied {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 29;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px var(--gouttiere)
+      calc(10px + var(--barre-mobile) + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--filet);
+    background: #fff;
+    box-shadow: 0 -8px 20px rgba(16, 21, 31, 0.12);
+  }
+  .demande-pied span {
+    color: var(--encre-2);
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .demande-pied strong {
+    font-family: var(--chiffres);
+    font-size: 17px;
+    color: var(--encre);
+  }
+  .demande-pied .primary-btn {
+    flex: 1 1 auto;
+    max-width: 64%;
+  }
+  /* Sans cela, les dernières lignes du catalogue passent sous la barre. */
+  .comptoir-avec-panier {
+    padding-bottom: calc(68px + var(--barre-mobile) + env(safe-area-inset-bottom, 0px));
+  }
+}

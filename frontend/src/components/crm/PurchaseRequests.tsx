@@ -794,6 +794,23 @@ export function PurchaseRequests({
           </button>
         </aside>
       </div>
+      {/* Sur téléphone le panier est masqué — vide, il occupait les 400
+          premiers pixels de l'écran. Mais le bouton de validation vivait
+          dedans : on pouvait tout sélectionner sans jamais pouvoir envoyer.
+          Cette barre le rend à l'écran, comme le pied de page le fait déjà
+          pour l'assistant de commande. */}
+      <div className="demande-pied">
+        <span>
+          <strong>{selected.length}</strong> produit{selected.length > 1 ? "s" : ""}
+        </span>
+        <button
+          className="primary-btn"
+          disabled={!selected.length}
+          onClick={submitRequest}
+        >
+          <ClipboardPlus size={16} /> Envoyer la demande
+        </button>
+      </div>
     </div>
   );
 }
