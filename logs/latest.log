@@ -1,21 +1,21 @@
-Run ................ 38242727369
+Run ................ 44284810754
 Branche ............ refactor/node-mysql
-Commit ............. 50702f6b21d0498e375960cdf5ccf697b28fb6ec
+Commit ............. 1cf74cc5206bc77c74dec1beb119a08e1efdbef5
 Résultat ........... success
-Date ............... 2026-10-12 11:28 UTC
+Date ............... 2026-11-18 10:23 UTC
 ──────────────────────────────────────────────────────────
 
 ══════════════════════════════════════════════════════════════
 ▶ Versions
 ══════════════════════════════════════════════════════════════
-v22.23.3
+v22.23.4
 10.9.9
 
 ══════════════════════════════════════════════════════════════
 ▶ Installation des dépendances du backend
 ══════════════════════════════════════════════════════════════
 
-added 110 packages in 3s
+added 110 packages in 4s
 
 ══════════════════════════════════════════════════════════════
 ▶ Installation des dépendances de l'interface
@@ -29,7 +29,7 @@ npm warn deprecated gauge@3.0.2: This package is no longer supported.
 npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
 
-added 151 packages in 17s
+added 151 packages in 18s
 
 ══════════════════════════════════════════════════════════════
 ▶ Contrôle des types TypeScript
@@ -46,37 +46,37 @@ TAP version 13
 # Subtest: une société sans équipe n'est jamais servie
 ok 1 - une société sans équipe n'est jamais servie
   ---
-  duration_ms: 2.209546
+  duration_ms: 3.011486
   type: 'test'
   ...
 # Subtest: le total réparti égale toujours la quantité commandée
 ok 2 - le total réparti égale toujours la quantité commandée
   ---
-  duration_ms: 3.432322
+  duration_ms: 4.445422
   type: 'test'
   ...
 # Subtest: aucune part négative
 ok 3 - aucune part négative
   ---
-  duration_ms: 0.307174
+  duration_ms: 0.441587
   type: 'test'
   ...
 # Subtest: la répartition suit le nombre d'équipes
 ok 4 - la répartition suit le nombre d'équipes
   ---
-  duration_ms: 0.626506
+  duration_ms: 0.81448
   type: 'test'
   ...
 # Subtest: sans aucune équipe configurée, rien n'est réparti d'office
 ok 5 - sans aucune équipe configurée, rien n'est réparti d'office
   ---
-  duration_ms: 0.148334
+  duration_ms: 0.189707
   type: 'test'
   ...
 # Subtest: une quantité nulle ne distribue rien
 ok 6 - une quantité nulle ne distribue rien
   ---
-  duration_ms: 0.099521
+  duration_ms: 0.110998
   type: 'test'
   ...
 1..6
@@ -87,7 +87,7 @@ ok 6 - une quantité nulle ne distribue rien
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 85.558755
+# duration_ms 122.362654
 
 ══════════════════════════════════════════════════════════════
 ▶ Conservation des prix saisis
@@ -96,37 +96,37 @@ TAP version 13
 # Subtest: le prix saisi se retrouve sur l'offre du bon fournisseur
 ok 1 - le prix saisi se retrouve sur l'offre du bon fournisseur
   ---
-  duration_ms: 0.874921
+  duration_ms: 1.167223
   type: 'test'
   ...
 # Subtest: les autres fournisseurs gardent leur prix
 ok 2 - les autres fournisseurs gardent leur prix
   ---
-  duration_ms: 0.148945
+  duration_ms: 0.24448
   type: 'test'
   ...
 # Subtest: le prix d'un élément de coffret est reporté
 ok 3 - le prix d'un élément de coffret est reporté
   ---
-  duration_ms: 0.180833
+  duration_ms: 0.240042
   type: 'test'
   ...
 # Subtest: un prix à zéro est une valeur, pas une absence
 ok 4 - un prix à zéro est une valeur, pas une absence
   ---
-  duration_ms: 0.139621
+  duration_ms: 0.180162
   type: 'test'
   ...
 # Subtest: sans saisie, le catalogue ressort intact
 ok 5 - sans saisie, le catalogue ressort intact
   ---
-  duration_ms: 0.104678
+  duration_ms: 0.129326
   type: 'test'
   ...
 # Subtest: un produit non concerné n'est pas modifié
 ok 6 - un produit non concerné n'est pas modifié
   ---
-  duration_ms: 0.153322
+  duration_ms: 0.212501
   type: 'test'
   ...
 1..6
@@ -137,7 +137,7 @@ ok 6 - un produit non concerné n'est pas modifié
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 82.538426
+# duration_ms 113.55715
 
 ══════════════════════════════════════════════════════════════
 ▶ Numérotation des commandes et des demandes
@@ -146,37 +146,37 @@ TAP version 13
 # Subtest: un numéro libre est attribué du premier coup
 ok 1 - un numéro libre est attribué du premier coup
   ---
-  duration_ms: 1.043446
+  duration_ms: 1.42363
   type: 'test'
   ...
 # Subtest: un numéro pris entre-temps passe au suivant au lieu d'écraser
 ok 2 - un numéro pris entre-temps passe au suivant au lieu d'écraser
   ---
-  duration_ms: 0.268936
+  duration_ms: 0.37794
   type: 'test'
   ...
 # Subtest: le numéro renvoyé est celui qui a vraiment été écrit
 ok 3 - le numéro renvoyé est celui qui a vraiment été écrit
   ---
-  duration_ms: 0.709351
+  duration_ms: 1.15908
   type: 'test'
   ...
 # Subtest: une panne remonte tout de suite, sans nouvelle tentative
 ok 4 - une panne remonte tout de suite, sans nouvelle tentative
   ---
-  duration_ms: 0.418371
+  duration_ms: 0.591663
   type: 'test'
   ...
 # Subtest: des collisions sans fin échouent franchement plutôt que de boucler
 ok 5 - des collisions sans fin échouent franchement plutôt que de boucler
   ---
-  duration_ms: 0.306553
+  duration_ms: 0.36452
   type: 'test'
   ...
 # Subtest: un doublon est reconnu par son nom comme par son numéro d'erreur
 ok 6 - un doublon est reconnu par son nom comme par son numéro d'erreur
   ---
-  duration_ms: 0.114984
+  duration_ms: 0.173121
   type: 'test'
   ...
 1..6
@@ -187,7 +187,7 @@ ok 6 - un doublon est reconnu par son nom comme par son numéro d'erreur
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 49.905277
+# duration_ms 69.241285
 
 ══════════════════════════════════════════════════════════════
 ▶ Filtres et totaux des commandes
@@ -196,43 +196,43 @@ TAP version 13
 # Subtest: relit une date écrite en toutes lettres, accents compris
 ok 1 - relit une date écrite en toutes lettres, accents compris
   ---
-  duration_ms: 1.665094
+  duration_ms: 2.246913
   type: 'test'
   ...
 # Subtest: la borne haute garde le jour entier
 ok 2 - la borne haute garde le jour entier
   ---
-  duration_ms: 0.329137
+  duration_ms: 0.518743
   type: 'test'
   ...
 # Subtest: filtre par fournisseur et par statut
 ok 3 - filtre par fournisseur et par statut
   ---
-  duration_ms: 0.199011
+  duration_ms: 0.334515
   type: 'test'
   ...
 # Subtest: une date illisible n'est jamais écartée par un filtre de dates
 ok 4 - une date illisible n'est jamais écartée par un filtre de dates
   ---
-  duration_ms: 0.217769
+  duration_ms: 0.379423
   type: 'test'
   ...
 # Subtest: les totaux tiennent compte du filtre en cours
 ok 5 - les totaux tiennent compte du filtre en cours
   ---
-  duration_ms: 0.338882
+  duration_ms: 0.411311
   type: 'test'
   ...
 # Subtest: le détail par fournisseur va du plus gros au plus petit
 ok 6 - le détail par fournisseur va du plus gros au plus petit
   ---
-  duration_ms: 0.184889
+  duration_ms: 0.213452
   type: 'test'
   ...
 # Subtest: un total manquant compte pour zéro, il ne casse pas la somme
 ok 7 - un total manquant compte pour zéro, il ne casse pas la somme
   ---
-  duration_ms: 0.217869
+  duration_ms: 0.293252
   type: 'test'
   ...
 1..7
@@ -243,7 +243,7 @@ ok 7 - un total manquant compte pour zéro, il ne casse pas la somme
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 85.957974
+# duration_ms 115.63704
 
 ══════════════════════════════════════════════════════════════
 ▶ Ventilation en euros par société
@@ -252,67 +252,67 @@ TAP version 13
 # Subtest: chaque société porte le prix de ce qu'elle reçoit
 ok 1 - chaque société porte le prix de ce qu'elle reçoit
   ---
-  duration_ms: 1.664674
+  duration_ms: 1.807759
   type: 'test'
   ...
 # Subtest: une ligne sans répartition n'est imputée à personne
 ok 2 - une ligne sans répartition n'est imputée à personne
   ---
-  duration_ms: 0.175866
+  duration_ms: 0.18507
   type: 'test'
   ...
 # Subtest: les centimes ne dérivent pas sur beaucoup de lignes
 ok 3 - les centimes ne dérivent pas sur beaucoup de lignes
   ---
-  duration_ms: 0.338521
+  duration_ms: 0.378251
   type: 'test'
   ...
 # Subtest: un total absurde ne casse pas la somme
 ok 4 - un total absurde ne casse pas la somme
   ---
-  duration_ms: 0.183747
+  duration_ms: 0.186732
   type: 'test'
   ...
 # Subtest: la ventilation par fournisseur va du plus gros au plus petit
 ok 5 - la ventilation par fournisseur va du plus gros au plus petit
   ---
-  duration_ms: 0.405732
+  duration_ms: 0.382077
   type: 'test'
   ...
 # Subtest: une commande sans fournisseur reste comptée, sous un nom lisible
 ok 6 - une commande sans fournisseur reste comptée, sous un nom lisible
   ---
-  duration_ms: 0.15868
+  duration_ms: 0.193883
   type: 'test'
   ...
 # Subtest: le détail commande par commande garde le lien avec la commande
 ok 7 - le détail commande par commande garde le lien avec la commande
   ---
-  duration_ms: 0.236317
+  duration_ms: 0.247153
   type: 'test'
   ...
 # Subtest: une part ne vaut jamais NaN, même sans rien à ventiler
 ok 8 - une part ne vaut jamais NaN, même sans rien à ventiler
   ---
-  duration_ms: 0.150868
+  duration_ms: 0.133281
   type: 'test'
   ...
 # Subtest: le CSV sort au format qu'attend un Excel français
 ok 9 - le CSV sort au format qu'attend un Excel français
   ---
-  duration_ms: 0.448928
+  duration_ms: 0.499745
   type: 'test'
   ...
 # Subtest: une cellule qui contient un point-virgule ou un guillemet est encadrée
 ok 10 - une cellule qui contient un point-virgule ou un guillemet est encadrée
   ---
-  duration_ms: 0.443419
+  duration_ms: 0.404881
   type: 'test'
   ...
 # Subtest: le nom du fichier porte la période exportée
 ok 11 - le nom du fichier porte la période exportée
   ---
-  duration_ms: 0.216306
+  duration_ms: 0.212661
   type: 'test'
   ...
 1..11
@@ -323,7 +323,7 @@ ok 11 - le nom du fichier porte la période exportée
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 93.252983
+# duration_ms 121.976811
 
 ══════════════════════════════════════════════════════════════
 ▶ Unité de vente et conditionnement
@@ -332,97 +332,97 @@ TAP version 13
 # Subtest: l'unité de vente d'un fournisseur se relit
 ok 1 - l'unité de vente d'un fournisseur se relit
   ---
-  duration_ms: 1.694899
+  duration_ms: 2.289417
   type: 'test'
   ...
 # Subtest: le conditionnement d'une offre se relit
 ok 2 - le conditionnement d'une offre se relit
   ---
-  duration_ms: 0.328286
+  duration_ms: 0.400355
   type: 'test'
   ...
 # Subtest: un conditionnement qui ne dit pas combien n'est pas deviné
 ok 3 - un conditionnement qui ne dit pas combien n'est pas deviné
   ---
-  duration_ms: 0.117567
+  duration_ms: 0.169756
   type: 'test'
   ...
 # Subtest: le touret de 1000 m devient la couronne de 100 m
 ok 4 - le touret de 1000 m devient la couronne de 100 m
   ---
-  duration_ms: 0.216006
+  duration_ms: 0.282907
   type: 'test'
   ...
 # Subtest: les quatorze câbles du devis YESSS tombent juste
 ok 5 - les quatorze câbles du devis YESSS tombent juste
   ---
-  duration_ms: 0.191839
+  duration_ms: 0.246111
   type: 'test'
   ...
 # Subtest: cent pièces vendues en vrac deviennent le prix d'une pièce
 ok 6 - cent pièces vendues en vrac deviennent le prix d'une pièce
   ---
-  duration_ms: 0.116286
+  duration_ms: 0.163527
   type: 'test'
   ...
 # Subtest: cent pièces vendues par boîte de cent ne changent pas de prix
 ok 7 - cent pièces vendues par boîte de cent ne changent pas de prix
   ---
-  duration_ms: 0.136746
+  duration_ms: 0.130337
   type: 'test'
   ...
 # Subtest: vendu à la pièce et conditionné à la pièce : rien à faire
 ok 8 - vendu à la pièce et conditionné à la pièce : rien à faire
   ---
-  duration_ms: 0.158029
+  duration_ms: 0.191039
   type: 'test'
   ...
 # Subtest: sans conditionnement connu, le prix est repris tel quel et signalé
 ok 9 - sans conditionnement connu, le prix est repris tel quel et signalé
   ---
-  duration_ms: 0.326433
+  duration_ms: 0.419714
   type: 'test'
   ...
 # Subtest: des mètres ne se convertissent pas en pièces
 ok 10 - des mètres ne se convertissent pas en pièces
   ---
-  duration_ms: 0.34435
+  duration_ms: 0.421376
   type: 'test'
   ...
 # Subtest: une unité de vente absente laisse le prix intact
 ok 11 - une unité de vente absente laisse le prix intact
   ---
-  duration_ms: 0.165009
+  duration_ms: 1.071037
   type: 'test'
   ...
 # Subtest: la conversion dit d'où elle vient et où elle va
 ok 12 - la conversion dit d'où elle vient et où elle va
   ---
-  duration_ms: 0.107272
+  duration_ms: 0.14574
   type: 'test'
   ...
 # Subtest: le prix au mètre se calcule sans connaître le conditionnement
 ok 13 - le prix au mètre se calcule sans connaître le conditionnement
   ---
-  duration_ms: 0.13847
+  duration_ms: 0.133471
   type: 'test'
   ...
 # Subtest: un produit qui ne se vend pas à la longueur n'a pas de prix au mètre
 ok 14 - un produit qui ne se vend pas à la longueur n'a pas de prix au mètre
   ---
-  duration_ms: 0.113682
+  duration_ms: 0.096846
   type: 'test'
   ...
 # Subtest: le prix au mètre se déduit aussi d'une offre déjà enregistrée
 ok 15 - le prix au mètre se déduit aussi d'une offre déjà enregistrée
   ---
-  duration_ms: 0.099431
+  duration_ms: 0.127833
   type: 'test'
   ...
 # Subtest: une offre qui ne se compte pas en mètres n'a pas de prix au mètre
 ok 16 - une offre qui ne se compte pas en mètres n'a pas de prix au mètre
   ---
-  duration_ms: 0.075584
+  duration_ms: 0.09264
   type: 'test'
   ...
 1..16
@@ -433,7 +433,7 @@ ok 16 - une offre qui ne se compte pas en mètres n'a pas de prix au mètre
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 97.70473
+# duration_ms 124.187389
 
 ══════════════════════════════════════════════════════════════
 ▶ Comparatif des tarifs fournisseurs
@@ -442,61 +442,61 @@ TAP version 13
 # Subtest: le prix unitaire se déduit du conditionnement
 ok 1 - le prix unitaire se déduit du conditionnement
   ---
-  duration_ms: 1.873138
+  duration_ms: 2.046159
   type: 'test'
   ...
 # Subtest: sans conditionnement lisible, ni prix nul, il n'y a pas de prix unitaire
 ok 2 - sans conditionnement lisible, ni prix nul, il n'y a pas de prix unitaire
   ---
-  duration_ms: 0.227654
+  duration_ms: 0.277619
   type: 'test'
   ...
 # Subtest: la couronne la moins chère n'est pas le câble le moins cher
 ok 3 - la couronne la moins chère n'est pas le câble le moins cher
   ---
-  duration_ms: 0.355317
+  duration_ms: 0.349818
   type: 'test'
   ...
 # Subtest: à conditionnement égal, le moins cher reste le moins cher
 ok 4 - à conditionnement égal, le moins cher reste le moins cher
   ---
-  duration_ms: 0.250428
+  duration_ms: 0.288305
   type: 'test'
   ...
 # Subtest: un conditionnement à renseigner suspend la comparaison, et le dit
 ok 5 - un conditionnement à renseigner suspend la comparaison, et le dit
   ---
-  duration_ms: 0.306483
+  duration_ms: 0.367174
   type: 'test'
   ...
 # Subtest: des mètres et des pièces ne se comparent pas
 ok 6 - des mètres et des pièces ne se comparent pas
   ---
-  duration_ms: 0.184408
+  duration_ms: 0.179912
   type: 'test'
   ...
 # Subtest: une seule offre chiffrée ne désigne pas de meilleur prix
 ok 7 - une seule offre chiffrée ne désigne pas de meilleur prix
   ---
-  duration_ms: 0.215295
+  duration_ms: 0.244088
   type: 'test'
   ...
 # Subtest: deux fournisseurs au même prix unitaire ne départagent personne
 ok 8 - deux fournisseurs au même prix unitaire ne départagent personne
   ---
-  duration_ms: 0.144829
+  duration_ms: 0.167923
   type: 'test'
   ...
 # Subtest: aucune offre chiffrée : rien à dire
 ok 9 - aucune offre chiffrée : rien à dire
   ---
-  duration_ms: 0.330229
+  duration_ms: 0.351551
   type: 'test'
   ...
 # Subtest: le libellé distingue le mètre de la pièce, et garde les petits prix lisibles
 ok 10 - le libellé distingue le mètre de la pièce, et garde les petits prix lisibles
   ---
-  duration_ms: 0.437681
+  duration_ms: 0.456309
   type: 'test'
   ...
 1..10
@@ -507,7 +507,7 @@ ok 10 - le libellé distingue le mètre de la pièce, et garde les petits prix l
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 93.004703
+# duration_ms 117.115993
 
 ══════════════════════════════════════════════════════════════
 ▶ Références fournisseur par tableur
@@ -516,103 +516,103 @@ TAP version 13
 # Subtest: l'en-tête ouvre deux colonnes par fournisseur
 ok 1 - l'en-tête ouvre deux colonnes par fournisseur
   ---
-  duration_ms: 1.269186
+  duration_ms: 1.684753
   type: 'test'
   ...
 # Subtest: un produit sans offre chez un fournisseur laisse ses cellules vides
 ok 2 - un produit sans offre chez un fournisseur laisse ses cellules vides
   ---
-  duration_ms: 0.214534
+  duration_ms: 0.303278
   type: 'test'
   ...
 # Subtest: une référence « À renseigner » n'est pas recopiée comme une vraie
 ok 3 - une référence « À renseigner » n'est pas recopiée comme une vraie
   ---
-  duration_ms: 0.138789
+  duration_ms: 0.186742
   type: 'test'
   ...
 # Subtest: réimporter un export qu'on n'a pas touché n'écrit rien
 ok 4 - réimporter un export qu'on n'a pas touché n'écrit rien
   ---
-  duration_ms: 0.753879
+  duration_ms: 0.983786
   type: 'test'
   ...
 # Subtest: une référence remplie est apprise, et le prix suit
 ok 5 - une référence remplie est apprise, et le prix suit
   ---
-  duration_ms: 1.166021
+  duration_ms: 1.606576
   type: 'test'
   ...
 # Subtest: une cellule vidée n'efface pas une référence connue
 ok 6 - une cellule vidée n'efface pas une référence connue
   ---
-  duration_ms: 0.283308
+  duration_ms: 0.340635
   type: 'test'
   ...
 # Subtest: les prix se relisent à la française comme à l'anglaise
 ok 7 - les prix se relisent à la française comme à l'anglaise
   ---
-  duration_ms: 0.264399
+  duration_ms: 0.393724
   type: 'test'
   ...
 # Subtest: une cellule de prix vide ou illisible ne vaut pas zéro
 ok 8 - une cellule de prix vide ou illisible ne vaut pas zéro
   ---
-  duration_ms: 0.135094
+  duration_ms: 0.252882
   type: 'test'
   ...
 # Subtest: un identifiant inconnu est signalé, pas appliqué au hasard
 ok 9 - un identifiant inconnu est signalé, pas appliqué au hasard
   ---
-  duration_ms: 0.300574
+  duration_ms: 0.469589
   type: 'test'
   ...
 # Subtest: une colonne de fournisseur inconnu est signalée
 ok 10 - une colonne de fournisseur inconnu est signalée
   ---
-  duration_ms: 0.325902
+  duration_ms: 0.528869
   type: 'test'
   ...
 # Subtest: l'ordre des colonnes n'a pas d'importance
 ok 11 - l'ordre des colonnes n'a pas d'importance
   ---
-  duration_ms: 0.166241
+  duration_ms: 0.318711
   type: 'test'
   ...
 # Subtest: une cellule contenant un point-virgule survit à l'aller-retour
 ok 12 - une cellule contenant un point-virgule survit à l'aller-retour
   ---
-  duration_ms: 0.199511
+  duration_ms: 0.354315
   type: 'test'
   ...
 # Subtest: à défaut d'identifiant, le code suffit
 ok 13 - à défaut d'identifiant, le code suffit
   ---
-  duration_ms: 0.115344
+  duration_ms: 0.154924
   type: 'test'
   ...
 # Subtest: le code se reconnaît sans égard à la casse
 ok 14 - le code se reconnaît sans égard à la casse
   ---
-  duration_ms: 0.077708
+  duration_ms: 0.149175
   type: 'test'
   ...
 # Subtest: l'identifiant prime sur le code quand les deux sont là
 ok 15 - l'identifiant prime sur le code quand les deux sont là
   ---
-  duration_ms: 0.067583
+  duration_ms: 0.127973
   type: 'test'
   ...
 # Subtest: un code inconnu est signalé, pas appliqué au hasard
 ok 16 - un code inconnu est signalé, pas appliqué au hasard
   ---
-  duration_ms: 0.075934
+  duration_ms: 0.125169
   type: 'test'
   ...
 # Subtest: un fichier vide ou sans colonne clé ne fait rien
 ok 17 - un fichier vide ou sans colonne clé ne fait rien
   ---
-  duration_ms: 0.06606
+  duration_ms: 0.162515
   type: 'test'
   ...
 1..17
@@ -623,7 +623,7 @@ ok 17 - un fichier vide ou sans colonne clé ne fait rien
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 90.514509
+# duration_ms 127.694494
 
 ══════════════════════════════════════════════════════════════
 ▶ Compilation de l'interface
@@ -632,7 +632,7 @@ ok 17 - un fichier vide ou sans colonne clé ne fait rien
 > hmgcde-frontend@3.0.0 build
 > tsc --noEmit && vite build
 
-[36mvite v8.3.4 [32mbuilding client environment for production...[36m[39m
+[36mvite v8.3.8 [32mbuilding client environment for production...[36m[39m
 transforming...
 ✓ 1607 modules transformed.
 rendering chunks...
@@ -640,10 +640,15 @@ computing gzip size...
 dist/index.html                             0.78 kB │ gzip:   0.42 kB
 dist/assets/pdf.worker.min-SzY6Yteu.js  1,133.66 kB
 dist/assets/index-CJi5J_Mc.css             70.75 kB │ gzip:  13.31 kB
-dist/assets/pdf-C6uH5hwS.js               365.88 kB │ gzip: 108.05 kB
-dist/assets/xlsx-Bv_pSZNU.js              492.12 kB │ gzip: 160.37 kB
-dist/assets/index-C89hmFOZ.js             690.81 kB │ gzip: 187.24 kB
+dist/assets/pdf-CSbp4RH_.js               365.79 kB │ gzip: 108.02 kB
+dist/assets/xlsx-DR4W_luh.js              491.98 kB │ gzip: 160.32 kB
+dist/assets/index-CV-TJ3VZ.js             690.91 kB │ gzip: 187.27 kB
 
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
 [33m[33m[EVAL] [0mUse of direct `eval` function is strongly discouraged as it poses security risks and may cause issues with minification.
       [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m node_modules/pdfjs-dist/legacy/build/pdf.js:4549:24 [38;5;246m][0m
       [38;5;246m│[0m
@@ -654,12 +659,7 @@ dist/assets/index-C89hmFOZ.js             690.81 kB │ gzip: 187.24 kB
  [38;5;240m     │[0m [38;5;115mHelp[0m: Consider using indirect eval. For more information, check the documentation: https://rolldown.rs/guide/troubleshooting#avoiding-direct-eval
 [38;5;246m──────╯[0m
 [39m
-[33m[plugin builtin:vite-reporter] 
-(!) Some chunks are larger than 500 kB after minification. Consider:
-- Using dynamic import() to code-split the application
-- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
-- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
-[32m✓ built in 389ms[39m
+[32m✓ built in 538ms[39m
 
 ══════════════════════════════════════════════════════════════
 ▶ Création du schéma MySQL
@@ -671,7 +671,8 @@ dist/assets/index-C89hmFOZ.js             690.81 kB │ gzip: 187.24 kB
 ✓ migration appliquée : 001_init.sql
 ✓ migration appliquée : 002_role_demandeur.sql
 ✓ migration appliquée : 003_notifications_push.sql
-3 migration(s) appliquée(s).
+✓ migration appliquée : 004_demande_refusee.sql
+4 migration(s) appliquée(s).
 
 ══════════════════════════════════════════════════════════════
 ▶ Amorçage des données
@@ -736,6 +737,12 @@ Test de l'API sur http://127.0.0.1:3001
   ✓ demande d'achat enregistrée
   ✓ le serveur attribue le numéro de demande
   ✓ la demande est relue avec ses lignes
+  ✓ refus enregistré
+  ✓ la demande reste refusée
+  ✓ le motif du refus est conservé
+  ✓ le refus est daté
+  ✓ le refus s'annule
+  ✓ le motif ne survit pas à l'annulation du refus
   ✓ paramètres enregistrés
   ✓ l'objet de l'e-mail est conservé
   ✓ le nombre d'équipes est conservé
