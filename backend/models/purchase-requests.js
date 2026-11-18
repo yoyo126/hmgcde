@@ -22,7 +22,7 @@ const displayDate = (value) =>
 export const listRequests = async () => {
   const [requests, lines] = await Promise.all([
     query(
-      `SELECT id, code, requester, request_date, status, seen
+      `SELECT id, code, requester, request_date, status, refusal_reason, refused_at, seen
          FROM hmgcde_purchase_requests
         ORDER BY request_date DESC, id DESC`,
     ),
@@ -54,6 +54,8 @@ export const listRequests = async () => {
     requester: request.requester,
     date: displayDate(request.request_date),
     status: request.status,
+    ...(request.refusal_reason ? { refusalReason: request.refusal_reason } : {}),
+    ...(request.refused_at ? { refusedAt: displayDate(request.refused_at) } : {}),
     seen: Boolean(request.seen),
     lines: linesByRequest.get(request.id) || [],
   }));
@@ -76,6 +78,20 @@ export const nextRequestCode = async () => {
   );
   const dernier = Math.max(Number(rows[0]?.dernier) || 0, PREMIER_NUMERO - 1);
   return `DA-${year}-${String(dernier + 1).padStart(3, "0")}`;
+};
+
+/**
+ * Motif et date du refus.
+ *
+ * C'est le serveur qui date le refus : l'interface envoie une date déjà mise
+ * en forme pour l'affichage (« 18 novembre 2026 »), que SQL ne sait pas
+ * relire. Une demande qui n'est plus refusée perd les deux, sinon un refus
+ * annulé laissait son motif derrière lui.
+ */
+const champsRefus = (request, refuseLeDeja = null) => {
+  if (request.status !== "Refusée") return [null, null];
+  const motif = typeof request.refusalReason === "string" ? request.refusalReason.trim() : "";
+  return [motif ? motif.slice(0, 500) : null, refuseLeDeja || new Date()];
 };
 
 /**
@@ -115,14 +131,18 @@ const ecrireLignes = async (connection, requestId, lignes = []) => {
  */
 const insererDemande = (request, code) =>
   withTransaction(async (connection) => {
+    const [motif, refuseLe] = champsRefus(request);
     const [result] = await connection.execute(
-      `INSERT INTO hmgcde_purchase_requests (code, requester, request_date, status, seen)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO hmgcde_purchase_requests
+         (code, requester, request_date, status, refusal_reason, refused_at, seen)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         code,
         request.requester || "",
         toSqlDate(request.date),
         request.status || "À commander",
+        motif,
+        refuseLe,
         request.seen === false ? 0 : 1,
       ],
     );
@@ -141,20 +161,26 @@ export const createRequest = (request) =>
 export const updateRequest = (request) =>
   withTransaction(async (connection) => {
     const [rows] = await connection.execute(
-      "SELECT id FROM hmgcde_purchase_requests WHERE code = ?",
+      "SELECT id, refused_at FROM hmgcde_purchase_requests WHERE code = ?",
       [request.id],
     );
     if (!rows.length) return null;
     const requestId = rows[0].id;
+    // Un refus déjà daté garde sa date : rouvrir une demande puis la refuser
+    // à nouveau la redate, mais la corriger sans y toucher ne la change pas.
+    const [motif, refuseLe] = champsRefus(request, rows[0].refused_at);
 
     await connection.execute(
       `UPDATE hmgcde_purchase_requests
-          SET requester = ?, request_date = ?, status = ?, seen = ?
+          SET requester = ?, request_date = ?, status = ?,
+              refusal_reason = ?, refused_at = ?, seen = ?
         WHERE id = ?`,
       [
         request.requester || "",
         toSqlDate(request.date),
         request.status || "À commander",
+        motif,
+        refuseLe,
         request.seen === false ? 0 : 1,
         requestId,
       ],

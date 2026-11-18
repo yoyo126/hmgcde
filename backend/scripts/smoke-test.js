@@ -310,6 +310,49 @@ const run = async () => {
     request.payload?.requests?.find((item) => item.id === codeDemande)?.lines?.length === 1,
   );
 
+  // 9 bis. Refus d'une demande. « Refusée » n'était pas une valeur admise par
+  // la colonne : la base rejetait l'écriture, l'écran rechargeait et la
+  // demande repassait « À commander » sous les yeux de l'acheteur.
+  const refus = await call("PUT", "/purchase-requests", {
+    request: {
+      id: codeDemande,
+      requester: "Entrepôt HM Group",
+      date: "12 août 2026",
+      status: "Refusée",
+      refusalReason: "Stock suffisant à l'atelier",
+      seen: true,
+      lines: [{ productId: product.id, name: product.name, unit: product.unit, quantity: 3 }],
+    },
+  });
+  check("refus enregistré", refus.status === 200, JSON.stringify(refus.payload));
+  const refusee = refus.payload?.requests?.find((item) => item.id === codeDemande);
+  check("la demande reste refusée", refusee?.status === "Refusée", `reçu « ${refusee?.status} »`);
+  check(
+    "le motif du refus est conservé",
+    refusee?.refusalReason === "Stock suffisant à l'atelier",
+    `reçu « ${refusee?.refusalReason} »`,
+  );
+  check("le refus est daté", Boolean(refusee?.refusedAt), `reçu « ${refusee?.refusedAt} »`);
+
+  // Et le refus s'annule : la demande repart au traitement, sans son motif.
+  const reouverture = await call("PUT", "/purchase-requests", {
+    request: {
+      id: codeDemande,
+      requester: "Entrepôt HM Group",
+      date: "12 août 2026",
+      status: "À commander",
+      seen: true,
+      lines: [{ productId: product.id, name: product.name, unit: product.unit, quantity: 3 }],
+    },
+  });
+  const rouverte = reouverture.payload?.requests?.find((item) => item.id === codeDemande);
+  check("le refus s'annule", rouverte?.status === "À commander", `reçu « ${rouverte?.status} »`);
+  check(
+    "le motif ne survit pas à l'annulation du refus",
+    rouverte?.refusalReason === undefined && rouverte?.refusedAt === undefined,
+    `reçu « ${rouverte?.refusalReason} » / « ${rouverte?.refusedAt} »`,
+  );
+
   // 10. Paramètres : textes d'e-mail et nombre d'équipes.
   const settings = await call("PUT", "/settings", {
     settings: {
